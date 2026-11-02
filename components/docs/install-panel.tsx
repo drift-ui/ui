@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { Tabs as TabsPrimitive } from "radix-ui"
 
 import { CopyCommand } from "@/components/landing/copy-command"
@@ -24,13 +23,11 @@ const PACKAGE_MANAGER_ITEMS = PACKAGE_MANAGERS.map((value) => ({
 
 export function InstallPanel({
   slug,
-  registryUrl,
   dependencies,
   buildsOn,
   installPaths,
 }: {
   slug: string
-  registryUrl: string
   dependencies: string[]
   buildsOn: BuildsOn[]
   installPaths: string[]
@@ -61,21 +58,8 @@ export function InstallPanel({
         />
         <p className="mt-4 text-sm text-muted-foreground">
           The CLI also installs the npm packages and registry items it builds
-          on. Register the namespace once first with{" "}
-          <code className="font-mono text-xs break-all text-foreground">
-            {registryUrl}
-          </code>
-          . The CLI fills in{" "}
-          <code className="font-mono text-xs text-foreground">{"{style}"}</code>{" "}
-          from your components.json and installs the Base UI or Radix build to
-          match. See{" "}
-          <Link
-            href="/#install"
-            className="text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground"
-          >
-            setup
-          </Link>
-          .
+          on, and reads the style in your components.json to pick the Base UI or
+          Radix build.
         </p>
       </TabsPrimitive.Content>
       <TabsPrimitive.Content value="manual" className="p-5 outline-none">

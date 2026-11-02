@@ -39,7 +39,7 @@ export default function ComponentsPage() {
             href="/#install"
             className="group flex w-fit shrink-0 rise items-center gap-1.5 text-sm text-muted-foreground transition-colors [--rise-delay:160ms] hover:text-foreground"
           >
-            First time? Register the @drift-ui namespace
+            First time? See how to install
             <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>

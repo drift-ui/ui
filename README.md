@@ -12,25 +12,15 @@ Components are grouped into inputs, structure, workflow and primitives. The prim
 
 ## Usage
 
-In a project that already ran `npx shadcn init`, register the namespace in `components.json`:
-
-```json
-{
-  "registries": {
-    "@drift-ui": "https://drift-ui.dev/r/{style}/{name}.json"
-  }
-}
-```
-
-The shadcn CLI fills in `{style}` from your `components.json`. A `base-` style such as `base-nova` gets the Base UI build, which never installs `radix-ui`, and any other style gets Radix. Namespaces registered with the older `/r/{name}.json` URL keep getting Radix.
-
-Then install the theme and any component:
+In a project that already ran `npx shadcn init`, install the theme and any component:
 
 ```bash
 npx shadcn add @drift-ui/theme @drift-ui/tags-input @drift-ui/tree-view
 ```
 
-Registry dependencies such as `utils`, `button` and `use-controllable-state` are installed automatically.
+`@drift-ui` is listed in the [shadcn registry directory](https://ui.shadcn.com/docs/directory), so the CLI knows the namespace without any setup. Registry dependencies such as `utils`, `button` and `use-controllable-state` are installed automatically.
+
+The CLI picks a build from the `style` in your `components.json`. A `base-` style such as `base-nova` gets the Base UI build, which never installs `radix-ui`, and any other style gets Radix. A `@drift-ui` entry under `registries` in `components.json` overrides the directory, so if you registered the older `/r/{name}.json` URL you will keep getting Radix until you delete that entry.
 
 ### For AI agents
 

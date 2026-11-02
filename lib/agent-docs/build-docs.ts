@@ -26,10 +26,6 @@ const MCP_CLIENTS = "claude, cursor, vscode, codex or opencode"
 
 const items = registry.items as RegistryItem[]
 
-export function registryUrl(siteUrl = siteConfig.url) {
-  return `${siteUrl}/r/{style}/{name}.json`
-}
-
 function itemUrl(siteUrl: string, name: string) {
   return `${siteUrl}/r/${name}.json`
 }
@@ -48,10 +44,9 @@ export function buildAgentPrompt(siteUrl = siteConfig.url) {
 drift-ui is a shadcn-compatible component registry built on Radix or Base UI with Tailwind v4. Read ${siteUrl}/llms.txt for the component list and ${siteUrl}/llms-full.txt for props and usage examples before writing code.
 
 1. Make sure the project uses shadcn. If there is no components.json, run \`npx shadcn@latest init\` and accept the defaults that match the project.
-2. Register the namespace: \`npx shadcn@latest registry add @drift-ui=${registryUrl(siteUrl)}\`. The CLI fills in {style} from components.json, so a \`base-\` style gets the Base UI build and any other style gets Radix.
-3. Choose the components this task needs from llms.txt and install them, for example \`npx shadcn@latest add @drift-ui/tags-input @drift-ui/stepper\`. The CLI also installs their registry and npm dependencies.
-4. Import them from the project's ui alias, usually @/components/ui/<name>. Compose them in feature code rather than editing the installed files, and keep the project's existing theme tokens.
-5. Run the project's typecheck and lint, then list the components you installed and where you used them.
+2. Choose the components this task needs from llms.txt and install them, for example \`npx shadcn@latest add @drift-ui/tags-input @drift-ui/stepper\`. The @drift-ui namespace is built into the shadcn CLI, so do not add it to components.json. The CLI also installs their registry and npm dependencies, and picks the Base UI build for a \`base-\` style and Radix for any other.
+3. Import them from the project's ui alias, usually @/components/ui/<name>. Compose them in feature code rather than editing the installed files, and keep the project's existing theme tokens.
+4. Run the project's typecheck and lint, then list the components you installed and where you used them.
 
 Optional: \`npx shadcn@latest mcp init --client <client>\` (${MCP_CLIENTS}) lets you search and install from the registry over MCP.`
 }
@@ -64,7 +59,7 @@ export function buildLlmsIndex(siteUrl = siteConfig.url) {
 
 > ${siteConfig.description}
 
-Register the namespace with \`npx shadcn@latest registry add @drift-ui=${registryUrl(siteUrl)}\`, then install any item with \`npx shadcn@latest add @drift-ui/<name>\`. Each link below is the item's registry JSON, which contains its full source.
+Install any item with \`npx shadcn@latest add @drift-ui/<name>\`. The @drift-ui namespace is built into the shadcn CLI, so there is nothing to register. Each link below is the item's registry JSON, which contains its full source.
 
 ## Docs
 

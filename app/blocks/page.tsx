@@ -39,7 +39,7 @@ export default function BlocksPage() {
             href="/#install"
             className="group flex w-fit rise items-center gap-1.5 text-sm text-muted-foreground transition-colors [--rise-delay:240ms] hover:text-foreground"
           >
-            First time? Register the @drift-ui namespace
+            First time? See how to install
             <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </header>

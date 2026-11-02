@@ -16,7 +16,6 @@ import { PreviewStage } from "@/components/docs/preview-stage"
 import { PreviewTabs } from "@/components/docs/preview-tabs"
 import { SourceFiles } from "@/components/docs/source-files"
 import { JsonLd } from "@/components/seo/json-ld"
-import { registryUrl } from "@/lib/agent-docs/build-docs"
 import { COMPONENT_API } from "@/lib/agent-docs/component-api"
 import { COMPONENT_USAGE } from "@/lib/agent-docs/component-usage"
 import { toBaseUiItem } from "@/lib/base-ui-registry"
@@ -170,7 +169,6 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
         <DocSection id="installation" title="Installation">
           <InstallPanel
             slug={entry.slug}
-            registryUrl={registryUrl()}
             dependencies={source.dependencies}
             buildsOn={resolveBuildsOn(entry, library)}
             installPaths={listInstallPaths(source)}
