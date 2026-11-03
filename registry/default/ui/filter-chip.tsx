@@ -281,7 +281,7 @@ function DateValueEditor({
             defaultMonth={dateRange?.from}
             selected={dateRange}
             onSelect={handleRangeSelect}
-            initialFocus
+            autoFocus
           />
         ) : (
           <Calendar
@@ -289,7 +289,7 @@ function DateValueEditor({
             defaultMonth={singleDate}
             selected={singleDate}
             onSelect={handleSingleSelect}
-            initialFocus
+            autoFocus
           />
         )}
       </PopoverContent>
