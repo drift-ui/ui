@@ -66,6 +66,22 @@ function rootIdOf(comment: Comment, byId: Map<string, Comment>) {
   return current.id
 }
 
+export function hasLiveDescendant(comments: Comment[], id: string) {
+  const pending = [id]
+  const visited = new Set<string>()
+  while (pending.length > 0) {
+    const parentId = pending.pop()!
+    if (visited.has(parentId)) continue
+    visited.add(parentId)
+    for (const comment of comments) {
+      if (comment.parentId !== parentId || visited.has(comment.id)) continue
+      if (!comment.deleted) return true
+      pending.push(comment.id)
+    }
+  }
+  return false
+}
+
 export function buildThread(comments: Comment[]): CommentNode[] {
   const byId = new Map(comments.map((comment) => [comment.id, comment]))
   const nodes = new Map<string, CommentNode>()
@@ -79,7 +95,7 @@ export function buildThread(comments: Comment[]): CommentNode[] {
       })
       continue
     }
-    if (comment.deleted) continue
+    if (comment.deleted && !hasLiveDescendant(comments, comment.id)) continue
     const root = nodes.get(rootId)
     if (root) root.replies.push(comment)
     else nodes.set(rootId, { comment: byId.get(rootId)!, replies: [comment] })
@@ -96,7 +112,9 @@ export function buildThread(comments: Comment[]): CommentNode[] {
 export function countVisible(nodes: CommentNode[]) {
   return nodes.reduce(
     (total, node) =>
-      total + (node.comment.deleted ? 0 : 1) + node.replies.length,
+      total +
+      (node.comment.deleted ? 0 : 1) +
+      node.replies.filter((reply) => !reply.deleted).length,
     0
   )
 }
@@ -173,10 +191,7 @@ export function deleteComment(comments: Comment[], id: string): Comment[] {
   const target = comments.find((comment) => comment.id === id)
   if (!target) return comments
 
-  const hasReplies = comments.some(
-    (comment) => comment.parentId === id && !comment.deleted
-  )
-  if (hasReplies) {
+  if (hasLiveDescendant(comments, id)) {
     return comments.map((comment) =>
       comment.id === id
         ? { ...comment, body: "", deleted: true, reactions: [] }
@@ -184,18 +199,17 @@ export function deleteComment(comments: Comment[], id: string): Comment[] {
     )
   }
 
-  const remaining = comments.filter((comment) => comment.id !== id)
-  const parent = target.parentId
-    ? remaining.find((comment) => comment.id === target.parentId)
-    : undefined
-  const parentIsEmpty =
-    parent?.deleted &&
-    !remaining.some(
-      (comment) => comment.parentId === parent.id && !comment.deleted
-    )
-  return parentIsEmpty
-    ? remaining.filter((comment) => comment.id !== parent.id)
-    : remaining
+  let remaining = comments.filter((comment) => comment.id !== id)
+  const visited = new Set([id])
+  let parentId = target.parentId
+  while (parentId && !visited.has(parentId)) {
+    visited.add(parentId)
+    const parent = remaining.find((comment) => comment.id === parentId)
+    if (!parent?.deleted || hasLiveDescendant(remaining, parent.id)) break
+    remaining = remaining.filter((comment) => comment.id !== parent.id)
+    parentId = parent.parentId
+  }
+  return remaining
 }
 
 export function toggleReaction(

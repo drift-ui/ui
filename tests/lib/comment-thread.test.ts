@@ -104,6 +104,20 @@ describe("buildThread", () => {
     expect(countVisible(nodes)).toBe(2)
   })
 
+  it("keeps a deleted reply as a placeholder while it has live replies", () => {
+    const nodes = buildThread([
+      comment("a"),
+      comment("b", "a", { deleted: true, body: "" }),
+      comment("c", "b"),
+    ])
+
+    expect(nodes[0].replies.map((r) => [r.id, !!r.deleted])).toEqual([
+      ["b", true],
+      ["c", false],
+    ])
+    expect(countVisible(nodes)).toBe(2)
+  })
+
   it("keeps a deleted comment only while it has replies", () => {
     expect(
       buildThread([comment("a", undefined, { deleted: true })])
@@ -203,6 +217,31 @@ describe("comment reducers", () => {
     const start = deleteComment([comment("a"), comment("a1", "a")], "a")
 
     expect(deleteComment(start, "a1")).toEqual([])
+  })
+
+  it("keeps a parent whose only child is a placeholder with live replies", () => {
+    const start = [
+      comment("a"),
+      comment("b", "a", { deleted: true, body: "" }),
+      comment("c", "b"),
+    ]
+
+    expect(deleteComment(start, "a").map((c) => [c.id, !!c.deleted])).toEqual([
+      ["a", true],
+      ["b", true],
+      ["c", false],
+    ])
+  })
+
+  it("prunes every empty placeholder above the last live reply", () => {
+    const start = [
+      comment("a", undefined, { deleted: true, body: "" }),
+      comment("b", "a", { deleted: true, body: "" }),
+      comment("c", "b"),
+      comment("other"),
+    ]
+
+    expect(deleteComment(start, "c").map((c) => c.id)).toEqual(["other"])
   })
 
   it("ignores unknown ids", () => {
