@@ -584,7 +584,9 @@ describe("CommentThread", () => {
   it("shows an empty state and hides Resolve without comments", () => {
     renderThread({ defaultComments: [] })
 
-    expect(screen.getByText("No comments yet.")).toBeInTheDocument()
+    expect(
+      screen.getByText("No comments yet. Start the thread below.")
+    ).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Resolve thread" })).toBeNull()
   })
 

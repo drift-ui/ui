@@ -302,7 +302,7 @@ function ReactionPicker({
       onBlur={(event) => {
         if (event.relatedTarget && !isInside(event.relatedTarget)) onDismiss()
       }}
-      className="absolute right-0 bottom-full z-20 mb-1 flex w-max gap-0.5 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md"
+      className="absolute right-0 bottom-full z-20 mb-1 flex w-max origin-bottom-right gap-0.5 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:slide-in-from-bottom-1"
     >
       {options.map((option, index) => (
         <button
@@ -952,7 +952,11 @@ function CommentThread({
             ))}
           </ol>
         ) : (
-          <p className="text-sm text-muted-foreground">No comments yet.</p>
+          <p className="text-sm text-muted-foreground">
+            {canWrite
+              ? "No comments yet. Start the thread below."
+              : "No comments yet."}
+          </p>
         )}
         {canWrite && (
           <CommentComposer
