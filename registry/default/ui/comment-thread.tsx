@@ -375,6 +375,7 @@ function CommentThread({
   locale,
   className,
   "aria-label": ariaLabel = "Comment thread",
+  ref,
   ...props
 }: Omit<React.ComponentProps<"section">, "children"> & {
   comments?: Comment[]
@@ -405,7 +406,7 @@ function CommentThread({
     defaultValue: defaultComments,
     onChange: onCommentsChange,
   })
-  const latestList = useLatest(list)
+  const latestListRef = useLatest(list)
   const { value: isResolved, setValue: setIsResolved } = useControllableState({
     value: resolved,
     defaultValue: defaultResolved,
@@ -424,6 +425,8 @@ function CommentThread({
     null
   )
   const [pickerId, setPickerId] = React.useState<string | null>(null)
+  const latestEditingIdRef = useLatest(editingId)
+  const latestReplyRef = useLatest(reply)
   const pendingFocusRef = React.useRef<string[] | null>(null)
   const [announcement, setAnnouncement] = React.useState("")
   const [isDeleting, startDeleting] = React.useTransition()
@@ -470,11 +473,26 @@ function CommentThread({
     return currentUser !== undefined && comment.author.id === currentUser.id
   }
 
+  const setRootRef = React.useCallback(
+    (node: HTMLElement | null) => {
+      rootRef.current = node
+      if (typeof ref === "function") return ref(node)
+      if (ref) ref.current = node
+    },
+    [ref]
+  )
+
+  function commitList(update: (current: Comment[]) => Comment[]) {
+    const next = update(latestListRef.current)
+    latestListRef.current = next
+    setList(next)
+  }
+
   async function postComment(parentId: string | null, body: string) {
     if (!currentUser) return
     await onReply?.(parentId, body, extractMentions(body, mentionSuggestions))
-    setList(
-      addComment(latestList.current, {
+    commitList((current) =>
+      addComment(current, {
         id: createId(),
         parentId,
         author: currentUser,
@@ -497,8 +515,9 @@ function CommentThread({
     })
   }
 
-  function closeReply() {
-    if (reply) focusAfterRender([`reply:${reply.originId}`])
+  function closeReply(originId: string) {
+    if (latestReplyRef.current?.originId !== originId) return
+    focusAfterRender([`reply:${originId}`])
     setReply(null)
   }
 
@@ -510,9 +529,12 @@ function CommentThread({
         body,
         extractMentions(body, mentionSuggestions)
       )
-      setList(editComment(latestList.current, comment.id, body, new Date()))
+      commitList((current) =>
+        editComment(current, comment.id, body, new Date())
+      )
       setAnnouncement("Comment updated")
     }
+    if (latestEditingIdRef.current !== comment.id) return
     setEditingId(null)
     focusAfterRender([`edit:${comment.id}`])
   }
@@ -535,7 +557,7 @@ function CommentThread({
     startDeleting(async () => {
       try {
         await onDelete?.(comment.id)
-        setList(deleteComment(latestList.current, comment.id))
+        commitList((current) => deleteComment(current, comment.id))
         setConfirmingId(null)
         setAnnouncement("Comment deleted")
         focusAfterRender(fallbacks)
@@ -547,7 +569,9 @@ function CommentThread({
 
   function react(comment: Comment, emoji: string) {
     if (!currentUser || comment.deleted) return
-    setList(toggleReaction(list, comment.id, emoji, currentUser.id))
+    commitList((current) =>
+      toggleReaction(current, comment.id, emoji, currentUser.id)
+    )
     onReactionToggle?.(comment.id, emoji)
   }
 
@@ -861,7 +885,7 @@ function CommentThread({
 
   return (
     <section
-      ref={rootRef}
+      ref={setRootRef}
       data-slot="comment-thread"
       data-resolved={isResolved || undefined}
       aria-label={ariaLabel}
@@ -951,9 +975,9 @@ function CommentThread({
                         autoFocus
                         onSubmit={async (body) => {
                           await postComment(node.comment.id, body)
-                          closeReply()
+                          closeReply(reply.originId)
                         }}
-                        onCancel={closeReply}
+                        onCancel={() => closeReply(reply.originId)}
                       />
                     )}
                   </div>

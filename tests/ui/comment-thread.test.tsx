@@ -1,5 +1,5 @@
 import * as React from "react"
-import { render, screen, waitFor, within } from "@testing-library/react"
+import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -141,6 +141,78 @@ describe("CommentThread", () => {
     expect(editor.querySelector('[data-slot="avatar"]')).toBeNull()
   })
 
+  it("keeps both comments when two saves resolve in the same tick", async () => {
+    const user = userEvent.setup()
+    const pending: (() => void)[] = []
+    const onCommentsChange = vi.fn()
+    renderThread({
+      onCommentsChange,
+      onReply: () =>
+        new Promise<void>((resolve) => {
+          pending.push(resolve)
+        }),
+    })
+
+    await user.type(composer(), "First")
+    await user.click(screen.getByRole("button", { name: "Comment" }))
+    await user.click(
+      within(article("Should this retry")).getByRole("button", {
+        name: "Reply to Tomasz Wierzba",
+      })
+    )
+    await user.type(screen.getByRole("textbox", { name: "Reply" }), "Second")
+    await user.click(screen.getByRole("button", { name: "Reply" }))
+    expect(pending).toHaveLength(2)
+
+    await act(async () => {
+      pending.forEach((resolve) => resolve())
+    })
+
+    const bodies = onCommentsChange.mock.lastCall![0].map(
+      (comment: Comment) => comment.body
+    )
+    expect(bodies).toEqual(expect.arrayContaining(["First", "Second"]))
+    expect(article("First")).toBeDefined()
+    expect(article("Second")).toBeDefined()
+  })
+
+  it("leaves another comment's editor open when a slow save finishes", async () => {
+    const user = userEvent.setup()
+    let finish = () => {}
+    renderThread({
+      defaultComments: [
+        { id: "a", author: me, body: "First draft", createdAt: NOW },
+        { id: "b", author: me, body: "Second note", createdAt: NOW },
+      ],
+      onEdit: () =>
+        new Promise<void>((resolve) => {
+          finish = resolve
+        }),
+    })
+
+    await user.click(
+      within(article("First draft")).getByRole("button", {
+        name: "Edit comment",
+      })
+    )
+    await user.type(
+      screen.getByRole("textbox", { name: "Edit comment" }),
+      " v2"
+    )
+    await user.click(screen.getByRole("button", { name: "Save" }))
+    await user.click(
+      within(article("Second note")).getByRole("button", {
+        name: "Edit comment",
+      })
+    )
+    await act(async () => finish())
+
+    expect(screen.getByRole("textbox", { name: "Edit comment" })).toHaveValue(
+      "Second note"
+    )
+    expect(screen.getByText("First draft v2")).toBeInTheDocument()
+  })
+
   it("does not submit a blank comment", async () => {
     const user = userEvent.setup()
     const onReply = vi.fn()
@@ -272,7 +344,8 @@ describe("CommentThread", () => {
       "Yes, backoff. cc @tomasz first",
       ["tomasz"]
     )
-    const edited = await waitFor(() => article("cc @tomasz first"))
+    await waitFor(() => expect(article("cc @tomasz first")).toBeDefined())
+    const edited = article("cc @tomasz first")
     expect(within(edited).getByText("(edited)")).toBeInTheDocument()
     expect(
       within(edited).getByRole("button", { name: "Edit comment" })
@@ -612,6 +685,21 @@ describe("CommentThread", () => {
       screen.getByRole("article", { name: "Tomasz Wierzba" })
     ).toBeInTheDocument()
     expect(document.querySelector("time")).toBeNull()
+  })
+
+  it("forwards a ref without breaking focus restoration", async () => {
+    const user = userEvent.setup()
+    const ref = React.createRef<HTMLElement>()
+    renderThread({ ref })
+
+    expect(ref.current).toHaveAttribute("data-slot", "comment-thread")
+    const button = within(article("Should this retry")).getByRole("button", {
+      name: "Reply to Tomasz Wierzba",
+    })
+    await user.click(button)
+    await user.keyboard("{Escape}")
+
+    expect(button).toHaveFocus()
   })
 
   it("spreads props and className onto the section", () => {
