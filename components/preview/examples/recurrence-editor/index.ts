@@ -25,7 +25,7 @@ export const examples: ComponentExample[] = [
     id: "calendar-fixtures",
     title: "Calendar exports and BYSETPOS",
     description:
-      "Full support for real-world exports from Google Calendar, Outlook, and Apple Calendar with BYSETPOS and unknown part preservation.",
+      "Round-trips real-world exports from Google Calendar, Outlook, and Apple Calendar with BYSETPOS while preserving unhandled parts like WKST on serialization.",
     Preview: RecurrenceEditorCalendarFixturesPreview,
   },
   {

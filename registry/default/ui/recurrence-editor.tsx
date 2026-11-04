@@ -155,8 +155,16 @@ function RecurrenceEditor({
     year: "numeric",
   })
 
+  const isMultiline = rule.includes("\n") || rule.includes("\r")
+  const hasPrefix = /^RRULE:/i.test(rule.trim())
+
   function update(patch: Partial<Recurrence>) {
-    setRule(formatRRule({ ...recurrence, ...patch }))
+    setRule(
+      formatRRule(
+        { ...recurrence, ...patch },
+        { multiline: isMultiline, prefix: hasPrefix }
+      )
+    )
   }
 
   function changeFrequency(next: Frequency) {

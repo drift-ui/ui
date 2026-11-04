@@ -203,6 +203,7 @@ describe("RecurrenceEditor", () => {
         .getAllByRole("option")
         .map((option) => option.textContent)
     ).toContain("On the last weekday")
+    expect(select).toHaveDisplayValue("On the last weekday")
   })
 
   it("filters excluded dates passed via exdates in the occurrences preview", () => {

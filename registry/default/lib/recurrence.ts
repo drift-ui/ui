@@ -97,7 +97,7 @@ function positiveInteger(text: string | undefined) {
 
 function parseByDay(text = ""): WeekdayRule[] {
   return text.split(",").flatMap((part) => {
-    const match = BY_DAY.exec(part.trim())
+    const match = BY_DAY.exec(part.trim().toUpperCase())
     if (!match) return []
     const [, ordinal, weekday] = match
     return [
@@ -108,39 +108,225 @@ function parseByDay(text = ""): WeekdayRule[] {
   })
 }
 
-function parseIcalDate(text = ""): Date | undefined {
+function getZonedDateTimeParts(date: Date, timeZone?: string) {
+  if (!timeZone) {
+    return {
+      year: date.getFullYear(),
+      month: date.getMonth(),
+      day: date.getDate(),
+      hour: date.getHours(),
+      minute: date.getMinutes(),
+      second: date.getSeconds(),
+    }
+  }
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  })
+  const parts = formatter.formatToParts(date)
+  const map: Record<string, number> = {}
+  for (const part of parts) {
+    if (part.type !== "literal") {
+      map[part.type] = Number(part.value)
+    }
+  }
+  return {
+    year: map.year ?? date.getFullYear(),
+    month: (map.month ?? 1) - 1,
+    day: map.day ?? 1,
+    hour: (map.hour ?? 0) % 24,
+    minute: map.minute ?? 0,
+    second: map.second ?? 0,
+  }
+}
+
+function makeZonedDate(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+  timeZone?: string
+): Date | null {
+  if (!timeZone) {
+    const d = new Date(year, month, day, hour, minute, second)
+    if (d.getHours() !== hour || d.getMinutes() !== minute) return null
+    return d
+  }
+
+  const utcGuess = Date.UTC(year, month, day, hour, minute, second)
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: false,
+  })
+
+  function getParts(ts: number) {
+    const p = formatter.formatToParts(new Date(ts))
+    const m: Record<string, number> = {}
+    for (const part of p) {
+      if (part.type !== "literal") m[part.type] = Number(part.value)
+    }
+    return {
+      year: m.year,
+      month: (m.month ?? 1) - 1,
+      day: m.day,
+      hour: (m.hour ?? 0) % 24,
+      minute: m.minute ?? 0,
+      second: m.second ?? 0,
+    }
+  }
+
+  let cur = getParts(utcGuess)
+  let curUtc = Date.UTC(
+    cur.year,
+    cur.month,
+    cur.day,
+    cur.hour,
+    cur.minute,
+    cur.second
+  )
+  let offset = curUtc - utcGuess
+  const targetTs = utcGuess - offset
+
+  cur = getParts(targetTs)
+  if (
+    cur.hour !== hour ||
+    cur.minute !== minute ||
+    cur.day !== day ||
+    cur.month !== month ||
+    cur.year !== year
+  ) {
+    curUtc = Date.UTC(
+      cur.year,
+      cur.month,
+      cur.day,
+      cur.hour,
+      cur.minute,
+      cur.second
+    )
+    offset = curUtc - targetTs
+    const refinedTs = utcGuess - offset
+    const refinedParts = getParts(refinedTs)
+    if (
+      refinedParts.hour !== hour ||
+      refinedParts.minute !== minute ||
+      refinedParts.day !== day
+    ) {
+      return null
+    }
+    return new Date(refinedTs)
+  }
+  return new Date(targetTs)
+}
+
+type DateWithPrecision = Date & { isDateOnly?: boolean }
+
+function markDateOnly(date: Date, value: boolean): DateWithPrecision {
+  const tagged = date as DateWithPrecision
+  tagged.isDateOnly = value
+  return tagged
+}
+
+function isDateOnly(date: Date): boolean {
+  if (
+    "isDateOnly" in date &&
+    typeof (date as DateWithPrecision).isDateOnly === "boolean"
+  ) {
+    return Boolean((date as DateWithPrecision).isDateOnly)
+  }
+  return (
+    date.getHours() === 0 &&
+    date.getMinutes() === 0 &&
+    date.getSeconds() === 0 &&
+    date.getMilliseconds() === 0
+  )
+}
+
+function parseIcalDate(
+  text = "",
+  tzid?: string
+): DateWithPrecision | undefined {
   const trimmed = text.trim()
   const match = UNTIL.exec(trimmed)
   if (!match) {
     const parsed = new Date(trimmed)
-    return Number.isNaN(parsed.getTime()) ? undefined : parsed
+    if (Number.isNaN(parsed.getTime())) return undefined
+    if (!trimmed.includes("T") && !/\d{1,2}:\d{2}/.test(trimmed)) {
+      markDateOnly(parsed, true)
+    }
+    return parsed as DateWithPrecision
   }
-  const [
-    ,
-    year,
-    month,
-    day,
-    hours = "23",
-    minutes = "59",
-    seconds = "59",
-    utc,
-  ] = match
-  const fields = [
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hours),
-    Number(minutes),
-    Number(seconds),
-  ] as const
-  return utc ? new Date(Date.UTC(...fields)) : new Date(...fields)
+  const [, year, month, day, hours, minutes, seconds, utc] = match
+  const y = Number(year)
+  const m = Number(month) - 1
+  const d = Number(day)
+
+  if (hours === undefined) {
+    const date =
+      makeZonedDate(y, m, d, 0, 0, 0, tzid) ?? new Date(y, m, d, 0, 0, 0)
+    return markDateOnly(date, true)
+  }
+
+  const h = Number(hours)
+  const min = Number(minutes)
+  const sec = Number(seconds)
+  if (utc) {
+    const date = new Date(Date.UTC(y, m, d, h, min, sec))
+    return markDateOnly(date, false)
+  }
+
+  const date =
+    makeZonedDate(y, m, d, h, min, sec, tzid) ?? new Date(y, m, d, h, min, sec)
+  return markDateOnly(date, false)
 }
 
-function parseUntil(text = "") {
-  return parseIcalDate(text)
+function parseUntil(text = "", tzid?: string) {
+  const trimmed = text.trim()
+  const match = UNTIL.exec(trimmed)
+  if (!match) return parseIcalDate(trimmed, tzid)
+
+  const [, year, month, day, hours, minutes, seconds, utc] = match
+  const y = Number(year)
+  const m = Number(month) - 1
+  const d = Number(day)
+
+  if (hours === undefined) {
+    return (
+      makeZonedDate(y, m, d, 23, 59, 59, tzid) ?? new Date(y, m, d, 23, 59, 59)
+    )
+  }
+
+  const h = Number(hours)
+  const min = Number(minutes)
+  const sec = Number(seconds)
+  if (utc) {
+    return new Date(Date.UTC(y, m, d, h, min, sec))
+  }
+  return (
+    makeZonedDate(y, m, d, h, min, sec, tzid) ?? new Date(y, m, d, h, min, sec)
+  )
 }
 
 function formatIcalDate(date: Date) {
+  if (isDateOnly(date)) {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, "0")
+    const d = String(date.getDate()).padStart(2, "0")
+    return `${y}${m}${d}`
+  }
   return date
     .toISOString()
     .replace(/[-:]/g, "")
@@ -166,11 +352,12 @@ export function parseRRule(rule: string): Recurrence {
         const header = line.slice(0, colonIdx)
         const dateStr = line.slice(colonIdx + 1)
         const tzMatch = /TZID=([^;:]+)/i.exec(header)
-        if (tzMatch && !tzid) {
-          tzid = tzMatch[1]
+        const lineTzid = tzMatch ? tzMatch[1] : undefined
+        if (lineTzid && !tzid) {
+          tzid = lineTzid
         }
         for (const item of dateStr.split(",")) {
-          const d = parseIcalDate(item)
+          const d = parseIcalDate(item, lineTzid ?? tzid)
           if (d) exdates.push(d)
         }
       }
@@ -204,16 +391,16 @@ export function parseRRule(rule: string): Recurrence {
     if (key) parts.set(key, value)
   }
 
+  if (parts.has("TZID") && !tzid) {
+    tzid = parts.get("TZID")
+  }
+
   if (parts.has("EXDATE")) {
     const val = parts.get("EXDATE") ?? ""
     for (const item of val.split(",")) {
-      const d = parseIcalDate(item)
+      const d = parseIcalDate(item, tzid)
       if (d) exdates.push(d)
     }
-  }
-
-  if (parts.has("TZID") && !tzid) {
-    tzid = parts.get("TZID")
   }
 
   const unknownParts: Record<string, string> = {}
@@ -245,7 +432,7 @@ export function parseRRule(rule: string): Recurrence {
     byDay: parseByDay(parts.get("BYDAY")),
     byMonthDay,
     count: positiveInteger(parts.get("COUNT")),
-    until: parseUntil(parts.get("UNTIL")),
+    until: parseUntil(parts.get("UNTIL"), tzid),
   }
 
   if (byMonth.length > 0) recurrence.byMonth = byMonth
@@ -299,9 +486,8 @@ export function formatRRule(
     }
   }
 
-  const rruleBody = parts.join(";")
-
   if (options?.multiline) {
+    const rruleBody = parts.join(";")
     const lines = [`RRULE:${rruleBody}`]
     if (exdates && exdates.length > 0) {
       lines.push(`EXDATE:${exdates.map(formatIcalDate).join(",")}`)
@@ -309,7 +495,12 @@ export function formatRRule(
     return lines.join("\n")
   }
 
-  return options?.prefix ? `RRULE:${rruleBody}` : rruleBody
+  if (exdates && exdates.length > 0) {
+    parts.push(`EXDATE=${exdates.map(formatIcalDate).join(",")}`)
+  }
+
+  const finalBody = parts.join(";")
+  return options?.prefix ? `RRULE:${finalBody}` : finalBody
 }
 
 export function weekdayOf(date: Date): Weekday {
@@ -352,24 +543,74 @@ function resolveSetPos<T>(items: T[], setPos: number[]): T[] {
   return result
 }
 
-function matchesDayRules(recurrence: Recurrence, date: Date) {
+function weekdayOrdinalInYear(date: Date): {
+  fromStart: number
+  fromEnd: number
+} {
+  const year = date.getFullYear()
+  const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+  const totalDays = isLeap ? 366 : 365
+
+  const jan1 = new Date(year, 0, 1)
+  const jan1Day = (jan1.getDay() + 6) % 7
+  const targetDay = (date.getDay() + 6) % 7
+  const daysToFirst = (targetDay - jan1Day + 7) % 7
+
+  const diffTime =
+    Date.UTC(year, date.getMonth(), date.getDate()) - Date.UTC(year, 0, 1)
+  const dayOfYear = Math.round(diffTime / DAY_MS)
+  const fromStart = Math.floor((dayOfYear - daysToFirst) / 7) + 1
+
+  const dec31 = new Date(year, 11, 31)
+  const dec31Day = (dec31.getDay() + 6) % 7
+  const daysFromLast = (dec31Day - targetDay + 7) % 7
+  const lastDayOfYear = totalDays - 1 - daysFromLast
+  const fromEnd = -Math.floor((lastDayOfYear - dayOfYear) / 7) - 1
+
+  return { fromStart, fromEnd }
+}
+
+function matchesDayRules(
+  recurrence: Recurrence,
+  date: Date,
+  period: "month" | "year" = "month"
+) {
   const lastDay = daysInMonth(date)
+  let dayMatches = true
+
   if (recurrence.byDay.length > 0) {
-    const fromEnd = -Math.ceil((lastDay - date.getDate() + 1) / 7)
-    return recurrence.byDay.some(
-      (rule) =>
-        rule.weekday === weekdayOf(date) &&
-        (rule.ordinal === undefined ||
-          rule.ordinal === ordinalWeekOf(date) ||
-          rule.ordinal === fromEnd)
-    )
+    if (
+      period === "year" &&
+      (!recurrence.byMonth || recurrence.byMonth.length === 0)
+    ) {
+      const { fromStart, fromEnd } = weekdayOrdinalInYear(date)
+      dayMatches = recurrence.byDay.some(
+        (rule) =>
+          rule.weekday === weekdayOf(date) &&
+          (rule.ordinal === undefined ||
+            rule.ordinal === fromStart ||
+            rule.ordinal === fromEnd)
+      )
+    } else {
+      const fromEnd = -Math.ceil((lastDay - date.getDate() + 1) / 7)
+      dayMatches = recurrence.byDay.some(
+        (rule) =>
+          rule.weekday === weekdayOf(date) &&
+          (rule.ordinal === undefined ||
+            rule.ordinal === ordinalWeekOf(date) ||
+            rule.ordinal === fromEnd)
+      )
+    }
   }
+
+  let monthDayMatches = true
   if (recurrence.byMonthDay.length > 0) {
-    return recurrence.byMonthDay.some(
+    monthDayMatches = recurrence.byMonthDay.some(
       (day) => date.getDate() === (day > 0 ? day : lastDay + day + 1)
     )
   }
-  return true
+
+  return dayMatches && monthDayMatches
 }
 
 function matchesSetPos(
@@ -379,15 +620,12 @@ function matchesSetPos(
 ): boolean {
   if (!recurrence.bySetPos || recurrence.bySetPos.length === 0) return true
 
-  if (
-    period === "month" ||
-    (recurrence.byMonth && recurrence.byMonth.length > 0)
-  ) {
+  if (period === "month") {
     const totalDays = daysInMonth(date)
     const candidates: number[] = []
     for (let day = 1; day <= totalDays; day++) {
       const d = new Date(date.getFullYear(), date.getMonth(), day)
-      if (matchesDayRules(recurrence, d)) {
+      if (matchesDayRules(recurrence, d, "month")) {
         candidates.push(day)
       }
     }
@@ -400,12 +638,22 @@ function matchesSetPos(
   const totalYearDays = isLeap ? 366 : 365
   const cur = new Date(year, 0, 1)
   const matchingDates: number[] = []
+
   for (let i = 0; i < totalYearDays; i++) {
-    if (matchesDayRules(recurrence, cur)) {
+    const month = cur.getMonth() + 1
+    if (
+      (!recurrence.byMonth || recurrence.byMonth.includes(month)) &&
+      matchesDayRules(
+        recurrence,
+        cur,
+        recurrence.byMonth && recurrence.byMonth.length > 0 ? "month" : "year"
+      )
+    ) {
       matchingDates.push(cur.getTime())
     }
     cur.setDate(cur.getDate() + 1)
   }
+
   const selectedTimestamps = resolveSetPos(matchingDates, recurrence.bySetPos)
   const target = new Date(
     date.getFullYear(),
@@ -420,22 +668,11 @@ function matchesDayOfMonth(recurrence: Recurrence, start: Date, date: Date) {
     return matchesSetPos(recurrence, date, "month")
   }
 
-  const lastDay = daysInMonth(date)
-  if (recurrence.byDay.length > 0) {
-    const fromEnd = -Math.ceil((lastDay - date.getDate() + 1) / 7)
-    return recurrence.byDay.some(
-      (rule) =>
-        rule.weekday === weekdayOf(date) &&
-        (rule.ordinal === undefined ||
-          rule.ordinal === ordinalWeekOf(date) ||
-          rule.ordinal === fromEnd)
-    )
+  if (recurrence.byDay.length > 0 || recurrence.byMonthDay.length > 0) {
+    return matchesDayRules(recurrence, date, "month")
   }
-  const monthDays =
-    recurrence.byMonthDay.length > 0 ? recurrence.byMonthDay : [start.getDate()]
-  return monthDays.some(
-    (day) => date.getDate() === (day > 0 ? day : lastDay + day + 1)
-  )
+
+  return date.getDate() === start.getDate()
 }
 
 function matches(recurrence: Recurrence, start: Date, date: Date) {
@@ -469,42 +706,50 @@ function matches(recurrence: Recurrence, start: Date, date: Date) {
     case "YEARLY": {
       const years = date.getFullYear() - start.getFullYear()
       if (years % interval !== 0) return false
-      if (!recurrence.byMonth && date.getMonth() !== start.getMonth()) {
+
+      if (
+        !recurrence.byMonth &&
+        recurrence.byDay.length === 0 &&
+        recurrence.byMonthDay.length === 0 &&
+        date.getMonth() !== start.getMonth()
+      ) {
         return false
       }
+
       if (recurrence.bySetPos && recurrence.bySetPos.length > 0) {
         return matchesSetPos(recurrence, date, "year")
       }
-      if (recurrence.byDay.length > 0) {
-        return matchesDayOfMonth(recurrence, start, date)
-      }
-      if (recurrence.byMonthDay.length > 0) {
-        const lastDay = daysInMonth(date)
-        return recurrence.byMonthDay.some(
-          (day) => date.getDate() === (day > 0 ? day : lastDay + day + 1)
+
+      if (recurrence.byDay.length > 0 || recurrence.byMonthDay.length > 0) {
+        return matchesDayRules(
+          recurrence,
+          date,
+          recurrence.byMonth && recurrence.byMonth.length > 0 ? "month" : "year"
         )
       }
+
       return date.getDate() === start.getDate()
     }
   }
 }
 
-function isSameDayOrTime(a: Date, b: Date) {
-  if (a.getTime() === b.getTime()) return true
-  if (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  ) {
-    return true
+function isSameDayOrTime(
+  exdate: Date,
+  occurrence: Date,
+  timeZone?: string
+): boolean {
+  if (exdate.getTime() === occurrence.getTime()) return true
+
+  if (isDateOnly(exdate)) {
+    const occParts = getZonedDateTimeParts(occurrence, timeZone)
+    const exParts = getZonedDateTimeParts(exdate, timeZone)
+    return (
+      occParts.year === exParts.year &&
+      occParts.month === exParts.month &&
+      occParts.day === exParts.day
+    )
   }
-  if (
-    a.getUTCFullYear() === b.getUTCFullYear() &&
-    a.getUTCMonth() === b.getUTCMonth() &&
-    a.getUTCDate() === b.getUTCDate()
-  ) {
-    return true
-  }
+
   return false
 }
 
@@ -515,39 +760,73 @@ export function occurrences(
   options?: { exdates?: (Date | string)[]; tzid?: string }
 ): Date[] {
   const found: Date[] = []
-  const total = Math.min(limit, recurrence.count ?? Infinity)
-  const date = new Date(start)
+  const timeZone = options?.tzid ?? recurrence.tzid
+  const startParts = getZonedDateTimeParts(start, timeZone)
 
   const parsedOptionExdates = (options?.exdates ?? [])
-    .map((item) => (item instanceof Date ? item : parseIcalDate(item)))
+    .map((item) =>
+      item instanceof Date ? item : parseIcalDate(item, timeZone)
+    )
     .filter(Boolean) as Date[]
 
   const allExdates = [...(recurrence.exdates ?? []), ...parsedOptionExdates]
 
-  for (let day = 0; day < SEARCH_LIMIT_DAYS && found.length < total; day++) {
-    if (recurrence.until && date > recurrence.until) break
+  let generatedCount = 0
 
-    if (matches(recurrence, start, date)) {
-      const occurrence = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
-        start.getHours(),
-        start.getMinutes(),
-        start.getSeconds(),
-        start.getMilliseconds()
+  for (let dayOffset = 0; dayOffset < SEARCH_LIMIT_DAYS; dayOffset++) {
+    const refDate = new Date(
+      Date.UTC(startParts.year, startParts.month, startParts.day + dayOffset)
+    )
+    const curYear = refDate.getUTCFullYear()
+    const curMonth = refDate.getUTCMonth()
+    const curDay = refDate.getUTCDate()
+
+    const anchorDate = new Date(
+      startParts.year,
+      startParts.month,
+      startParts.day
+    )
+    const testDate = new Date(curYear, curMonth, curDay)
+
+    if (matches(recurrence, anchorDate, testDate)) {
+      const occurrence = makeZonedDate(
+        curYear,
+        curMonth,
+        curDay,
+        startParts.hour,
+        startParts.minute,
+        startParts.second,
+        timeZone
       )
 
+      if (!occurrence) {
+        continue
+      }
+
+      if (recurrence.until && occurrence > recurrence.until) {
+        break
+      }
+
+      generatedCount++
+
       const isExcluded = allExdates.some((exdate) =>
-        isSameDayOrTime(exdate, occurrence)
+        isSameDayOrTime(exdate, occurrence, timeZone)
       )
 
       if (!isExcluded) {
         found.push(occurrence)
       }
+
+      if (found.length >= limit) {
+        break
+      }
+
+      if (recurrence.count && generatedCount >= recurrence.count) {
+        break
+      }
     }
-    date.setDate(date.getDate() + 1)
   }
+
   return found
 }
 

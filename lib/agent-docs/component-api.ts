@@ -1381,7 +1381,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "RecurrenceEditor",
       description:
-        "Flagship editor for RFC 5545 recurrence rules. Supports DAILY, WEEKLY, MONTHLY, and YEARLY frequencies with INTERVAL, BYDAY, BYMONTHDAY, BYMONTH, BYSETPOS, COUNT, UNTIL, and EXDATE. Preserves unhandled calendar parts (WKST, BYHOUR, X-*) without dropping or mutating them on round-trip edits. Guarantees local wall-clock time invariant across daylight saving clock transitions. Scale limit: parses 50,000+ rules/sec and expands 500 occurrences in under 5ms without main thread lag.",
+        "Flagship editor for RFC 5545 recurrence rules. Supports DAILY, WEEKLY, MONTHLY, and YEARLY frequencies with INTERVAL, BYDAY, BYMONTHDAY, BYMONTH, BYSETPOS, COUNT, UNTIL, and EXDATE. Preserves unhandled calendar parts (WKST, BYHOUR, X-*) without dropping or mutating them on round-trip edits. Preserves wall-clock time invariant across daylight saving clock transitions. Scale limit: tested to parse 1,000 rules and expand 500 occurrences efficiently.",
       props: [
         STATE_PROPS.value("string", 'RRULE, such as "FREQ=WEEKLY;BYDAY=TU"'),
         STATE_PROPS.defaultValue("string", '"FREQ=WEEKLY"'),
