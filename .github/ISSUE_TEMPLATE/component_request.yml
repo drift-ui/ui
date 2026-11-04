@@ -1,13 +1,29 @@
 name: Component request
 description: Propose a new component or a feature for an existing one.
+title: "feat: "
 labels: ["enhancement"]
 body:
+  - type: markdown
+    attributes:
+      value: Search the [components](https://drift-ui.dev/components) and the [open requests](https://github.com/localhostd3veloper/drift-ui/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement) first. If one exists, add a 👍 or a comment with your use case there instead.
   - type: input
     id: component
     attributes:
       label: Component
       description: The new component's name, or the existing one you want to extend.
       placeholder: combobox
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: Where it would sit in the catalog.
+      options:
+        - Inputs (fields and pickers)
+        - Structure (layout and data display)
+        - Workflow (filters, selections and overlays)
+        - Not sure
     validations:
       required: true
   - type: textarea
@@ -28,3 +44,9 @@ body:
     attributes:
       label: Prior art
       description: Links to similar components in other libraries or to the relevant WAI-ARIA pattern.
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contributing
+      options:
+        - label: I would like to build this myself

@@ -111,4 +111,29 @@ describe("ComponentsBrowser", () => {
     })
     expect(window.location.search).toBe("?q=rating")
   })
+
+  it("offers a prefilled component request when nothing matches", async () => {
+    const user = userEvent.setup()
+    renderBrowser()
+
+    await user.type(screen.getByRole("searchbox"), "comment thread")
+
+    const links = screen.getAllByRole("link", { name: /Request a component/ })
+    expect(links).toHaveLength(1)
+    const url = new URL(links[0].getAttribute("href")!)
+    expect(url.pathname).toBe("/localhostd3veloper/drift-ui/issues/new")
+    expect(url.searchParams.get("template")).toBe("component_request.yml")
+    expect(url.searchParams.get("component")).toBe("comment thread")
+    expect(links[0]).toHaveAttribute("target", "_blank")
+  })
+
+  it("ends the list with a request link when there are results", () => {
+    renderBrowser()
+
+    const link = screen.getByRole("link", { name: /Request a component/ })
+    expect(
+      new URL(link.getAttribute("href")!).searchParams.has("component")
+    ).toBe(false)
+    expect(screen.getByText("Don't see the component you need?")).toBeVisible()
+  })
 })

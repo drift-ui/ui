@@ -3,6 +3,10 @@
 import { CardGroup } from "@/components/docs/card-group"
 import type { CatalogCard } from "@/components/docs/component-card"
 import { EmptyResults } from "@/components/docs/empty-results"
+import {
+  RequestComponentCallout,
+  RequestComponentLink,
+} from "@/components/docs/request-component"
 import { SearchField } from "@/components/docs/search-field"
 import { SegmentedControl } from "@/components/docs/segmented-control"
 import type { CATEGORIES } from "@/lib/catalog"
@@ -109,7 +113,11 @@ export function ComponentsBrowser({
       </p>
       {visibleSlugs.size === 0 && (
         <div className="mt-8">
-          <EmptyResults query={query} onReset={resetFilters} />
+          <EmptyResults
+            query={query}
+            onReset={resetFilters}
+            action={<RequestComponentLink name={query} />}
+          />
         </div>
       )}
       <div className="mt-8 flex flex-col gap-12">
@@ -124,6 +132,11 @@ export function ComponentsBrowser({
           />
         ))}
       </div>
+      {visibleSlugs.size > 0 && (
+        <div className="mt-16">
+          <RequestComponentCallout />
+        </div>
+      )}
     </div>
   )
 }

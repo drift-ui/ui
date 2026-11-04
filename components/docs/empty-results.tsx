@@ -1,3 +1,4 @@
+import type * as React from "react"
 import { SearchXIcon } from "lucide-react"
 
 import { Button } from "@/registry/default/ui/button"
@@ -7,11 +8,13 @@ export function EmptyResults({
   onReset,
   hint = "Try a behavior instead of a name, like “keyboard”, “upload” or “time”.",
   resetLabel = "Show all components",
+  action,
 }: {
   query: string
   onReset: () => void
   hint?: string
   resetLabel?: string
+  action?: React.ReactNode
 }) {
   return (
     <div className="flex flex-col items-start gap-5 rounded-[1.75rem] border border-dashed px-6 py-16 sm:items-center sm:text-center">
@@ -24,13 +27,16 @@ export function EmptyResults({
         </p>
         <p className="max-w-[44ch] text-sm text-muted-foreground">{hint}</p>
       </div>
-      <Button
-        variant="outline"
-        onClick={onReset}
-        className="active:scale-[0.98]"
-      >
-        {resetLabel}
-      </Button>
+      <div className="flex flex-wrap items-center gap-2 sm:justify-center">
+        <Button
+          variant="outline"
+          onClick={onReset}
+          className="active:scale-[0.98]"
+        >
+          {resetLabel}
+        </Button>
+        {action}
+      </div>
     </div>
   )
 }
