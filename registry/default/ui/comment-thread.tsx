@@ -100,6 +100,8 @@ function CommentComposer({
   autoFocus,
   focusKey,
   actions,
+  author,
+  avatarSize = "default",
   onSubmit,
   onCancel,
 }: {
@@ -112,6 +114,8 @@ function CommentComposer({
   autoFocus?: boolean
   focusKey: string
   actions?: React.ReactNode
+  author?: CommentAuthor
+  avatarSize?: "default" | "sm"
   onSubmit: (body: string) => MaybePromise
   onCancel?: () => void
 }) {
@@ -160,50 +164,60 @@ function CommentComposer({
     <div
       ref={wrapperRef}
       data-slot="comment-thread-composer"
-      className="flex flex-col gap-2"
-    >
-      <MentionTextarea
-        data-focus-key={focusKey}
-        aria-label={label}
-        aria-invalid={hasFailed || undefined}
-        aria-describedby={hasFailed ? errorId : undefined}
-        aria-keyshortcuts="Control+Enter Meta+Enter"
-        placeholder={placeholder}
-        value={draft}
-        onValueChange={setDraft}
-        readOnly={isPending}
-        triggers={suggestions.length > 0 ? { "@": suggestions } : {}}
-        onKeyDown={handleKeyDown}
-        className="min-h-20 bg-background aria-invalid:border-destructive aria-invalid:ring-destructive/20"
-      />
-      {hasFailed && (
-        <p id={errorId} role="alert" className="text-sm text-destructive">
-          {failureMessage}
-        </p>
+      className={cn(
+        "grid gap-x-3",
+        author ? "grid-cols-[auto_minmax(0,1fr)]" : "grid-cols-1"
       )}
-      <div className="flex flex-wrap items-center gap-2">
-        {actions}
-        <div className="ml-auto flex items-center gap-2">
-          {onCancel && (
+    >
+      {author && (
+        <div aria-hidden>
+          <CommentAvatar author={author} size={avatarSize} />
+        </div>
+      )}
+      <div className="flex min-w-0 flex-col gap-2">
+        <MentionTextarea
+          data-focus-key={focusKey}
+          aria-label={label}
+          aria-invalid={hasFailed || undefined}
+          aria-describedby={hasFailed ? errorId : undefined}
+          aria-keyshortcuts="Control+Enter Meta+Enter"
+          placeholder={placeholder}
+          value={draft}
+          onValueChange={setDraft}
+          readOnly={isPending}
+          triggers={suggestions.length > 0 ? { "@": suggestions } : {}}
+          onKeyDown={handleKeyDown}
+          className="min-h-20 bg-background aria-invalid:border-destructive aria-invalid:ring-destructive/20"
+        />
+        {hasFailed && (
+          <p id={errorId} role="alert" className="text-sm text-destructive">
+            {failureMessage}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {actions}
+          <div className="ml-auto flex items-center gap-2">
+            {onCancel && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={isPending}
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               type="button"
-              variant="ghost"
               size="sm"
-              disabled={isPending}
-              onClick={onCancel}
+              disabled={isBlank || isPending}
+              aria-busy={isPending || undefined}
+              onClick={submit}
             >
-              Cancel
+              {submitLabel}
             </Button>
-          )}
-          <Button
-            type="button"
-            size="sm"
-            disabled={isBlank || isPending}
-            aria-busy={isPending || undefined}
-            onClick={submit}
-          >
-            {submitLabel}
-          </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -921,6 +935,8 @@ function CommentThread({
                         defaultValue={reply.prefill}
                         suggestions={mentionSuggestions}
                         failureMessage="Couldn't post your reply. Try again."
+                        author={currentUser}
+                        avatarSize="sm"
                         focusKey={`reply-composer:${node.comment.id}`}
                         autoFocus
                         onSubmit={async (body) => {
@@ -945,6 +961,7 @@ function CommentThread({
             submitLabel="Comment"
             suggestions={mentionSuggestions}
             failureMessage="Couldn't post your comment. Try again."
+            author={currentUser}
             focusKey="composer"
             actions={resolveButton}
             onSubmit={(body) => postComment(null, body)}

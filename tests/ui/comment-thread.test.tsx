@@ -114,6 +114,33 @@ describe("CommentThread", () => {
     expect(composer()).toHaveFocus()
   })
 
+  it("shows the current user's avatar beside the comment and reply boxes", async () => {
+    const user = userEvent.setup()
+    renderThread()
+
+    const main = composer().closest('[data-slot="comment-thread-composer"]')!
+    expect(main).toHaveTextContent("NH")
+    await user.click(
+      within(article("Should this retry")).getByRole("button", {
+        name: "Reply to Tomasz Wierzba",
+      })
+    )
+    const reply = screen
+      .getByRole("textbox", { name: "Reply" })
+      .closest('[data-slot="comment-thread-composer"]')!
+    expect(reply).toHaveTextContent("NH")
+
+    await user.click(
+      within(article("Yes, with backoff.")).getByRole("button", {
+        name: "Edit comment",
+      })
+    )
+    const editor = screen
+      .getByRole("textbox", { name: "Edit comment" })
+      .closest('[data-slot="comment-thread-composer"]')!
+    expect(editor.querySelector('[data-slot="avatar"]')).toBeNull()
+  })
+
   it("does not submit a blank comment", async () => {
     const user = userEvent.setup()
     const onReply = vi.fn()
