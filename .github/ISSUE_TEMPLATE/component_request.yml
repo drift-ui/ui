@@ -23,6 +23,7 @@ body:
         - Inputs (fields and pickers)
         - Structure (layout and data display)
         - Workflow (filters, selections and overlays)
+        - Primitives (same API as shadcn/ui)
         - Not sure
     validations:
       required: true

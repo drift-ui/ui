@@ -135,5 +135,9 @@ describe("ComponentsBrowser", () => {
       new URL(link.getAttribute("href")!).searchParams.has("component")
     ).toBe(false)
     expect(screen.getByText("Don't see the component you need?")).toBeVisible()
+    expect(
+      stepper()!.compareDocumentPosition(link) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   })
 })
