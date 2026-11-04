@@ -389,10 +389,32 @@ describe("recurrence", () => {
       start,
       3
     )
+    expect(results).toHaveLength(3)
     for (const d of results) {
       expect(d.getDate()).toBe(1)
       expect(d.getDay()).toBe(1)
     }
+  })
+
+  it("returns an empty array when limit is non-positive", () => {
+    expect(occurrences(parseRRule("FREQ=DAILY"), TUESDAY, 0)).toEqual([])
+    expect(occurrences(parseRRule("FREQ=DAILY"), TUESDAY, -1)).toEqual([])
+  })
+
+  it("preserves date-time precision for midnight UTC UNTIL values", () => {
+    const parsed = parseRRule("FREQ=DAILY;UNTIL=20261105T000000Z")
+    expect(formatRRule(parsed)).toBe("FREQ=DAILY;UNTIL=20261105T000000Z")
+  })
+
+  it("preserves prefix omission for multiline rules", () => {
+    const multilineWithoutPrefix = [
+      "FREQ=WEEKLY;BYDAY=TU",
+      "EXDATE:20261110T100000Z",
+    ].join("\n")
+    const parsed = parseRRule(multilineWithoutPrefix)
+    const serialized = formatRRule(parsed, { multiline: true, prefix: false })
+    expect(serialized).toBe(multilineWithoutPrefix)
+    expect(serialized.startsWith("RRULE:")).toBe(false)
   })
 
   it("evaluates ordinals across the full year for YEARLY rules without BYMONTH", () => {

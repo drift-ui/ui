@@ -293,7 +293,7 @@ function parseIcalDate(
   return markDateOnly(date, false)
 }
 
-function parseUntil(text = "", tzid?: string) {
+function parseUntil(text = "", tzid?: string): DateWithPrecision | undefined {
   const trimmed = text.trim()
   const match = UNTIL.exec(trimmed)
   if (!match) return parseIcalDate(trimmed, tzid)
@@ -304,20 +304,19 @@ function parseUntil(text = "", tzid?: string) {
   const d = Number(day)
 
   if (hours === undefined) {
-    return (
+    const date =
       makeZonedDate(y, m, d, 23, 59, 59, tzid) ?? new Date(y, m, d, 23, 59, 59)
-    )
+    return markDateOnly(date, true)
   }
 
   const h = Number(hours)
   const min = Number(minutes)
   const sec = Number(seconds)
-  if (utc) {
-    return new Date(Date.UTC(y, m, d, h, min, sec))
-  }
-  return (
-    makeZonedDate(y, m, d, h, min, sec, tzid) ?? new Date(y, m, d, h, min, sec)
-  )
+  const date = utc
+    ? new Date(Date.UTC(y, m, d, h, min, sec))
+    : (makeZonedDate(y, m, d, h, min, sec, tzid) ??
+      new Date(y, m, d, h, min, sec))
+  return markDateOnly(date, false)
 }
 
 function formatIcalDate(date: Date) {
@@ -488,7 +487,8 @@ export function formatRRule(
 
   if (options?.multiline) {
     const rruleBody = parts.join(";")
-    const lines = [`RRULE:${rruleBody}`]
+    const firstLine = options?.prefix ? `RRULE:${rruleBody}` : rruleBody
+    const lines = [firstLine]
     if (exdates && exdates.length > 0) {
       lines.push(`EXDATE:${exdates.map(formatIcalDate).join(",")}`)
     }
@@ -759,6 +759,7 @@ export function occurrences(
   limit: number,
   options?: { exdates?: (Date | string)[]; tzid?: string }
 ): Date[] {
+  if (limit <= 0) return []
   const found: Date[] = []
   const timeZone = options?.tzid ?? recurrence.tzid
   const startParts = getZonedDateTimeParts(start, timeZone)
