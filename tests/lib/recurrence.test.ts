@@ -440,6 +440,24 @@ describe("recurrence", () => {
     expect(formatted).toBe("FREQ=DAILY;UNTIL=20260101")
   })
 
+  it("rejects invalid calendar dates in UNTIL without emitting them", () => {
+    const parsedHyphen = parseRRule("FREQ=DAILY;UNTIL=2026-02-31")
+    expect(parsedHyphen.until).toBeUndefined()
+    expect(formatRRule(parsedHyphen)).toBe("FREQ=DAILY")
+
+    const parsedCompact = parseRRule("FREQ=DAILY;UNTIL=20260231")
+    expect(parsedCompact.until).toBeUndefined()
+    expect(formatRRule(parsedCompact)).toBe("FREQ=DAILY")
+  })
+
+  it("falls back gracefully in describeRecurrence when TZID is unsupported", () => {
+    const parsed = parseRRule(
+      "FREQ=DAILY;UNTIL=20261105T120000Z;TZID=Custom/InvalidZone"
+    )
+    expect(() => describeRecurrence(parsed, TUESDAY)).not.toThrow()
+    expect(describeRecurrence(parsed, TUESDAY)).toContain("until Nov 5, 2026")
+  })
+
   it("evaluates ordinals across the full year for YEARLY rules without BYMONTH", () => {
     const start = new Date(2026, 0, 1)
     const results = occurrences(parseRRule("FREQ=YEARLY;BYDAY=1MO"), start, 2)

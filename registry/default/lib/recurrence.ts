@@ -265,6 +265,16 @@ function isDateOnly(date: Date): boolean {
   )
 }
 
+function isValidDate(year: number, month: number, day: number): boolean {
+  if (month < 0 || month > 11 || day < 1 || day > 31) return false
+  const check = new Date(Date.UTC(year, month, day))
+  return (
+    check.getUTCFullYear() === year &&
+    check.getUTCMonth() === month &&
+    check.getUTCDate() === day
+  )
+}
+
 function parseIcalDate(
   text = "",
   tzid?: string
@@ -276,10 +286,15 @@ function parseIcalDate(
     if (Number.isNaN(parsed.getTime())) return undefined
     if (!trimmed.includes("T") && !/\d{1,2}:\d{2}/.test(trimmed)) {
       const ymdMatch = /^(\d{4})[-/]?(\d{2})[-/]?(\d{2})/.exec(trimmed)
-      const ymd = ymdMatch
-        ? `${ymdMatch[1]}${ymdMatch[2]}${ymdMatch[3]}`
-        : undefined
-      markDateOnly(parsed, true, ymd)
+      if (ymdMatch) {
+        const y = Number(ymdMatch[1])
+        const m = Number(ymdMatch[2]) - 1
+        const d = Number(ymdMatch[3])
+        if (!isValidDate(y, m, d)) return undefined
+        markDateOnly(parsed, true, `${ymdMatch[1]}${ymdMatch[2]}${ymdMatch[3]}`)
+      } else {
+        markDateOnly(parsed, true)
+      }
     }
     return parsed as DateWithPrecision
   }
@@ -287,6 +302,8 @@ function parseIcalDate(
   const y = Number(year)
   const m = Number(month) - 1
   const d = Number(day)
+
+  if (!isValidDate(y, m, d)) return undefined
 
   if (hours === undefined) {
     const date =
@@ -297,6 +314,10 @@ function parseIcalDate(
   const h = Number(hours)
   const min = Number(minutes)
   const sec = Number(seconds)
+  if (h < 0 || h > 23 || min < 0 || min > 59 || sec < 0 || sec > 60) {
+    return undefined
+  }
+
   if (utc) {
     const date = new Date(Date.UTC(y, m, d, h, min, sec))
     return markDateOnly(date, false)
@@ -317,6 +338,8 @@ function parseUntil(text = "", tzid?: string): DateWithPrecision | undefined {
   const m = Number(month) - 1
   const d = Number(day)
 
+  if (!isValidDate(y, m, d)) return undefined
+
   if (hours === undefined) {
     const date =
       makeZonedDate(y, m, d, 23, 59, 59, tzid) ?? new Date(y, m, d, 23, 59, 59)
@@ -326,6 +349,10 @@ function parseUntil(text = "", tzid?: string): DateWithPrecision | undefined {
   const h = Number(hours)
   const min = Number(minutes)
   const sec = Number(seconds)
+  if (h < 0 || h > 23 || min < 0 || min > 59 || sec < 0 || sec > 60) {
+    return undefined
+  }
+
   const date = utc
     ? new Date(Date.UTC(y, m, d, h, min, sec))
     : (makeZonedDate(y, m, d, h, min, sec, tzid) ??
@@ -986,6 +1013,20 @@ export function describeDays(recurrence: Recurrence, start: Date): string {
   }
 }
 
+function formatSummaryUntil(until: Date, tzid?: string): string {
+  if (tzid) {
+    try {
+      return new Intl.DateTimeFormat("en-US", {
+        dateStyle: "medium",
+        timeZone: tzid,
+      }).format(until)
+    } catch {
+      // Fall back if tzid is invalid or unsupported
+    }
+  }
+  return SUMMARY_DATE.format(until)
+}
+
 export function describeRecurrence(recurrence: Recurrence, start: Date) {
   const { frequency, interval, byDay, count, until } = recurrence
   const isWorkweek =
@@ -1006,14 +1047,7 @@ export function describeRecurrence(recurrence: Recurrence, start: Date) {
       ? ", once"
       : `, ${count} times`
     : until
-      ? ` until ${
-          recurrence.tzid
-            ? new Intl.DateTimeFormat("en-US", {
-                dateStyle: "medium",
-                timeZone: recurrence.tzid,
-              }).format(until)
-            : SUMMARY_DATE.format(until)
-        }`
+      ? ` until ${formatSummaryUntil(until, recurrence.tzid)}`
       : ""
   return `${[base, days].filter(Boolean).join(" ")}${end}`
 }
