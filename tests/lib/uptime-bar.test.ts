@@ -83,6 +83,14 @@ describe("calculateUptimePercentage", () => {
     ).toBe(93.33)
   })
 
+  it("falls back to the status score when uptime is NaN", () => {
+    const days: UptimeDay[] = [
+      { date: "2026-10-01", status: "operational", uptime: Number.NaN },
+      { date: "2026-10-02", status: "operational", uptime: 100 },
+    ]
+    expect(calculateUptimePercentage(days)).toBe(100)
+  })
+
   it("uses explicit day.uptime value when provided", () => {
     const days: UptimeDay[] = [
       { date: "2026-10-01", status: "operational", uptime: 100 },
@@ -100,8 +108,12 @@ describe("formatUptimePercentage", () => {
 })
 
 describe("formatDateLabel", () => {
+  it("keeps date-only strings on the same calendar day", () => {
+    expect(formatDateLabel("2026-01-01")).toBe("Jan 1, 2026")
+  })
+
   it("formats date strings into readable formats", () => {
-    const label = formatDateLabel("2026-10-31T12:00:00Z")
+    const label = formatDateLabel("2026-10-31")
     expect(label).toContain("Oct 31, 2026")
   })
 })
@@ -109,7 +121,7 @@ describe("formatDateLabel", () => {
 describe("getSegmentAccessibleLabel", () => {
   it("generates descriptive label without note", () => {
     const day: UptimeDay = {
-      date: "2026-10-30T12:00:00Z",
+      date: "2026-10-30",
       status: "operational",
     }
     const label = getSegmentAccessibleLabel(day)
@@ -119,7 +131,7 @@ describe("getSegmentAccessibleLabel", () => {
 
   it("includes note when present", () => {
     const day: UptimeDay = {
-      date: "2026-10-31T12:00:00Z",
+      date: "2026-10-31",
       status: "degraded",
       note: "Elevated API latency",
     }

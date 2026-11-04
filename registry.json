@@ -795,8 +795,8 @@
       "registryDependencies": [
         "badge",
         "popover",
-        "use-controllable-state",
-        "utils"
+        "utils",
+        "@drift-ui/use-controllable-state"
       ],
       "files": [
         {

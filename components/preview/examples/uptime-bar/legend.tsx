@@ -35,8 +35,8 @@ export function UptimeBarLegendPreview() {
       <UptimeBar
         title="Payment Gateway"
         days={SAMPLE_DAYS}
-        startLabel="7 days ago"
-        endLabel="Today"
+        startLabel="Oct 25, 2026"
+        endLabel="Oct 31, 2026"
       />
       <div className="border-t pt-3">
         <UptimeBarLegend />

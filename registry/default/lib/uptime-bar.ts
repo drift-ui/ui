@@ -50,7 +50,7 @@ export function calculateUptimePercentage(
 
   let totalScore = 0
   for (const day of eligibleDays) {
-    if (typeof day.uptime === "number") {
+    if (typeof day.uptime === "number" && !Number.isNaN(day.uptime)) {
       totalScore += Math.max(0, Math.min(100, day.uptime)) / 100
     } else {
       const norm = normalizeDayStatus(day.status)
@@ -90,7 +90,17 @@ export function formatDateLabel(
     year: "numeric",
   }
 ): string {
-  const d = typeof date === "string" ? new Date(date) : date
+  const dateOnly =
+    typeof date === "string" && /^(\d{4})-(\d{2})-(\d{2})$/.exec(date)
+  const d = dateOnly
+    ? new Date(
+        Number(dateOnly[1]),
+        Number(dateOnly[2]) - 1,
+        Number(dateOnly[3])
+      )
+    : typeof date === "string"
+      ? new Date(date)
+      : date
   if (Number.isNaN(d.getTime())) {
     return String(date)
   }

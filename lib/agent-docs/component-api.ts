@@ -2008,9 +2008,10 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       props: [
         {
           name: "days",
-          type: "UptimeDay[]",
+          type: "{ date: string | Date; status: UptimeStatus; uptime?: number; note?: string }[]",
           required: true,
-          description: "List of daily status records.",
+          description:
+            'Daily status records, oldest first. `status` is "operational", "degraded", "down" or "no-data". `uptime` is a 0 to 100 percentage that overrides the status score, and `note` shows in the popover.',
         },
         {
           name: "title",
@@ -2032,6 +2033,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         {
           name: "startLabel",
           type: "ReactNode",
+          default: "`${days.length} days ago`",
           description: "Custom label for the start of the date range.",
         },
         {
