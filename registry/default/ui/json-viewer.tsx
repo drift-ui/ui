@@ -49,14 +49,20 @@ function ValueText({
   value,
   query,
   maxStringLength = DEFAULT_MAX_STRING_LENGTH,
-  hasMatch = false,
+  virtual = false,
 }: {
   value: unknown
   query: string
   maxStringLength?: number
-  hasMatch?: boolean
+  virtual?: boolean
 }) {
-  const [expanded, setExpanded] = React.useState(false)
+  const [prevQuery, setPrevQuery] = React.useState(query)
+  const [userExpanded, setUserExpanded] = React.useState<boolean | null>(null)
+
+  if (prevQuery !== query) {
+    setPrevQuery(query)
+    setUserExpanded(null)
+  }
 
   if (Array.isArray(value)) {
     return (
@@ -75,13 +81,17 @@ function ValueText({
 
   if (typeof value === "string") {
     const { isLong, preview } = truncateString(value, maxStringLength)
-    const isExpanded = expanded || hasMatch
+    const valueHasMatch = Boolean(
+      query && value.toLowerCase().includes(query.toLowerCase())
+    )
+    const isExpanded = userExpanded ?? valueHasMatch
 
     return (
       <span
         className={cn(
           TYPE_CLASSES.string,
-          "inline-flex flex-wrap items-center gap-1"
+          "inline-flex flex-wrap items-center gap-1",
+          virtual && "max-w-full overflow-hidden"
         )}
       >
         &quot;
@@ -95,7 +105,12 @@ function ValueText({
               aria-label="Expand string"
               onClick={(event) => {
                 event.stopPropagation()
-                setExpanded(true)
+                setUserExpanded(true)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.stopPropagation()
+                }
               }}
               className="cursor-pointer text-[10px] text-muted-foreground underline hover:text-foreground"
             >
@@ -104,7 +119,13 @@ function ValueText({
           </>
         ) : isLong && isExpanded ? (
           <>
-            <span className="whitespace-pre-wrap">
+            <span
+              className={cn(
+                virtual
+                  ? "inline-block max-w-[400px] overflow-x-auto align-middle whitespace-nowrap"
+                  : "whitespace-pre-wrap"
+              )}
+            >
               <Highlight text={value} query={query} />
             </span>
             <button
@@ -113,7 +134,12 @@ function ValueText({
               aria-label="Collapse string"
               onClick={(event) => {
                 event.stopPropagation()
-                setExpanded(false)
+                setUserExpanded(false)
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.stopPropagation()
+                }
               }}
               className="cursor-pointer text-[10px] text-muted-foreground underline hover:text-foreground"
             >
@@ -177,18 +203,19 @@ function JsonViewer({
   const [expanded, setExpanded] = React.useState(() =>
     expandedToDepth(filteredData, defaultExpandDepth)
   )
-  const [expandedBeforeSearch, setExpandedBeforeSearch] = React.useState<
-    string[] | null
-  >(null)
   const [query, setQuery] = React.useState("")
   const deferredQuery = React.useDeferredValue(query)
   const { copied, copy } = useCopyToClipboard()
   const needle = deferredQuery.trim()
-  const { matches } = React.useMemo(
+  const { matches, ancestors } = React.useMemo(
     () => searchJson(filteredData, needle),
     [filteredData, needle]
   )
-  const expandedIds = new Set(expanded)
+  const effectiveExpanded = React.useMemo(() => {
+    if (!needle) return expanded
+    return [...new Set([...expanded, ...ancestors])]
+  }, [expanded, needle, ancestors])
+  const expandedIds = new Set(effectiveExpanded)
   const entriesById = new Map<string, JsonEntry>()
 
   function copyEntry(entry: JsonEntry, target: CopyTarget) {
@@ -200,10 +227,6 @@ function JsonViewer({
 
   function search(next: string) {
     setQuery(next)
-    const base = expandedBeforeSearch ?? expanded
-    const { ancestors } = searchJson(filteredData, next)
-    setExpandedBeforeSearch(next.trim() ? base : null)
-    setExpanded([...new Set([...base, ...ancestors])])
   }
 
   function renderRow(entry: JsonEntry) {
@@ -217,8 +240,6 @@ function JsonViewer({
         </span>
       )
     }
-
-    const hasMatch = matches.has(entry.id)
 
     return (
       <span
@@ -244,7 +265,7 @@ function JsonViewer({
           value={entry.value}
           query={needle}
           maxStringLength={maxStringLength}
-          hasMatch={hasMatch}
+          virtual={virtual}
         />
         <span
           aria-hidden
@@ -368,7 +389,7 @@ function JsonViewer({
       <TreeView
         aria-label={ariaLabel}
         items={toNodes(rootEntries(filteredData))}
-        expanded={expanded}
+        expanded={effectiveExpanded}
         onExpandedChange={setExpanded}
         onKeyDown={handleKeyDown}
         virtual={virtual}

@@ -211,7 +211,8 @@ describe("JsonViewer", () => {
     const filterInput = screen.getByRole("textbox", {
       name: "Filter path pattern",
     })
-    await user.type(filterInput, "users[[*].email")
+    await user.click(filterInput)
+    await user.paste("users[*].email")
 
     expect(
       screen.queryByRole("treeitem", { name: /^meta/ })
@@ -226,7 +227,8 @@ describe("JsonViewer", () => {
     expect(row(/^meta/)).toBeInTheDocument()
   })
 
-  it("supports controlled pathFilter and onPathFilterChange", () => {
+  it("supports controlled pathFilter and onPathFilterChange", async () => {
+    const user = userEvent.setup()
     const onPathFilterChange = vi.fn()
     const data = {
       users: [{ id: 1, email: "alice@example.com" }],
@@ -243,6 +245,14 @@ describe("JsonViewer", () => {
 
     expect(row(/^other/)).toBeInTheDocument()
 
+    await user.click(screen.getByRole("button", { name: "Filter by path" }))
+    const filterInput = screen.getByRole("textbox", {
+      name: "Filter path pattern",
+    })
+    await user.click(filterInput)
+    await user.paste("users[*].email")
+    expect(onPathFilterChange).toHaveBeenCalledWith("users[*].email")
+
     rerender(
       <JsonViewer
         data={data}
@@ -256,6 +266,44 @@ describe("JsonViewer", () => {
       screen.queryByRole("treeitem", { name: /^other/ })
     ).not.toBeInTheDocument()
     expect(row(/^email:"alice@example.com"/)).toBeInTheDocument()
+  })
+
+  it("activates Show more and Show less with Enter and Space without toggling tree row", async () => {
+    const user = userEvent.setup()
+    const longString = "A".repeat(120)
+    render(<JsonViewer data={{ bio: longString }} maxStringLength={80} />)
+
+    const showMore = screen.getByRole("button", { name: "Expand string" })
+    showMore.focus()
+    await user.keyboard("{Enter}")
+
+    const showLess = screen.getByRole("button", { name: "Collapse string" })
+    expect(showLess).toBeInTheDocument()
+    expect(showLess).toHaveAttribute("aria-expanded", "true")
+
+    showLess.focus()
+    await user.keyboard(" ")
+
+    expect(
+      screen.getByRole("button", { name: "Expand string" })
+    ).toBeInTheDocument()
+  })
+
+  it("allows user to collapse string even when value matches query", async () => {
+    const user = userEvent.setup()
+    const longString = "A".repeat(80) + "TARGET" + "B".repeat(20)
+    render(<JsonViewer data={{ bio: longString }} maxStringLength={80} />)
+
+    const search = screen.getByRole("searchbox")
+    await user.type(search, "TARGET")
+
+    const showLess = screen.getByRole("button", { name: "Collapse string" })
+    expect(showLess).toBeInTheDocument()
+
+    await user.click(showLess)
+    expect(
+      screen.getByRole("button", { name: "Expand string" })
+    ).toBeInTheDocument()
   })
 
   it("virtualizes large datasets when virtual prop is true", () => {

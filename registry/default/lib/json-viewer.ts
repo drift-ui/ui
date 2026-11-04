@@ -51,28 +51,39 @@ export function childEntries(
 
   const [start, end] = range ?? [0, value.length - 1]
   if (range || value.length <= CHUNK_SIZE) {
-    return value
-      .slice(start, end + 1)
-      .map((child, offset) => toEntry(path, start + offset, child))
+    const entries: JsonEntry[] = []
+    for (let i = start; i <= end; i++) {
+      if (i in value) {
+        entries.push(toEntry(path, i, value[i]))
+      }
+    }
+    return entries
   }
 
-  return Array.from(
-    { length: Math.ceil(value.length / CHUNK_SIZE) },
-    (_, chunk) => {
-      const chunkStart = chunk * CHUNK_SIZE
-      return {
+  const chunks: JsonEntry[] = []
+  const numChunks = Math.ceil(value.length / CHUNK_SIZE)
+  for (let chunk = 0; chunk < numChunks; chunk++) {
+    const chunkStart = chunk * CHUNK_SIZE
+    const chunkEnd = Math.min(chunkStart + CHUNK_SIZE, value.length) - 1
+    let hasElements = false
+    for (let i = chunkStart; i <= chunkEnd; i++) {
+      if (i in value) {
+        hasElements = true
+        break
+      }
+    }
+    if (hasElements) {
+      chunks.push({
         id: `${path}#${chunkStart}`,
         path,
         key: null,
         value,
         isBranch: true,
-        range: [
-          chunkStart,
-          Math.min(chunkStart + CHUNK_SIZE, value.length) - 1,
-        ] as [number, number],
-      }
+        range: [chunkStart, chunkEnd],
+      })
     }
-  )
+  }
+  return chunks
 }
 
 export function rootEntries(data: unknown): JsonEntry[] {
@@ -97,54 +108,80 @@ export function expandedToDepth(data: unknown, depth: number) {
 }
 
 export function parsePath(path: string): string[] {
-  const trimmed = path.trim().replace(/^\$\.?/, "")
+  const trimmed = path.trim().replace(/^\$(?=\.|\[|$)\.?/, "")
   if (!trimmed) return []
 
   const tokens: string[] = []
-  let current = ""
-  let inBracket = false
-  let inQuote = false
-  let quoteChar = ""
+  let i = 0
 
-  for (let i = 0; i < trimmed.length; i++) {
+  while (i < trimmed.length) {
     const char = trimmed[i]
-    if (inQuote) {
-      if (char === quoteChar && trimmed[i - 1] !== "\\") {
-        inQuote = false
-      } else {
-        current += char
-      }
-    } else if (char === '"' || char === "'") {
-      inQuote = true
-      quoteChar = char
-    } else if (char === "[") {
-      if (current) {
-        tokens.push(current)
-        current = ""
-      }
-      inBracket = true
-    } else if (char === "]") {
-      if (current) {
-        tokens.push(current)
-        current = ""
-      }
-      inBracket = false
-    } else if (char === ".") {
-      if (!inBracket) {
-        if (current) {
-          tokens.push(current)
-          current = ""
+
+    if (char === ".") {
+      i++
+      continue
+    }
+
+    if (char === "[") {
+      i++
+      if (trimmed[i] === '"' || trimmed[i] === "'") {
+        const quote = trimmed[i]
+        let bracketContent = quote
+        let escaped = false
+        i++
+        while (i < trimmed.length) {
+          const c = trimmed[i]
+          bracketContent += c
+          i++
+          if (!escaped && c === "\\") {
+            escaped = true
+          } else if (escaped) {
+            escaped = false
+          } else if (c === quote) {
+            break
+          }
+        }
+        while (i < trimmed.length && trimmed[i] !== "]") {
+          i++
+        }
+        if (i < trimmed.length && trimmed[i] === "]") {
+          i++
+        }
+        try {
+          const jsonStr =
+            quote === "'"
+              ? `"${bracketContent.slice(1, -1).replace(/"/g, '\\"')}"`
+              : bracketContent
+          tokens.push(JSON.parse(jsonStr))
+        } catch {
+          tokens.push(bracketContent.slice(1, -1))
         }
       } else {
-        current += char
+        let bracketContent = ""
+        while (i < trimmed.length && trimmed[i] !== "]") {
+          bracketContent += trimmed[i]
+          i++
+        }
+        if (i < trimmed.length && trimmed[i] === "]") {
+          i++
+        }
+        const token = bracketContent.trim()
+        if (token) {
+          tokens.push(token)
+        }
       }
     } else {
-      current += char
+      let ident = ""
+      while (i < trimmed.length && trimmed[i] !== "." && trimmed[i] !== "[") {
+        ident += trimmed[i]
+        i++
+      }
+      if (ident) {
+        tokens.push(ident)
+      }
     }
   }
-  if (current) {
-    tokens.push(current)
-  }
+
   return tokens
 }
 
@@ -153,9 +190,9 @@ export function matchPath(
   pattern: string,
   options?: { exact?: boolean }
 ): boolean {
-  const pathTokens = parsePath(path)
   const patternTokens = parsePath(pattern)
-  if (patternTokens.length === 0) return true
+  if (patternTokens.length === 0) return false
+  const pathTokens = parsePath(path)
   if (pathTokens.length === 0) return false
 
   if (options?.exact) {
@@ -205,16 +242,24 @@ export function filterByPath(data: unknown, pattern: string): unknown {
     const token = tokens[index]
     if (Array.isArray(current)) {
       if (token === "*") {
-        const mapped = current
-          .map((item) => extract(item, index + 1))
-          .filter((item) => item !== undefined)
-        return mapped.length > 0 ? mapped : undefined
+        const result: unknown[] = []
+        let hasElements = false
+        for (let i = 0; i < current.length; i++) {
+          if (i in current) {
+            const item = extract(current[i], index + 1)
+            if (item !== undefined) {
+              result[i] = item
+              hasElements = true
+            }
+          }
+        }
+        return hasElements ? result : undefined
       }
       const num = Number(token)
       if (Number.isInteger(num) && num >= 0 && num < current.length) {
         const item = extract(current[num], index + 1)
         if (item !== undefined) {
-          const res = []
+          const res: unknown[] = []
           res[num] = item
           return res
         }
@@ -228,7 +273,12 @@ export function filterByPath(data: unknown, pattern: string): unknown {
       for (const [k, v] of Object.entries(current)) {
         const val = extract(v, index + 1)
         if (val !== undefined) {
-          result[k] = val
+          Object.defineProperty(result, k, {
+            value: val,
+            enumerable: true,
+            writable: true,
+            configurable: true,
+          })
           hasKeys = true
         }
       }
@@ -241,7 +291,14 @@ export function filterByPath(data: unknown, pattern: string): unknown {
         index + 1
       )
       if (val !== undefined) {
-        return { [token]: val }
+        const result: Record<string, unknown> = {}
+        Object.defineProperty(result, token, {
+          value: val,
+          enumerable: true,
+          writable: true,
+          configurable: true,
+        })
+        return result
       }
     }
 
@@ -273,8 +330,10 @@ export function searchJson(data: unknown, query: string) {
   const needle = query.trim().toLowerCase()
   if (!needle) return { matches, ancestors }
 
+  const parsedPattern = parsePath(needle)
   const isPathQuery =
-    needle.includes(".") || needle.includes("[") || needle.includes("*")
+    parsedPattern.length > 0 &&
+    (needle.includes(".") || needle.includes("[") || needle.includes("*"))
 
   function walk(entries: JsonEntry[], parents: string[]) {
     for (const entry of entries) {

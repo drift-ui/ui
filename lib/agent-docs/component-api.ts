@@ -1025,14 +1025,13 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "JsonViewer",
       description:
-        "A searchable JSON tree on top of TreeView with optional row virtualization for payloads up to 50 MB. Supports wildcard path filtering (e.g. users[*].email), truncated multi-line and long strings with inline expand/collapse, deferred search typing, and copy value or path via hover buttons, Ctrl or Cmd+C, and Shift+Ctrl or Cmd+C. Arrays over 100 items open as groups of 100.",
+        "A searchable JSON tree on top of TreeView with optional row virtualization for large datasets. Supports wildcard path filtering (e.g. users[*].email), truncated multi-line and long strings with inline expand/collapse, deferred search typing, and copy value or path via hover buttons, Ctrl or Cmd+C, and Shift+Ctrl or Cmd+C. Arrays over 100 items open as groups of 100.",
       props: [
         {
           name: "data",
           type: "unknown",
           required: true,
-          description:
-            "Any JSON value. Scales comfortably to 50 MB payloads when virtual is enabled.",
+          description: "Any JSON value.",
         },
         {
           name: "defaultExpandDepth",
@@ -1051,7 +1050,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           type: "number",
           default: "80",
           description:
-            "Length at which string values truncate with an inline Show more button.",
+            "Length threshold for truncating single-line strings with an inline Show more button. Strings containing newlines are always truncated to their first line regardless of length.",
         },
         {
           name: "onCopy",
@@ -1074,7 +1073,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           type: "boolean",
           default: "false",
           description:
-            "Whether to virtualize row rendering via TreeView for large datasets (e.g. 10k-100k items / up to 50 MB payloads).",
+            "Whether to virtualize row rendering via TreeView for large datasets.",
         },
       ],
       rest: "<div>",
