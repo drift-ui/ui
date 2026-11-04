@@ -452,6 +452,17 @@ describe("CommentThread", () => {
     ).toBeInTheDocument()
   })
 
+  it("describes who reacted in a tooltip hidden from assistive tech", () => {
+    renderThread({ currentUser: undefined })
+
+    const tooltip = article("Should this retry").querySelector(
+      '[data-slot="comment-thread-reaction-tooltip"]'
+    )
+    expect(tooltip).toHaveAttribute("aria-hidden", "true")
+    expect(tooltip).toHaveTextContent("👀 Eyes")
+    expect(tooltip).toHaveTextContent("Tomasz Wierzba")
+  })
+
   it("closes the reaction picker with Escape", async () => {
     const user = userEvent.setup()
     renderThread()

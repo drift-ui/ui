@@ -302,7 +302,7 @@ function ReactionPicker({
       onBlur={(event) => {
         if (event.relatedTarget && !isInside(event.relatedTarget)) onDismiss()
       }}
-      className="absolute right-0 bottom-full z-20 mb-1 flex w-max origin-bottom-right gap-0.5 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:slide-in-from-bottom-1"
+      className="absolute right-0 bottom-full z-20 mb-1 flex w-max origin-bottom-right gap-0.5 rounded-lg border bg-popover p-1 text-popover-foreground shadow-md motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:slide-in-from-bottom-1 pointer-coarse:grid pointer-coarse:grid-cols-4 pointer-coarse:gap-2"
     >
       {options.map((option, index) => (
         <button
@@ -314,7 +314,7 @@ function ReactionPicker({
           aria-pressed={reacted.has(option.emoji)}
           title={option.label}
           onClick={() => onPick(option.emoji)}
-          className="flex size-8 items-center justify-center rounded-md text-base outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-pressed:bg-accent"
+          className="flex size-8 items-center justify-center rounded-md text-base outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-pressed:bg-accent pointer-coarse:size-11"
         >
           {option.emoji}
         </button>
@@ -354,7 +354,7 @@ function CommentBody({
 }
 
 const actionButtonClassName =
-  "size-7 text-muted-foreground hover:text-foreground"
+  "size-7 text-muted-foreground hover:text-foreground pointer-coarse:size-11"
 
 function CommentThread({
   comments,
@@ -617,8 +617,8 @@ function CommentThread({
           size={isReply ? "sm" : "default"}
         />
         <div className="flex min-w-0 flex-col gap-1.5">
-          <header className="flex min-h-7 items-center gap-2">
-            <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <header className="flex min-h-7 items-center gap-2 pointer-coarse:flex-wrap">
+            <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 gap-y-0.5 pointer-coarse:min-w-40">
               <span id={nameId} className="text-sm font-medium">
                 {comment.author.name}
               </span>
@@ -648,7 +648,7 @@ function CommentThread({
                 role="group"
                 aria-label="Comment actions"
                 data-open={isPickerOpen || undefined}
-                className="relative flex shrink-0 items-center opacity-0 transition-opacity group-focus-within/comment:opacity-100 group-hover/comment:opacity-100 data-open:opacity-100 [@media(hover:none)]:opacity-100"
+                className="relative flex shrink-0 items-center opacity-0 transition-opacity group-focus-within/comment:opacity-100 group-hover/comment:opacity-100 data-open:opacity-100 pointer-coarse:ml-auto pointer-coarse:gap-2 pointer-coarse:opacity-100"
               >
                 <Button
                   type="button"
@@ -799,7 +799,7 @@ function CommentThread({
             <ul
               aria-label="Reactions"
               data-slot="comment-thread-reactions"
-              className="flex flex-wrap gap-1.5"
+              className="flex flex-wrap gap-1.5 pointer-coarse:gap-2"
             >
               {comment.reactions!.map((reaction) => {
                 const label =
@@ -811,20 +811,30 @@ function CommentThread({
                   locale
                 )
                 return (
-                  <li key={reaction.emoji}>
+                  <li key={reaction.emoji} className="group/reaction relative">
                     <button
                       type="button"
                       disabled={!canWrite}
                       aria-pressed={reacted.has(reaction.emoji)}
                       aria-label={`${label}: ${who}`}
-                      title={who}
                       suppressHydrationWarning
                       onClick={() => react(comment, reaction.emoji)}
-                      className="inline-flex h-6 items-center gap-1 rounded-full border bg-background px-2 text-xs tabular-nums outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-default disabled:hover:bg-background aria-pressed:border-primary/40 aria-pressed:bg-primary/10 aria-pressed:text-primary"
+                      className="inline-flex h-6 items-center gap-1 rounded-full border bg-background px-2 text-xs tabular-nums outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-default disabled:hover:bg-background aria-pressed:border-primary/40 aria-pressed:bg-primary/10 aria-pressed:text-primary pointer-coarse:h-9 pointer-coarse:px-3"
                     >
                       <span aria-hidden>{reaction.emoji}</span>
                       <span aria-hidden>{reaction.userIds.length}</span>
                     </button>
+                    <span
+                      aria-hidden
+                      data-slot="comment-thread-reaction-tooltip"
+                      suppressHydrationWarning
+                      className="pointer-events-none invisible absolute bottom-full left-0 z-20 mb-1.5 flex w-max max-w-56 flex-col gap-0.5 rounded-md border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground opacity-0 shadow-md transition-[opacity,visibility] duration-150 group-hover/reaction:visible group-hover/reaction:opacity-100 group-hover/reaction:delay-300 group-has-focus-visible/reaction:visible group-has-focus-visible/reaction:opacity-100 group-has-focus-visible/reaction:delay-0"
+                    >
+                      <span className="font-medium">
+                        {reaction.emoji} {label}
+                      </span>
+                      <span className="text-muted-foreground">{who}</span>
+                    </span>
                   </li>
                 )
               })}
