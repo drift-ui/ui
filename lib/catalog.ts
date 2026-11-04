@@ -91,6 +91,7 @@ const ENTRY_LAYOUT: {
     stageClassName:
       "relative min-h-72 flex-col flex-nowrap items-stretch justify-start pb-20",
   },
+  { slug: "comment-thread", category: "workflow" },
   {
     slug: "filter-builder",
     category: "workflow",

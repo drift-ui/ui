@@ -274,6 +274,174 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "trigger <button>",
     },
   ],
+  "comment-thread": [
+    {
+      name: "CommentThread",
+      description:
+        "A single review thread. Top-level comments can have one level of replies; replying to a reply adds to the same top-level comment and starts the draft with @author when the author's id is a mention value. Ctrl or Cmd+Enter submits, Escape cancels an edit, a reply or a delete confirmation, and the reaction picker moves with the arrow keys, Home and End.",
+      props: [
+        {
+          name: "comments",
+          type: "Comment[]",
+          description: "Controlled comments, rendered in array order.",
+        },
+        {
+          name: "defaultComments",
+          type: "Comment[]",
+          default: "[]",
+          description: "Initial comments when uncontrolled.",
+        },
+        {
+          name: "onCommentsChange",
+          type: "(comments: Comment[]) => void",
+          description:
+            "Called with the full list after a comment is posted, edited or deleted, or a reaction changes.",
+        },
+        {
+          name: "currentUser",
+          type: "CommentAuthor",
+          description:
+            "The person writing. Edit and delete appear only on comments whose author.id matches. Leave it out for a read-only thread with no composer, actions or reaction toggles.",
+        },
+        {
+          name: "mentionSuggestions",
+          type: "MentionOption[]",
+          default: "[]",
+          description:
+            "People offered after @ in the composer. An @value in a body is highlighted only when value is in this list.",
+        },
+        {
+          name: "reactions",
+          type: "ReactionOption[]",
+          default: "QUICK_REACTIONS",
+          description:
+            "Emoji offered in the reaction picker, each { emoji, label }. The default is 👍 👎 😄 🎉 😕 ❤️ 🚀 👀.",
+        },
+        {
+          name: "resolved",
+          type: "boolean",
+          description:
+            "Controlled resolved state. A resolved thread collapses to a summary row with Show thread and Reopen.",
+        },
+        {
+          name: "defaultResolved",
+          type: "boolean",
+          default: "false",
+          description: "Initial resolved state when uncontrolled.",
+        },
+        {
+          name: "onResolvedChange",
+          type: "(resolved: boolean) => void",
+          description: "Called when someone resolves or reopens the thread.",
+        },
+        {
+          name: "resolvedBy",
+          type: "CommentAuthor",
+          description:
+            "Shown as Resolved by name. Falls back to currentUser when the thread was resolved in this session.",
+        },
+        {
+          name: "onReply",
+          type: "(parentId: string | null, body: string, mentions: string[]) => void | Promise<void>",
+          description:
+            "Called with the trimmed body and the mentioned values. parentId is null for a new top-level comment. The comment is added after the promise resolves; if it rejects, the draft stays and an error shows.",
+        },
+        {
+          name: "onEdit",
+          type: "(id: string, body: string, mentions: string[]) => void | Promise<void>",
+          description:
+            "Called when an edit is saved with different text. Same promise handling as onReply.",
+        },
+        {
+          name: "onDelete",
+          type: "(id: string) => void | Promise<void>",
+          description:
+            "Called after the delete is confirmed. A comment with replies becomes a deleted placeholder; one without is removed. If the promise rejects, the comment stays.",
+        },
+        {
+          name: "onReactionToggle",
+          type: "(id: string, emoji: string) => void",
+          description:
+            "Called after the current user adds or removes a reaction.",
+        },
+        {
+          name: "now",
+          type: "Date",
+          description:
+            "Reference time for relative timestamps. Without it the thread uses the current time and updates every minute.",
+        },
+        {
+          name: "locale",
+          type: "string",
+          description:
+            "Locale for relative and absolute timestamps. Defaults to the browser locale.",
+        },
+        {
+          name: "aria-label",
+          type: "string",
+          default: '"Comment thread"',
+          description: "Accessible name of the thread region.",
+        },
+      ],
+      rest: "<section>",
+    },
+    {
+      name: "Comment",
+      description: "One comment or reply.",
+      props: [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "Unique id.",
+        },
+        {
+          name: "parentId",
+          type: "string | null",
+          description:
+            "The comment this replies to. Missing parents make it a top-level comment.",
+        },
+        {
+          name: "author",
+          type: "CommentAuthor",
+          required: true,
+          description:
+            "{ id: string; name: string; avatarUrl?: string }. Initials show when there is no avatarUrl or it fails to load.",
+        },
+        {
+          name: "body",
+          type: "string",
+          required: true,
+          description:
+            "Plain text. Line breaks are kept and HTML is shown as text.",
+        },
+        {
+          name: "createdAt",
+          type: "Date | string",
+          required: true,
+          description:
+            "Any value new Date() accepts. An invalid date hides the timestamp.",
+        },
+        {
+          name: "editedAt",
+          type: "Date | string",
+          description: "Shows (edited) with the time in its tooltip.",
+        },
+        {
+          name: "deleted",
+          type: "boolean",
+          description:
+            "Shows a deleted placeholder while the comment has replies, and hides it otherwise.",
+        },
+        {
+          name: "reactions",
+          type: "{ emoji: string; userIds: string[] }[]",
+          description:
+            "Each emoji and who reacted. Names come from the thread's authors and currentUser.",
+        },
+      ],
+    },
+  ],
   "date-time-range": [
     {
       name: "DateTimeRangePicker",

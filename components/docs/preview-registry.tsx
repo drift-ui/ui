@@ -18,6 +18,7 @@ import { BulkActionBarPreview } from "@/components/preview/bulk-action-bar-previ
 import { ButtonPreview } from "@/components/preview/button-preview"
 import { CardPreview } from "@/components/preview/card-preview"
 import { ColorPickerPreview } from "@/components/preview/color-picker-preview"
+import { CommentThreadPreview } from "@/components/preview/comment-thread-preview"
 import { DateTimeRangePreview } from "@/components/preview/date-time-range-preview"
 import { DescriptionListPreview } from "@/components/preview/description-list-preview"
 import { DialogPreview } from "@/components/preview/dialog-preview"
@@ -66,6 +67,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   button: ButtonPreview,
   card: CardPreview,
   "color-picker": ColorPickerPreview,
+  "comment-thread": CommentThreadPreview,
   "date-time-range": DateTimeRangePreview,
   "description-list": DescriptionListPreview,
   dialog: DialogPreview,
