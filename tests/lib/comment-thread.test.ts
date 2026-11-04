@@ -244,6 +244,15 @@ describe("comment reducers", () => {
     expect(deleteComment(start, "c").map((c) => c.id)).toEqual(["other"])
   })
 
+  it("can keep a placeholder for a comment without replies yet", () => {
+    const next = deleteComment([comment("a")], "a", { keepPlaceholder: true })
+
+    expect(next).toEqual([
+      expect.objectContaining({ id: "a", deleted: true, body: "" }),
+    ])
+    expect(buildThread(next)).toEqual([])
+  })
+
   it("ignores unknown ids", () => {
     const start = [comment("a")]
 

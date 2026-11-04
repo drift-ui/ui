@@ -428,6 +428,7 @@ function CommentThread({
   const latestEditingIdRef = useLatest(editingId)
   const latestReplyRef = useLatest(reply)
   const pendingFocusRef = React.useRef<string[] | null>(null)
+  const pendingRepliesRef = React.useRef(new Map<string, number>())
   const [announcement, setAnnouncement] = React.useState("")
   const [isDeleting, startDeleting] = React.useTransition()
   const now = useNow(nowOverride)
@@ -490,7 +491,17 @@ function CommentThread({
 
   async function postComment(parentId: string | null, body: string) {
     if (!currentUser) return
-    await onReply?.(parentId, body, extractMentions(body, mentionSuggestions))
+    const pending = pendingRepliesRef.current
+    if (parentId) pending.set(parentId, (pending.get(parentId) ?? 0) + 1)
+    try {
+      await onReply?.(parentId, body, extractMentions(body, mentionSuggestions))
+    } finally {
+      if (parentId) {
+        const left = (pending.get(parentId) ?? 1) - 1
+        if (left > 0) pending.set(parentId, left)
+        else pending.delete(parentId)
+      }
+    }
     commitList((current) =>
       addComment(current, {
         id: createId(),
@@ -557,7 +568,11 @@ function CommentThread({
     startDeleting(async () => {
       try {
         await onDelete?.(comment.id)
-        commitList((current) => deleteComment(current, comment.id))
+        commitList((current) =>
+          deleteComment(current, comment.id, {
+            keepPlaceholder: pendingRepliesRef.current.has(comment.id),
+          })
+        )
         setConfirmingId(null)
         setAnnouncement("Comment deleted")
         focusAfterRender(fallbacks)

@@ -176,6 +176,45 @@ describe("CommentThread", () => {
     expect(article("Second")).toBeDefined()
   })
 
+  it("keeps a placeholder when a comment is deleted while a reply to it saves", async () => {
+    const user = userEvent.setup()
+    let finish = () => {}
+    renderThread({
+      defaultComments: [
+        { id: "root", author: me, body: "Ship it?", createdAt: NOW },
+      ],
+      onReply: () =>
+        new Promise<void>((resolve) => {
+          finish = resolve
+        }),
+    })
+
+    await user.click(
+      within(article("Ship it?")).getByRole("button", {
+        name: "Reply to Noor Haddad",
+      })
+    )
+    await user.type(screen.getByRole("textbox", { name: "Reply" }), "Yes")
+    await user.click(screen.getByRole("button", { name: "Reply" }))
+    await user.click(
+      within(article("Ship it?")).getByRole("button", {
+        name: "Delete comment",
+      })
+    )
+    await user.click(screen.getByRole("button", { name: "Delete" }))
+    await act(async () => finish())
+
+    expect(
+      screen.getByRole("article", { name: "Deleted comment" })
+    ).toBeInTheDocument()
+    expect(screen.getByRole("list", { name: "Replies" })).toContainElement(
+      article("Yes")
+    )
+    expect(
+      screen.getByRole("list", { name: "Comments" }).children
+    ).toHaveLength(1)
+  })
+
   it("leaves another comment's editor open when a slow save finishes", async () => {
     const user = userEvent.setup()
     let finish = () => {}

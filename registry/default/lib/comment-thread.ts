@@ -187,11 +187,15 @@ export function editComment(
   )
 }
 
-export function deleteComment(comments: Comment[], id: string): Comment[] {
+export function deleteComment(
+  comments: Comment[],
+  id: string,
+  { keepPlaceholder = false }: { keepPlaceholder?: boolean } = {}
+): Comment[] {
   const target = comments.find((comment) => comment.id === id)
   if (!target) return comments
 
-  if (hasLiveDescendant(comments, id)) {
+  if (keepPlaceholder || hasLiveDescendant(comments, id)) {
     return comments.map((comment) =>
       comment.id === id
         ? { ...comment, body: "", deleted: true, reactions: [] }
