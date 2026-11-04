@@ -26,6 +26,7 @@ export function CommentThreadResolvedPreview() {
     },
   ])
   const [resolved, setResolved] = React.useState(true)
+  const [resolvedBy, setResolvedBy] = React.useState<typeof me | undefined>(sam)
 
   return (
     <CommentThread
@@ -33,8 +34,11 @@ export function CommentThreadResolvedPreview() {
       defaultComments={comments}
       currentUser={me}
       resolved={resolved}
-      onResolvedChange={setResolved}
-      resolvedBy={resolved ? sam : undefined}
+      onResolvedChange={(next) => {
+        setResolved(next)
+        setResolvedBy(next ? me : undefined)
+      }}
+      resolvedBy={resolvedBy}
     />
   )
 }

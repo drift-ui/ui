@@ -96,8 +96,10 @@ export function BrandColorField() {
   },
   "comment-thread": {
     notes:
-      "One review thread: top-level comments with one level of replies, @mentions through mention-textarea, edit and delete on the current user's own comments, reactions and resolve. comments: Comment[] with { id, parentId?, author: { id, name, avatarUrl? }, body, createdAt, editedAt?, deleted?, reactions?: { emoji, userIds }[] }. A reply to a reply is shown under the same top-level comment, and a reply whose parent is missing is shown as a top-level comment. Comments render in array order. Bodies are plain text; @value is highlighted when value is in mentionSuggestions. State: comments/defaultComments/onCommentsChange and resolved/defaultResolved/onResolvedChange. Persistence: onReply(parentId, body, mentions), onEdit(id, body, mentions) and onDelete(id) may return a promise; the thread applies the change only after it resolves and keeps the draft if it rejects. onReactionToggle(id, emoji) fires after the change is applied. Use either onCommentsChange or the event callbacks to update your own list, not both. Leave out currentUser for a read-only thread. Ctrl/Cmd+Enter submits, Escape cancels an edit or reply.",
-    example: `import { CommentThread } from "@/components/ui/comment-thread"
+      "One review thread: top-level comments with one level of replies, @mentions through mention-textarea, edit and delete on the current user's own comments, reactions and resolve. comments: Comment[] with { id, parentId?, author: { id, name, avatarUrl? }, body, createdAt, editedAt?, deleted?, reactions?: { emoji, userIds }[] }. A reply to a reply is shown under the same top-level comment, and a reply whose parent is missing is shown as a top-level comment. Top-level comments render in array order, and each one's replies follow it in array order. Bodies are plain text; @value is highlighted when value is in mentionSuggestions. State: comments/defaultComments/onCommentsChange and resolved/defaultResolved/onResolvedChange. Persistence: onReply(parentId, body, mentions), onEdit(id, body, mentions) and onDelete(id) may return a promise; the thread applies the change only after it resolves and keeps the draft if it rejects. onReactionToggle(id, emoji) fires after the change is applied. Use either onCommentsChange or the event callbacks to update your own list, not both. Leave out currentUser for a read-only thread. Ctrl/Cmd+Enter submits, Escape cancels an edit or reply.",
+    example: `"use client"
+
+import { CommentThread } from "@/components/ui/comment-thread"
 
 const me = { id: "riya", name: "Riya Kapoor" }
 const people = [{ value: "noor", label: "Noor Haddad" }, { value: "riya", label: "Riya Kapoor" }]
@@ -111,7 +113,8 @@ export function ReviewThread() {
         { id: "1", author: { id: "noor", name: "Noor Haddad" }, body: "Retry on 429 too? cc @riya", createdAt: "2026-11-04T09:00:00Z" },
       ]}
       onReply={async (parentId, body, mentions) => {
-        await fetch("/api/comments", { method: "POST", body: JSON.stringify({ parentId, body, mentions }) })
+        const response = await fetch("/api/comments", { method: "POST", body: JSON.stringify({ parentId, body, mentions }) })
+        if (!response.ok) throw new Error("Could not save the comment")
       }}
     />
   )

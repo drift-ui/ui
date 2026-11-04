@@ -278,12 +278,13 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "CommentThread",
       description:
-        "A single review thread. Top-level comments can have one level of replies; replying to a reply adds to the same top-level comment and starts the draft with @author when the author's id is a mention value. Ctrl or Cmd+Enter submits, Escape cancels an edit, a reply or a delete confirmation, and the reaction picker moves with the arrow keys, Home and End.",
+        "A single review thread. Top-level comments can have one level of replies; replying to a reply adds to the same top-level comment and starts the draft with @author when the author's id is a mention value. Ctrl or Cmd+Enter submits, Escape cancels an edit, a reply or a delete confirmation, and the reaction picker moves with the Left and Right arrow keys, Home and End.",
       props: [
         {
           name: "comments",
           type: "Comment[]",
-          description: "Controlled comments, rendered in array order.",
+          description:
+            "Controlled comments. Top-level comments render in array order, each followed by its replies in array order.",
         },
         {
           name: "defaultComments",
@@ -321,7 +322,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           name: "resolved",
           type: "boolean",
           description:
-            "Controlled resolved state. A resolved thread collapses to a summary row with Show thread and Reopen.",
+            "Controlled resolved state. A resolved thread collapses to a summary row with Show thread, plus Reopen when currentUser is set.",
         },
         {
           name: "defaultResolved",
