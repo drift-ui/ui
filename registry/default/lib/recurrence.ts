@@ -232,11 +232,21 @@ function makeZonedDate(
   return new Date(targetTs)
 }
 
-type DateWithPrecision = Date & { isDateOnly?: boolean }
+type DateWithPrecision = Date & {
+  isDateOnly?: boolean
+  dateOnlyYMD?: string
+}
 
-function markDateOnly(date: Date, value: boolean): DateWithPrecision {
+function markDateOnly(
+  date: Date,
+  value: boolean,
+  ymd?: string
+): DateWithPrecision {
   const tagged = date as DateWithPrecision
   tagged.isDateOnly = value
+  if (ymd !== undefined) {
+    tagged.dateOnlyYMD = ymd
+  }
   return tagged
 }
 
@@ -265,7 +275,11 @@ function parseIcalDate(
     const parsed = new Date(trimmed)
     if (Number.isNaN(parsed.getTime())) return undefined
     if (!trimmed.includes("T") && !/\d{1,2}:\d{2}/.test(trimmed)) {
-      markDateOnly(parsed, true)
+      const ymdMatch = /^(\d{4})[-/]?(\d{2})[-/]?(\d{2})/.exec(trimmed)
+      const ymd = ymdMatch
+        ? `${ymdMatch[1]}${ymdMatch[2]}${ymdMatch[3]}`
+        : undefined
+      markDateOnly(parsed, true, ymd)
     }
     return parsed as DateWithPrecision
   }
@@ -277,7 +291,7 @@ function parseIcalDate(
   if (hours === undefined) {
     const date =
       makeZonedDate(y, m, d, 0, 0, 0, tzid) ?? new Date(y, m, d, 0, 0, 0)
-    return markDateOnly(date, true)
+    return markDateOnly(date, true, `${year}${month}${day}`)
   }
 
   const h = Number(hours)
@@ -306,7 +320,7 @@ function parseUntil(text = "", tzid?: string): DateWithPrecision | undefined {
   if (hours === undefined) {
     const date =
       makeZonedDate(y, m, d, 23, 59, 59, tzid) ?? new Date(y, m, d, 23, 59, 59)
-    return markDateOnly(date, true)
+    return markDateOnly(date, true, `${year}${month}${day}`)
   }
 
   const h = Number(hours)
@@ -319,8 +333,28 @@ function parseUntil(text = "", tzid?: string): DateWithPrecision | undefined {
   return markDateOnly(date, false)
 }
 
-function formatIcalDate(date: Date) {
+function formatIcalDate(date: Date, tzid?: string) {
   if (isDateOnly(date)) {
+    const ymd = (date as DateWithPrecision).dateOnlyYMD
+    if (ymd) {
+      return ymd
+    }
+    if (tzid) {
+      try {
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: tzid,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).formatToParts(date)
+        const y = parts.find((p) => p.type === "year")?.value
+        const m = parts.find((p) => p.type === "month")?.value
+        const d = parts.find((p) => p.type === "day")?.value
+        if (y && m && d) return `${y}${m}${d}`
+      } catch {
+        // Fall back to host-local fields if tzid is invalid
+      }
+    }
     const y = date.getFullYear()
     const m = String(date.getMonth() + 1).padStart(2, "0")
     const d = String(date.getDate()).padStart(2, "0")
@@ -474,7 +508,7 @@ export function formatRRule(
     parts.push(`BYSETPOS=${bySetPos.join(",")}`)
   if (count) parts.push(`COUNT=${count}`)
   else if (until) {
-    parts.push(`UNTIL=${formatIcalDate(until)}`)
+    parts.push(`UNTIL=${formatIcalDate(until, recurrence.tzid)}`)
   }
 
   if (unknownParts) {
@@ -490,13 +524,17 @@ export function formatRRule(
     const firstLine = options?.prefix ? `RRULE:${rruleBody}` : rruleBody
     const lines = [firstLine]
     if (exdates && exdates.length > 0) {
-      lines.push(`EXDATE:${exdates.map(formatIcalDate).join(",")}`)
+      lines.push(
+        `EXDATE:${exdates.map((d) => formatIcalDate(d, recurrence.tzid)).join(",")}`
+      )
     }
     return lines.join("\n")
   }
 
   if (exdates && exdates.length > 0) {
-    parts.push(`EXDATE=${exdates.map(formatIcalDate).join(",")}`)
+    parts.push(
+      `EXDATE=${exdates.map((d) => formatIcalDate(d, recurrence.tzid)).join(",")}`
+    )
   }
 
   const finalBody = parts.join(";")
@@ -968,7 +1006,14 @@ export function describeRecurrence(recurrence: Recurrence, start: Date) {
       ? ", once"
       : `, ${count} times`
     : until
-      ? ` until ${SUMMARY_DATE.format(until)}`
+      ? ` until ${
+          recurrence.tzid
+            ? new Intl.DateTimeFormat("en-US", {
+                dateStyle: "medium",
+                timeZone: recurrence.tzid,
+              }).format(until)
+            : SUMMARY_DATE.format(until)
+        }`
       : ""
   return `${[base, days].filter(Boolean).join(" ")}${end}`
 }

@@ -417,6 +417,29 @@ describe("recurrence", () => {
     expect(serialized.startsWith("RRULE:")).toBe(false)
   })
 
+  it("preserves date-only UNTIL across timezones without moving cutoff", () => {
+    const parsed = parseRRule(
+      "FREQ=DAILY;UNTIL=20260101;TZID=America/Los_Angeles"
+    )
+    expect(parsed.tzid).toBe("America/Los_Angeles")
+    expect(formatRRule(parsed)).toBe("FREQ=DAILY;UNTIL=20260101")
+  })
+
+  it("formats date-only UNTIL in associated TZID when serializing", () => {
+    // 2026-01-01 23:59:59 in America/Los_Angeles is 2026-01-02 07:59:59 UTC
+    const date = new Date("2026-01-02T07:59:59.000Z")
+    const tagged = Object.assign(date, { isDateOnly: true })
+    const formatted = formatRRule({
+      frequency: "DAILY",
+      interval: 1,
+      byDay: [],
+      byMonthDay: [],
+      until: tagged,
+      tzid: "America/Los_Angeles",
+    })
+    expect(formatted).toBe("FREQ=DAILY;UNTIL=20260101")
+  })
+
   it("evaluates ordinals across the full year for YEARLY rules without BYMONTH", () => {
     const start = new Date(2026, 0, 1)
     const results = occurrences(parseRRule("FREQ=YEARLY;BYDAY=1MO"), start, 2)
