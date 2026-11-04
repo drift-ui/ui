@@ -104,6 +104,28 @@ describe("getPermissionStatus", () => {
   })
 })
 
+describe("getPermissionStatus with intermediate denies", () => {
+  it("blocks descendants when an intermediate role denies", () => {
+    const grants = { viewer: ["docs.read"], editor: ["!docs.read"] }
+    expect(
+      getPermissionStatus("admin", "docs.read", grants, ROLES).granted
+    ).toBe(false)
+  })
+
+  it("still grants through another parent that does not deny", () => {
+    const roles: PermissionRole[] = [
+      { id: "viewer", name: "Viewer" },
+      { id: "editor", name: "Editor", inheritsFrom: "viewer" },
+      { id: "reader", name: "Reader", inheritsFrom: "viewer" },
+      { id: "admin", name: "Admin", inheritsFrom: ["editor", "reader"] },
+    ]
+    const grants = { viewer: ["docs.read"], editor: ["!docs.read"] }
+    const status = getPermissionStatus("admin", "docs.read", grants, roles)
+    expect(status.granted).toBe(true)
+    expect(status.inheritedFrom).toBe("Viewer")
+  })
+})
+
 describe("getGroupStatus", () => {
   it("returns 'unchecked' when no permissions in the group are granted", () => {
     const grants = {}
@@ -223,7 +245,7 @@ describe("toggleGroupGrants", () => {
       ],
     }
     const initial = { editor: ["docs.write"] }
-    // Unchecked -> grant enabled only
+    // Indeterminate -> grant enabled only
     const granted = toggleGroupGrants(
       initial,
       "editor",
@@ -240,6 +262,21 @@ describe("toggleGroupGrants", () => {
       ROLES
     )
     expect(ungranted.editor).toEqual(["docs.write"])
+  })
+
+  it("does not deny inherited permissions when overrides are disallowed", () => {
+    const initial = {
+      viewer: ["docs.read", "docs.write", "docs.delete"],
+      editor: [],
+    }
+    const updated = toggleGroupGrants(
+      initial,
+      "editor",
+      SAMPLE_GROUP,
+      ROLES,
+      false
+    )
+    expect(updated.editor).toEqual([])
   })
 
   it("does not pin already inherited permissions when granting an indeterminate group", () => {
@@ -285,6 +322,24 @@ describe("toggleAllGrants", () => {
     ]
     const updated = toggleAllGrants({ r1: [] }, "r1", actionsWithDisabled)
     expect(updated.r1).toEqual(["a1"])
+  })
+
+  it("removes deny markers when granting all", () => {
+    const updated = toggleAllGrants({ r1: ["!a1"] }, "r1", actions)
+    expect(updated.r1).toEqual(["a1", "a2"])
+  })
+
+  it("keeps grants on disabled actions when clearing all", () => {
+    const actionsWithDisabled: PermissionAction[] = [
+      { id: "a1", name: "Action 1" },
+      { id: "a2", name: "Action 2", disabled: true },
+    ]
+    const updated = toggleAllGrants(
+      { r1: ["a1", "a2"] },
+      "r1",
+      actionsWithDisabled
+    )
+    expect(updated.r1).toEqual(["a2"])
   })
 })
 

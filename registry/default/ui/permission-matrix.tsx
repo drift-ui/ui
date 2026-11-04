@@ -240,28 +240,22 @@ export function PermissionMatrix({
     const action = actionMap.get(actionId)
     if (action?.disabled) return
 
-    const status = getPermissionStatus(
-      roleId,
-      actionId,
-      grants,
-      roles,
-      inheritanceMap
-    )
+    const status = getPermissionStatus(roleId, actionId, grants, roles)
     if (status.inherited && !allowOverrideInherited) return
 
-    const next = togglePermissionGrant(
-      grants,
-      roleId,
-      actionId,
-      roles,
-      inheritanceMap
-    )
+    const next = togglePermissionGrant(grants, roleId, actionId, roles)
     setGrants(next)
   }
 
   function handleToggleGroup(roleId: string, group: PermissionGroup) {
     if (disabled || readOnly) return
-    const next = toggleGroupGrants(grants, roleId, group, roles, inheritanceMap)
+    const next = toggleGroupGrants(
+      grants,
+      roleId,
+      group,
+      roles,
+      allowOverrideInherited
+    )
     setGrants(next)
   }
 
@@ -458,8 +452,7 @@ export function PermissionMatrix({
                           role.id,
                           row.group,
                           grants,
-                          roles,
-                          inheritanceMap
+                          roles
                         )
                         const isRoleDisabled =
                           role.disabled || disabled || readOnly
@@ -571,8 +564,7 @@ export function PermissionMatrix({
                         role.id,
                         row.action.id,
                         grants,
-                        roles,
-                        inheritanceMap
+                        roles
                       )
                       const isRoleDisabled =
                         role.disabled ||

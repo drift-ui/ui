@@ -1140,7 +1140,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           description: "Callback fired when group expansion state changes.",
         },
         STATE_PROPS.onValueChange(
-          "PermissionGrants",
+          "(value: PermissionGrants) => void",
           "when any grant in the matrix is updated"
         ),
         {

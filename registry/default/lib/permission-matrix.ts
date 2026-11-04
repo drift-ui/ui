@@ -69,6 +69,40 @@ export function resolveRoleInheritance(
   return result
 }
 
+function findGrantSource(
+  roleId: string,
+  permissionId: string,
+  grants: PermissionGrants,
+  roleMap: Map<string, PermissionRole>,
+  visited: Set<string>
+): string | undefined {
+  if (visited.has(roleId)) return undefined
+  visited.add(roleId)
+
+  const direct = grants[roleId] ?? []
+  if (direct.includes(`!${permissionId}`)) return undefined
+  if (direct.includes(permissionId)) return roleId
+
+  const inheritsFrom = roleMap.get(roleId)?.inheritsFrom
+  const parents = Array.isArray(inheritsFrom)
+    ? inheritsFrom
+    : inheritsFrom
+      ? [inheritsFrom]
+      : []
+
+  for (const parentId of parents) {
+    const source = findGrantSource(
+      parentId,
+      permissionId,
+      grants,
+      roleMap,
+      visited
+    )
+    if (source) return source
+  }
+  return undefined
+}
+
 /**
  * Computes whether a permission is granted directly or through an ancestor role.
  */
@@ -76,13 +110,9 @@ export function getPermissionStatus(
   roleId: string,
   permissionId: string,
   grants: PermissionGrants,
-  roles: PermissionRole[] = [],
-  inheritanceMap?: Map<string, string[]>
+  roles: PermissionRole[] = []
 ): PermissionStatus {
-  const directGrants = grants[roleId] ?? []
-  const denyId = `!${permissionId}`
-
-  if (directGrants.includes(denyId)) {
+  if ((grants[roleId] ?? []).includes(`!${permissionId}`)) {
     return {
       granted: false,
       direct: false,
@@ -91,7 +121,24 @@ export function getPermissionStatus(
     }
   }
 
-  if (directGrants.includes(permissionId)) {
+  const roleMap = new Map(roles.map((r) => [r.id, r]))
+  const source = findGrantSource(
+    roleId,
+    permissionId,
+    grants,
+    roleMap,
+    new Set()
+  )
+
+  if (!source) {
+    return {
+      granted: false,
+      direct: false,
+      inherited: false,
+    }
+  }
+
+  if (source === roleId) {
     return {
       granted: true,
       direct: true,
@@ -99,27 +146,11 @@ export function getPermissionStatus(
     }
   }
 
-  const map = inheritanceMap ?? resolveRoleInheritance(roles)
-  const ancestors = map.get(roleId) ?? []
-  const roleMap = new Map(roles.map((r) => [r.id, r]))
-
-  for (const ancestorId of ancestors) {
-    const ancestorGrants = grants[ancestorId] ?? []
-    if (ancestorGrants.includes(permissionId)) {
-      const ancestorRole = roleMap.get(ancestorId)
-      return {
-        granted: true,
-        direct: false,
-        inherited: true,
-        inheritedFrom: ancestorRole?.name ?? ancestorId,
-      }
-    }
-  }
-
   return {
-    granted: false,
+    granted: true,
     direct: false,
-    inherited: false,
+    inherited: true,
+    inheritedFrom: roleMap.get(source)?.name ?? source,
   }
 }
 
@@ -130,18 +161,16 @@ export function getGroupStatus(
   roleId: string,
   group: PermissionGroup,
   grants: PermissionGrants,
-  roles: PermissionRole[] = [],
-  inheritanceMap?: Map<string, string[]>
+  roles: PermissionRole[] = []
 ): "checked" | "unchecked" | "indeterminate" {
   if (group.permissions.length === 0) {
     return "unchecked"
   }
 
-  const map = inheritanceMap ?? resolveRoleInheritance(roles)
   let grantedCount = 0
 
   for (const action of group.permissions) {
-    const status = getPermissionStatus(roleId, action.id, grants, roles, map)
+    const status = getPermissionStatus(roleId, action.id, grants, roles)
     if (status.granted) {
       grantedCount++
     }
@@ -160,18 +189,11 @@ export function togglePermissionGrant(
   grants: PermissionGrants,
   roleId: string,
   permissionId: string,
-  roles: PermissionRole[] = [],
-  inheritanceMap?: Map<string, string[]>
+  roles: PermissionRole[] = []
 ): PermissionGrants {
   const current = grants[roleId] ?? []
   const denyId = `!${permissionId}`
-  const status = getPermissionStatus(
-    roleId,
-    permissionId,
-    grants,
-    roles,
-    inheritanceMap
-  )
+  const status = getPermissionStatus(roleId, permissionId, grants, roles)
 
   let next: string[]
   if (current.includes(denyId)) {
@@ -204,9 +226,9 @@ export function toggleGroupGrants(
   roleId: string,
   group: PermissionGroup,
   roles: PermissionRole[] = [],
-  inheritanceMap?: Map<string, string[]>
+  allowOverrideInherited = true
 ): PermissionGrants {
-  const status = getGroupStatus(roleId, group, grants, roles, inheritanceMap)
+  const status = getGroupStatus(roleId, group, grants, roles)
   const currentDirect = grants[roleId] ?? []
   const groupActionIds = group.permissions
     .filter((p) => !p.disabled)
@@ -216,14 +238,8 @@ export function toggleGroupGrants(
     // Ungrant all permissions in this group
     const next = currentDirect.filter((id) => !groupActionIds.includes(id))
     for (const actionId of groupActionIds) {
-      const pStatus = getPermissionStatus(
-        roleId,
-        actionId,
-        grants,
-        roles,
-        inheritanceMap
-      )
-      if (pStatus.inherited) {
+      const pStatus = getPermissionStatus(roleId, actionId, grants, roles)
+      if (pStatus.inherited && allowOverrideInherited) {
         next.push(`!${actionId}`)
       }
     }
@@ -241,8 +257,7 @@ export function toggleGroupGrants(
       roleId,
       actionId,
       { ...grants, [roleId]: next },
-      roles,
-      inheritanceMap
+      roles
     )
     if (!pStatus.granted && !next.includes(actionId)) {
       next.push(actionId)
@@ -269,9 +284,15 @@ export function toggleAllGrants(
   const allIds = enabledPermissions.map((p) => p.id)
   const grant = shouldGrant ?? !allIds.every((id) => current.includes(id))
 
+  const denyIds = allIds.map((id) => `!${id}`)
+
   return {
     ...grants,
-    [roleId]: grant ? Array.from(new Set([...current, ...allIds])) : [],
+    [roleId]: grant
+      ? Array.from(
+          new Set([...current.filter((id) => !denyIds.includes(id)), ...allIds])
+        )
+      : current.filter((id) => !allIds.includes(id)),
   }
 }
 
