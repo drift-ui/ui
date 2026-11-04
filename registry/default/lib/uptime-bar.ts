@@ -92,15 +92,17 @@ export function formatDateLabel(
 ): string {
   const dateOnly =
     typeof date === "string" && /^(\d{4})-(\d{2})-(\d{2})$/.exec(date)
-  const d = dateOnly
-    ? new Date(
-        Number(dateOnly[1]),
-        Number(dateOnly[2]) - 1,
-        Number(dateOnly[3])
-      )
-    : typeof date === "string"
-      ? new Date(date)
-      : date
+  let d: Date
+  if (dateOnly) {
+    const [year, month, day] = dateOnly.slice(1).map(Number)
+    d = new Date(year, month - 1, day)
+    d.setFullYear(year)
+    if (d.getMonth() !== month - 1 || d.getDate() !== day) {
+      return String(date)
+    }
+  } else {
+    d = typeof date === "string" ? new Date(date) : date
+  }
   if (Number.isNaN(d.getTime())) {
     return String(date)
   }

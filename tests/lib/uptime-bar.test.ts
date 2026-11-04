@@ -112,6 +112,15 @@ describe("formatDateLabel", () => {
     expect(formatDateLabel("2026-01-01")).toBe("Jan 1, 2026")
   })
 
+  it("returns out-of-range date-only strings unchanged", () => {
+    expect(formatDateLabel("2024-13-01")).toBe("2024-13-01")
+    expect(formatDateLabel("2025-02-29")).toBe("2025-02-29")
+  })
+
+  it("accepts leap days", () => {
+    expect(formatDateLabel("2024-02-29")).toBe("Feb 29, 2024")
+  })
+
   it("formats date strings into readable formats", () => {
     const label = formatDateLabel("2026-10-31")
     expect(label).toContain("Oct 31, 2026")
