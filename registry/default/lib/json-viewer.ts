@@ -1,4 +1,5 @@
 export const CHUNK_SIZE = 100
+export const DEFAULT_MAX_STRING_LENGTH = 80
 
 export type JsonEntry = {
   id: string
@@ -95,11 +96,185 @@ export function expandedToDepth(data: unknown, depth: number) {
   return ids
 }
 
+export function parsePath(path: string): string[] {
+  const trimmed = path.trim().replace(/^\$\.?/, "")
+  if (!trimmed) return []
+
+  const tokens: string[] = []
+  let current = ""
+  let inBracket = false
+  let inQuote = false
+  let quoteChar = ""
+
+  for (let i = 0; i < trimmed.length; i++) {
+    const char = trimmed[i]
+    if (inQuote) {
+      if (char === quoteChar && trimmed[i - 1] !== "\\") {
+        inQuote = false
+      } else {
+        current += char
+      }
+    } else if (char === '"' || char === "'") {
+      inQuote = true
+      quoteChar = char
+    } else if (char === "[") {
+      if (current) {
+        tokens.push(current)
+        current = ""
+      }
+      inBracket = true
+    } else if (char === "]") {
+      if (current) {
+        tokens.push(current)
+        current = ""
+      }
+      inBracket = false
+    } else if (char === ".") {
+      if (!inBracket) {
+        if (current) {
+          tokens.push(current)
+          current = ""
+        }
+      } else {
+        current += char
+      }
+    } else {
+      current += char
+    }
+  }
+  if (current) {
+    tokens.push(current)
+  }
+  return tokens
+}
+
+export function matchPath(
+  path: string,
+  pattern: string,
+  options?: { exact?: boolean }
+): boolean {
+  const pathTokens = parsePath(path)
+  const patternTokens = parsePath(pattern)
+  if (patternTokens.length === 0) return true
+  if (pathTokens.length === 0) return false
+
+  if (options?.exact) {
+    if (pathTokens.length !== patternTokens.length) return false
+    return pathTokens.every(
+      (token, i) => patternTokens[i] === "*" || patternTokens[i] === token
+    )
+  }
+
+  if (pathTokens.length === patternTokens.length) {
+    return pathTokens.every(
+      (token, i) => patternTokens[i] === "*" || patternTokens[i] === token
+    )
+  }
+
+  if (pathTokens.length > patternTokens.length) {
+    return patternTokens.every(
+      (token, i) => token === "*" || token === pathTokens[i]
+    )
+  }
+
+  return false
+}
+
+export function isPathAncestor(parentPath: string, pattern: string): boolean {
+  const parentTokens = parsePath(parentPath)
+  const patternTokens = parsePath(pattern)
+  if (parentTokens.length === 0) return true
+  if (parentTokens.length >= patternTokens.length) return false
+  return parentTokens.every(
+    (token, i) => patternTokens[i] === "*" || token === patternTokens[i]
+  )
+}
+
+export function filterByPath(data: unknown, pattern: string): unknown {
+  const tokens = parsePath(pattern)
+  if (tokens.length === 0) return data
+
+  function extract(current: unknown, index: number): unknown {
+    if (index >= tokens.length) {
+      return current
+    }
+    if (!isContainer(current)) {
+      return undefined
+    }
+
+    const token = tokens[index]
+    if (Array.isArray(current)) {
+      if (token === "*") {
+        const mapped = current
+          .map((item) => extract(item, index + 1))
+          .filter((item) => item !== undefined)
+        return mapped.length > 0 ? mapped : undefined
+      }
+      const num = Number(token)
+      if (Number.isInteger(num) && num >= 0 && num < current.length) {
+        const item = extract(current[num], index + 1)
+        if (item !== undefined) {
+          const res = []
+          res[num] = item
+          return res
+        }
+      }
+      return undefined
+    }
+
+    if (token === "*") {
+      const result: Record<string, unknown> = {}
+      let hasKeys = false
+      for (const [k, v] of Object.entries(current)) {
+        const val = extract(v, index + 1)
+        if (val !== undefined) {
+          result[k] = val
+          hasKeys = true
+        }
+      }
+      return hasKeys ? result : undefined
+    }
+
+    if (Object.prototype.hasOwnProperty.call(current, token)) {
+      const val = extract(
+        (current as Record<string, unknown>)[token],
+        index + 1
+      )
+      if (val !== undefined) {
+        return { [token]: val }
+      }
+    }
+
+    return undefined
+  }
+
+  const res = extract(data, 0)
+  return res !== undefined ? res : {}
+}
+
+export function truncateString(
+  text: string,
+  maxLength = DEFAULT_MAX_STRING_LENGTH
+): { isLong: boolean; preview: string } {
+  const hasNewline = text.includes("\n")
+  const isTooLong = text.length > maxLength
+  if (!hasNewline && !isTooLong) {
+    return { isLong: false, preview: text }
+  }
+  const firstLine = text.split(/\r?\n/)[0]
+  const sliceLength = Math.min(maxLength, firstLine.length)
+  const preview = firstLine.slice(0, sliceLength)
+  return { isLong: true, preview }
+}
+
 export function searchJson(data: unknown, query: string) {
   const matches = new Set<string>()
   const ancestors = new Set<string>()
   const needle = query.trim().toLowerCase()
   if (!needle) return { matches, ancestors }
+
+  const isPathQuery =
+    needle.includes(".") || needle.includes("[") || needle.includes("*")
 
   function walk(entries: JsonEntry[], parents: string[]) {
     for (const entry of entries) {
@@ -109,10 +284,19 @@ export function searchJson(data: unknown, query: string) {
       const valueHit =
         !isContainer(entry.value) &&
         String(entry.value).toLowerCase().includes(needle)
-      if (keyHit || valueHit) {
+      const pathHit =
+        isPathQuery &&
+        matchPath(entry.path.toLowerCase(), needle, { exact: true })
+
+      if (keyHit || valueHit || pathHit) {
         matches.add(entry.id)
         for (const parent of parents) ancestors.add(parent)
       }
+
+      if (isPathQuery && isPathAncestor(entry.path.toLowerCase(), needle)) {
+        ancestors.add(entry.id)
+      }
+
       if (entry.isBranch) {
         walk(childEntries(entry.value, entry.path, entry.range), [
           ...parents,

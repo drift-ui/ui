@@ -1,5 +1,8 @@
 import { JsonViewerExpandDepthPreview } from "@/components/preview/examples/json-viewer/expand-depth"
+import { JsonViewerLongValuesPreview } from "@/components/preview/examples/json-viewer/long-values"
 import { JsonViewerOnCopyPreview } from "@/components/preview/examples/json-viewer/on-copy"
+import { JsonViewerPathFilterPreview } from "@/components/preview/examples/json-viewer/path-filter"
+import { JsonViewerVirtualizedLargePreview } from "@/components/preview/examples/json-viewer/virtualized-large"
 import type { ComponentExample } from "@/lib/component-docs"
 
 export const examples: ComponentExample[] = [
@@ -9,6 +12,27 @@ export const examples: ComponentExample[] = [
     description:
       "defaultExpandDepth={0} opens only the root, for large payloads people want to explore a level at a time.",
     Preview: JsonViewerExpandDepthPreview,
+  },
+  {
+    id: "path-filter",
+    title: "Path filter",
+    description:
+      "Filter nested structures with wildcard path patterns like users[*].email or *.id matching the exact path format produced by copy path.",
+    Preview: JsonViewerPathFilterPreview,
+  },
+  {
+    id: "long-values",
+    title: "Long and multi-line values",
+    description:
+      "Strings exceeding maxStringLength or containing newlines truncate with inline expand and collapse controls, while full text is preserved on copy.",
+    Preview: JsonViewerLongValuesPreview,
+  },
+  {
+    id: "virtualized-large",
+    title: "Virtualized large payload",
+    description:
+      "Pass virtual to virtualize row rendering for large datasets, maintaining 60fps scrolling and instant search via deferred updates.",
+    Preview: JsonViewerVirtualizedLargePreview,
   },
   {
     id: "on-copy",

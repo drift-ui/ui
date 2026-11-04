@@ -5,9 +5,14 @@ import {
   childEntries,
   childPath,
   expandedToDepth,
+  filterByPath,
   formatValue,
+  isPathAncestor,
+  matchPath,
+  parsePath,
   rootEntries,
   searchJson,
+  truncateString,
 } from "@/registry/default/lib/json-viewer"
 
 const DATA = {
@@ -106,5 +111,121 @@ describe("formatValue", () => {
     expect(formatValue("Ana")).toBe("Ana")
     expect(formatValue(null)).toBe("null")
     expect(formatValue(["a"])).toBe('[\n  "a"\n]')
+  })
+})
+
+describe("parsePath", () => {
+  it("parses dot notation, array indexes, bracket notation and wildcards", () => {
+    expect(parsePath("users[*].email")).toEqual(["users", "*", "email"])
+    expect(parsePath("user.tags[0]")).toEqual(["user", "tags", "0"])
+    expect(parsePath('user["first name"]')).toEqual(["user", "first name"])
+    expect(parsePath("$.items[200]")).toEqual(["items", "200"])
+    expect(parsePath("")).toEqual([])
+    expect(parsePath("$")).toEqual([])
+  })
+})
+
+describe("matchPath and isPathAncestor", () => {
+  it("matches literal paths and wildcard patterns", () => {
+    expect(matchPath("users[0].email", "users[*].email")).toBe(true)
+    expect(matchPath("users[1].email", "users[*].email")).toBe(true)
+    expect(matchPath("users[0].name", "users[*].email")).toBe(false)
+    expect(matchPath("user.name", "user.name")).toBe(true)
+    expect(matchPath("user.name", "user.age")).toBe(false)
+    expect(matchPath("users[0].email", "users[*]")).toBe(true)
+  })
+
+  it("checks if a parent path is an ancestor of a path pattern", () => {
+    expect(isPathAncestor("users", "users[*].email")).toBe(true)
+    expect(isPathAncestor("users[0]", "users[*].email")).toBe(true)
+    expect(isPathAncestor("users[0].email", "users[*].email")).toBe(false)
+    expect(isPathAncestor("meta", "users[*].email")).toBe(false)
+  })
+})
+
+describe("filterByPath", () => {
+  it("filters object and array data to only paths matching the pattern", () => {
+    const payload = {
+      users: [
+        { id: 1, email: "ana@example.com", name: "Ana" },
+        { id: 2, email: "bob@example.com", name: "Bob" },
+      ],
+      meta: { total: 2, version: "v1" },
+    }
+
+    expect(filterByPath(payload, "users[*].email")).toEqual({
+      users: [{ email: "ana@example.com" }, { email: "bob@example.com" }],
+    })
+
+    expect(filterByPath(payload, "users[0].name")).toEqual({
+      users: [{ name: "Ana" }],
+    })
+
+    expect(filterByPath(payload, "meta.version")).toEqual({
+      meta: { version: "v1" },
+    })
+
+    expect(filterByPath(payload, "nonexistent")).toEqual({})
+    expect(filterByPath(payload, "")).toBe(payload)
+  })
+})
+
+describe("truncateString", () => {
+  it("leaves short single-line strings intact", () => {
+    expect(truncateString("hello world", 80)).toEqual({
+      isLong: false,
+      preview: "hello world",
+    })
+  })
+
+  it("truncates strings over the max length", () => {
+    const long = "A".repeat(120)
+    expect(truncateString(long, 80)).toEqual({
+      isLong: true,
+      preview: "A".repeat(80),
+    })
+  })
+
+  it("truncates multi-line strings to their first line", () => {
+    expect(truncateString("First line\nSecond line", 80)).toEqual({
+      isLong: true,
+      preview: "First line",
+    })
+  })
+})
+
+describe("searchJson path queries", () => {
+  it("matches paths using path patterns like users[*].email", () => {
+    const payload = {
+      users: [
+        { id: 1, email: "ana@example.com" },
+        { id: 2, email: "bob@example.com" },
+      ],
+    }
+    const { matches, ancestors } = searchJson(payload, "users[*].email")
+    expect([...matches]).toEqual(["users[0].email", "users[1].email"])
+    expect([...ancestors]).toEqual(["users", "users[0]", "users[1]"])
+  })
+})
+
+describe("scale limit benchmark", () => {
+  it("measures operations on a large payload (10,000+ items)", () => {
+    const records = Array.from({ length: 10000 }, (_, i) => ({
+      id: `rec_${i}`,
+      user: { email: `user${i}@example.com` },
+    }))
+    const largeData = { items: records }
+
+    const startRoot = performance.now()
+    const roots = rootEntries(largeData)
+    const rootDuration = performance.now() - startRoot
+    expect(rootDuration).toBeLessThan(100)
+    expect(roots).toHaveLength(1)
+
+    const startSearch = performance.now()
+    const res = searchJson(largeData, "user9999@example.com")
+    const searchDuration = performance.now() - startSearch
+    expect(res.matches.size).toBe(1)
+    expect(searchDuration).toBeLessThan(1500)
   })
 })

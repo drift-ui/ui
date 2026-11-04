@@ -34,6 +34,7 @@ describe("JsonViewer", () => {
     expect(screen.getAllByRole("treeitem")).toHaveLength(4)
     await user.click(screen.getByRole("searchbox"))
     await user.tab()
+    await user.tab()
     await user.keyboard("{End}{ArrowRight}")
 
     expect(row(/^lines/)).toHaveAttribute("aria-expanded", "true")
@@ -131,5 +132,139 @@ describe("JsonViewer", () => {
 
     await user.click(row(/^\[200 … 249\]/))
     expect(screen.getAllByRole("treeitem")).toHaveLength(54)
+  })
+
+  it("truncates long strings and expands on Show more, preserving full string in clipboard", async () => {
+    const user = userEvent.setup()
+    const longString = "A".repeat(200)
+    render(<JsonViewer data={{ bio: longString }} maxStringLength={80} />)
+
+    const showMore = screen.getByRole("button", { name: "Expand string" })
+    expect(showMore).toHaveAttribute("aria-expanded", "false")
+    expect(showMore).toHaveTextContent("Show more")
+    expect(screen.getByText(new RegExp("A{80}"))).toBeInTheDocument()
+
+    row(/^bio/).focus()
+    await user.keyboard("{Control>}c{/Control}")
+    expect(await navigator.clipboard.readText()).toBe(longString)
+
+    await user.click(showMore)
+    const showLess = screen.getByRole("button", { name: "Collapse string" })
+    expect(showLess).toHaveAttribute("aria-expanded", "true")
+    expect(showLess).toHaveTextContent("Show less")
+    expect(screen.getByText(longString)).toBeInTheDocument()
+
+    await user.click(showLess)
+    expect(
+      screen.getByRole("button", { name: "Expand string" })
+    ).toBeInTheDocument()
+  })
+
+  it("copies 1 MB string fully even when truncated", async () => {
+    const user = userEvent.setup()
+    const oneMbString = "x".repeat(1024 * 1024)
+    render(<JsonViewer data={{ payload: oneMbString }} />)
+
+    row(/^payload/).focus()
+    await user.keyboard("{Control>}c{/Control}")
+    expect(await navigator.clipboard.readText()).toBe(oneMbString)
+  })
+
+  it("collapses multi-line strings to single line and expands with line breaks", async () => {
+    const user = userEvent.setup()
+    const multiLine = "first line\nsecond line\nthird line"
+    render(<JsonViewer data={{ description: multiLine }} />)
+
+    expect(
+      screen.getByRole("button", { name: "Expand string" })
+    ).toBeInTheDocument()
+    expect(row(/^description/)).toHaveTextContent(
+      'description:"first line…Show more"'
+    )
+
+    await user.click(screen.getByRole("button", { name: "Expand string" }))
+    expect(
+      screen.getByRole("button", { name: "Collapse string" })
+    ).toBeInTheDocument()
+    expect(row(/^description/)).toHaveTextContent(
+      'description:"first line second line third lineShow less"'
+    )
+  })
+
+  it("toggles path filter input and filters tree by wildcard path pattern", async () => {
+    const user = userEvent.setup()
+    const data = {
+      users: [
+        { id: 1, name: "Alice", email: "alice@example.com" },
+        { id: 2, name: "Bob", email: "bob@example.com" },
+      ],
+      meta: { total: 2 },
+    }
+    render(<JsonViewer data={data} defaultExpandDepth={3} />)
+
+    expect(row(/^meta/)).toBeInTheDocument()
+    expect(row(/^name:"Alice"/)).toBeInTheDocument()
+
+    const toggle = screen.getByRole("button", { name: "Filter by path" })
+    await user.click(toggle)
+
+    const filterInput = screen.getByRole("textbox", {
+      name: "Filter path pattern",
+    })
+    await user.type(filterInput, "users[[*].email")
+
+    expect(
+      screen.queryByRole("treeitem", { name: /^meta/ })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("treeitem", { name: /^name:"Alice"/ })
+    ).not.toBeInTheDocument()
+    expect(row(/^email:"alice@example.com"/)).toBeInTheDocument()
+    expect(row(/^email:"bob@example.com"/)).toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Clear path filter" }))
+    expect(row(/^meta/)).toBeInTheDocument()
+  })
+
+  it("supports controlled pathFilter and onPathFilterChange", () => {
+    const onPathFilterChange = vi.fn()
+    const data = {
+      users: [{ id: 1, email: "alice@example.com" }],
+      other: "value",
+    }
+    const { rerender } = render(
+      <JsonViewer
+        data={data}
+        pathFilter=""
+        onPathFilterChange={onPathFilterChange}
+        defaultExpandDepth={3}
+      />
+    )
+
+    expect(row(/^other/)).toBeInTheDocument()
+
+    rerender(
+      <JsonViewer
+        data={data}
+        pathFilter="users[*].email"
+        onPathFilterChange={onPathFilterChange}
+        defaultExpandDepth={3}
+      />
+    )
+
+    expect(
+      screen.queryByRole("treeitem", { name: /^other/ })
+    ).not.toBeInTheDocument()
+    expect(row(/^email:"alice@example.com"/)).toBeInTheDocument()
+  })
+
+  it("virtualizes large datasets when virtual prop is true", () => {
+    const data = Array.from({ length: 500 }, (_, index) => ({
+      id: `id_${index}`,
+      title: `Item ${index}`,
+    }))
+    render(<JsonViewer virtual data={data} defaultExpandDepth={0} />)
+
+    expect(screen.getAllByRole("treeitem").length).toBeLessThan(50)
   })
 })

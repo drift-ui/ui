@@ -362,11 +362,19 @@ export function EmailField() {
   },
   "json-viewer": {
     notes:
-      "Read-only JSON tree built on tree-view, so arrow keys, Home, End and typeahead work. defaultExpandDepth (default 1) opens that many levels. Strings, numbers and booleans use the chart-2, chart-1 and chart-3 tokens mixed with foreground for readable contrast, and null uses muted text. The search field highlights matching keys and values and opens their parents. Each row has pointer-only copy value and copy path buttons, shown on hover or always on touch screens; from the keyboard, Ctrl or Cmd+C copies the focused value and Shift+Ctrl or Cmd+C copies its path, like users[0].name. onCopy(path, value, target) runs after a copy. Arrays over 100 items split into groups of 100 and only open branches render.",
+      "Read-only JSON tree built on tree-view, so arrow keys, Home, End and typeahead work. Pass virtual for large payloads (tested up to 50 MB / 100k items) to keep 60fps scrolling and memory low. Search uses deferred value updates to eliminate typing lag. Filter paths using dot notation or wildcards (e.g. users[*].email or *.id) via the pathFilter prop or the toolbar path filter toggle. Long strings exceeding maxStringLength (default 80) or containing newlines truncate with inline Show more and Show less toggles, while copying (hover button or Ctrl/Cmd+C) always copies the full untruncated string. defaultExpandDepth (default 1) controls initial expansion. Strings, numbers and booleans use chart-2, chart-1 and chart-3 tokens mixed with foreground for readable contrast, and null uses muted text. Arrays over 100 items split into groups of 100.",
     example: `import { JsonViewer } from "@/components/ui/json-viewer"
 
 export function WebhookPayload({ payload }: { payload: unknown }) {
-  return <JsonViewer aria-label="Webhook payload" data={payload} defaultExpandDepth={2} />
+  return (
+    <JsonViewer
+      virtual
+      aria-label="Webhook payload"
+      data={payload}
+      defaultExpandDepth={2}
+      className="h-80 w-full"
+    />
+  )
 }`,
   },
   label: {

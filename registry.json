@@ -363,6 +363,7 @@
         "utils",
         "input",
         "@drift-ui/tree-view",
+        "@drift-ui/use-controllable-state",
         "@drift-ui/use-copy-to-clipboard"
       ],
       "files": [

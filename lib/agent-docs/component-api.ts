@@ -1025,13 +1025,14 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "JsonViewer",
       description:
-        "A searchable JSON tree on top of TreeView. Rows show copy value and copy path buttons on hover, or always on touch screens; Ctrl or Cmd+C copies the focused value and Shift+Ctrl or Cmd+C its path. Arrays over 100 items open as groups of 100.",
+        "A searchable JSON tree on top of TreeView with optional row virtualization for payloads up to 50 MB. Supports wildcard path filtering (e.g. users[*].email), truncated multi-line and long strings with inline expand/collapse, deferred search typing, and copy value or path via hover buttons, Ctrl or Cmd+C, and Shift+Ctrl or Cmd+C. Arrays over 100 items open as groups of 100.",
       props: [
         {
           name: "data",
           type: "unknown",
           required: true,
-          description: "Any JSON value.",
+          description:
+            "Any JSON value. Scales comfortably to 50 MB payloads when virtual is enabled.",
         },
         {
           name: "defaultExpandDepth",
@@ -1040,9 +1041,40 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           description: "How many levels start open.",
         },
         {
+          name: "defaultPathFilter",
+          type: "string",
+          description:
+            "Initial path filter pattern e.g. users[*].email or *.id.",
+        },
+        {
+          name: "maxStringLength",
+          type: "number",
+          default: "80",
+          description:
+            "Length at which string values truncate with an inline Show more button.",
+        },
+        {
           name: "onCopy",
           type: '(path: string, value: unknown, target: "value" | "path") => void',
           description: "Called after a value or path is copied.",
+        },
+        {
+          name: "onPathFilterChange",
+          type: "(path: string) => void",
+          description: "Called when the path filter pattern changes.",
+        },
+        {
+          name: "pathFilter",
+          type: "string",
+          description:
+            "Controlled path filter pattern e.g. users[*].email or *.id.",
+        },
+        {
+          name: "virtual",
+          type: "boolean",
+          default: "false",
+          description:
+            "Whether to virtualize row rendering via TreeView for large datasets (e.g. 10k-100k items / up to 50 MB payloads).",
         },
       ],
       rest: "<div>",
