@@ -48,6 +48,9 @@ export function PermissionMatrixControlledPreview() {
   const [savedGrants, setSavedGrants] =
     React.useState<PermissionGrants>(INITIAL_GRANTS)
   const [savedNotice, setSavedNotice] = React.useState(false)
+  const noticeTimeout = React.useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  React.useEffect(() => () => clearTimeout(noticeTimeout.current), [])
 
   const isDirty = Object.keys({ ...grants, ...savedGrants }).some((role) => {
     const current = new Set(grants[role] ?? [])
@@ -60,7 +63,8 @@ export function PermissionMatrixControlledPreview() {
   function handleSave() {
     setSavedGrants(grants)
     setSavedNotice(true)
-    setTimeout(() => setSavedNotice(false), 2000)
+    clearTimeout(noticeTimeout.current)
+    noticeTimeout.current = setTimeout(() => setSavedNotice(false), 2000)
   }
 
   function handleReset() {

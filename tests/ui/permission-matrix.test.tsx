@@ -246,6 +246,23 @@ describe("PermissionMatrix", () => {
     ).toBeInTheDocument()
   })
 
+  it("counts the empty-state row in aria-rowcount", async () => {
+    const user = userEvent.setup()
+
+    render(
+      <PermissionMatrix roles={SAMPLE_ROLES} permissions={SAMPLE_GROUPS} />
+    )
+
+    await user.type(
+      screen.getByRole("searchbox", { name: "Filter permissions..." }),
+      "zzz-no-match"
+    )
+
+    const grid = screen.getByRole("grid")
+    expect(grid).toHaveAttribute("aria-rowcount", "2")
+    expect(screen.getAllByRole("row")).toHaveLength(2)
+  })
+
   it("supports read-only mode disabling all interactive checkboxes", async () => {
     const user = userEvent.setup()
     const onValueChange = vi.fn()

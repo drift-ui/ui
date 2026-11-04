@@ -1179,7 +1179,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         },
         STATE_PROPS.value(
           "PermissionGrants",
-          "Controlled grants mapping role ID to array of permission IDs."
+          'Controlled grants mapping role ID to an array of permission IDs. A `"!permissionId"` entry explicitly denies a permission the role would otherwise inherit.'
         ),
       ],
       rest: "<div>",

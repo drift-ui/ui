@@ -305,7 +305,7 @@ export function PermissionMatrix({
         <table
           role="grid"
           aria-label={ariaLabel}
-          aria-rowcount={totalRows}
+          aria-rowcount={rows.length === 0 ? 2 : totalRows}
           aria-colcount={totalCols}
           className="w-full border-collapse text-left text-sm"
         >
@@ -372,8 +372,9 @@ export function PermissionMatrix({
           {/* Table Body: Groups and Action Rows */}
           <tbody>
             {rows.length === 0 ? (
-              <tr role="row">
+              <tr role="row" aria-rowindex={2}>
                 <td
+                  role="gridcell"
                   colSpan={totalCols}
                   className="px-4 py-8 text-center text-sm text-muted-foreground"
                 >
