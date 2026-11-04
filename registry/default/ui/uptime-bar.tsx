@@ -106,7 +106,7 @@ export function UptimeBar({
   return (
     <div
       data-slot="uptime-bar"
-      className={cn("w-full space-y-2", className)}
+      className={cn("w-full min-w-0 space-y-2", className)}
       {...props}
     >
       {(title !== undefined || showPercentage) && (
@@ -141,7 +141,7 @@ export function UptimeBar({
             ? `${title} uptime history`
             : "Uptime history"
         }
-        className="flex w-full items-center gap-[1px] sm:gap-0.5"
+        className="flex w-full min-w-0 items-center gap-[min(0.125rem,0.5%)]"
       >
         {days.map((day, index) => {
           const status = normalizeDayStatus(day.status)
@@ -169,7 +169,7 @@ export function UptimeBar({
                 onFocus={() => setFocusedIndex(index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 className={cn(
-                  "relative h-8 min-w-[1px] flex-1 rounded-xs transition-opacity hover:opacity-80 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:outline-hidden sm:min-w-[2px]",
+                  "relative h-8 min-w-0 flex-1 rounded-xs transition-opacity hover:opacity-80 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:outline-hidden",
                   STATUS_BG[status],
                   activeTabIndex === index && "ring-1 ring-ring/30"
                 )}
