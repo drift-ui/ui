@@ -147,8 +147,12 @@ export function restoreSavedView<T>(
   index: number
 ): SavedView<T>[] {
   if (views.some((v) => v.id === view.id)) return views
+  const restored =
+    view.isDefault && views.some((v) => v.isDefault)
+      ? { ...view, isDefault: false }
+      : view
   const at = Math.min(Math.max(index, 0), views.length)
-  return [...views.slice(0, at), view, ...views.slice(at)]
+  return [...views.slice(0, at), restored, ...views.slice(at)]
 }
 
 function definedKeys(value: object): string[] {
@@ -159,16 +163,28 @@ function definedKeys(value: object): string[] {
 
 export function isViewDataEqual(a: unknown, b: unknown): boolean {
   if (a === b || Object.is(a, b)) return true
-  if (a instanceof Date || b instanceof Date) {
-    return a instanceof Date && b instanceof Date && a.getTime() === b.getTime()
-  }
   if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false
-  if (Array.isArray(a) || Array.isArray(b)) {
+  if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return false
+  if (a instanceof Date && b instanceof Date) {
+    return a.getTime() === b.getTime()
+  }
+  if (a instanceof RegExp && b instanceof RegExp) {
+    return String(a) === String(b)
+  }
+  if (a instanceof Set && b instanceof Set) {
+    return a.size === b.size && [...a].every((item) => b.has(item))
+  }
+  if (a instanceof Map && b instanceof Map) {
     return (
-      Array.isArray(a) &&
-      Array.isArray(b) &&
-      a.length === b.length &&
-      a.every((item, i) => isViewDataEqual(item, b[i]))
+      a.size === b.size &&
+      [...a].every(
+        ([key, value]) => b.has(key) && isViewDataEqual(value, b.get(key))
+      )
+    )
+  }
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return (
+      a.length === b.length && a.every((item, i) => isViewDataEqual(item, b[i]))
     )
   }
   const keysA = definedKeys(a)
@@ -187,9 +203,9 @@ export function isViewDataEqual(a: unknown, b: unknown): boolean {
 export function isViewDirty<T>(
   view: SavedView<T> | undefined,
   currentData: T | undefined,
-  isEqual: (saved: T | undefined, current: T) => boolean = isViewDataEqual
+  isEqual: (saved: T, current: T) => boolean = isViewDataEqual
 ): boolean {
-  if (!view || currentData === undefined) return false
+  if (view?.data === undefined || currentData === undefined) return false
   return !isEqual(view.data, currentData)
 }
 
@@ -199,17 +215,15 @@ export function readViewParam<T>(
   key = "view"
 ): string | undefined {
   const id = new URLSearchParams(search).get(key)
-  return getActiveSavedView(views, id)?.id
+  return views.find((v) => v.id === id)?.id
 }
 
-export function writeViewParam<T>(
+export function writeViewParam(
   search: string | URLSearchParams,
   activeId: string,
-  views: SavedView<T>[],
   key = "view"
 ): string {
   const params = new URLSearchParams(search)
-  if (activeId === getActiveSavedView(views)?.id) params.delete(key)
-  else params.set(key, activeId)
+  params.set(key, activeId)
   return params.toString()
 }

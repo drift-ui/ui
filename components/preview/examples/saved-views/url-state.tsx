@@ -16,7 +16,7 @@ const VIEWS: SavedView[] = [
 
 export function SavedViewsUrlStatePreview() {
   const [search, setSearch] = React.useState("q=bug&view=mine")
-  const activeId = readViewParam(search, VIEWS) ?? "all"
+  const activeId = readViewParam(search, VIEWS)
 
   return (
     <div className="flex w-full max-w-xl flex-col gap-3">
@@ -32,7 +32,7 @@ export function SavedViewsUrlStatePreview() {
       <SavedViews
         views={VIEWS}
         activeId={activeId}
-        onActiveChange={(id) => setSearch(writeViewParam(search, id, VIEWS))}
+        onActiveChange={(id) => setSearch(writeViewParam(search, id))}
         allowCreate={false}
         allowRename={false}
         allowDuplicate={false}
@@ -40,8 +40,8 @@ export function SavedViewsUrlStatePreview() {
         allowSetDefault={false}
       />
       <p className="text-xs text-muted-foreground">
-        Picking the default view drops the param, and an unknown id falls back
-        to the default.
+        With no param or an unknown id, the component shows the view that was
+        default when it mounted.
       </p>
     </div>
   )

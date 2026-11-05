@@ -254,6 +254,25 @@ describe("isViewDataEqual", () => {
     expect(isViewDataEqual(new Date("2026-01-01"), {})).toBe(false)
   })
 
+  it("compares Sets, Maps and RegExps by content", () => {
+    expect(isViewDataEqual(new Set(["a", "b"]), new Set(["b", "a"]))).toBe(true)
+    expect(isViewDataEqual(new Set(["a"]), new Set(["b"]))).toBe(false)
+    expect(
+      isViewDataEqual(new Map([["k", { v: 1 }]]), new Map([["k", { v: 1 }]]))
+    ).toBe(true)
+    expect(
+      isViewDataEqual(new Map([["k", { v: 1 }]]), new Map([["k", { v: 2 }]]))
+    ).toBe(false)
+    expect(isViewDataEqual(/a/i, /a/i)).toBe(true)
+    expect(isViewDataEqual(/a/i, /b/i)).toBe(false)
+  })
+
+  it("does not treat objects of different types as equal", () => {
+    expect(isViewDataEqual(new Set(), {})).toBe(false)
+    expect(isViewDataEqual(new Map(), new Set())).toBe(false)
+    expect(isViewDataEqual(/a/, {})).toBe(false)
+  })
+
   it("handles primitives, NaN and null", () => {
     expect(isViewDataEqual("a", "a")).toBe(true)
     expect(isViewDataEqual(1, "1")).toBe(false)
@@ -280,13 +299,13 @@ describe("isViewDirty", () => {
     expect(isViewDirty(view, { q: "b" })).toBe(true)
   })
 
-  it("is dirty when the view has no data yet", () => {
-    expect(isViewDirty({ id: "v", name: "View" }, { q: "a" })).toBe(true)
+  it("is clean when the view has no data to compare with", () => {
+    expect(isViewDirty({ id: "v", name: "View" }, { q: "a" })).toBe(false)
   })
 
   it("uses a custom equality rule", () => {
-    const sameLetter = (a: { q: string } | undefined, b: { q: string }) =>
-      a?.q.toLowerCase() === b.q.toLowerCase()
+    const sameLetter = (a: { q: string }, b: { q: string }) =>
+      a.q.toLowerCase() === b.q.toLowerCase()
     expect(isViewDirty(view, { q: "A" }, sameLetter)).toBe(false)
   })
 })
@@ -307,6 +326,15 @@ describe("restoreSavedView", () => {
     expect(restored.map((v) => v.id)).toEqual(["1", "3", "2"])
   })
 
+  it("drops isDefault when another view became the default", () => {
+    const restored = restoreSavedView(
+      [{ id: "1", name: "One", isDefault: true }],
+      { id: "2", name: "Two", isDefault: true },
+      1
+    )
+    expect(restored.filter((v) => v.isDefault).map((v) => v.id)).toEqual(["1"])
+  })
+
   it("leaves views alone when the id is already there", () => {
     expect(restoreSavedView(views, { id: "1", name: "One" }, 0)).toBe(views)
   })
@@ -322,9 +350,10 @@ describe("readViewParam and writeViewParam", () => {
     expect(readViewParam("?view=mine", views)).toBe("mine")
   })
 
-  it("falls back to the default view for a missing or unknown id", () => {
-    expect(readViewParam("", views)).toBe("all")
-    expect(readViewParam("?view=gone", views)).toBe("all")
+  it("returns undefined for a missing or unknown id", () => {
+    expect(readViewParam("", views)).toBeUndefined()
+    expect(readViewParam("?view=gone", views)).toBeUndefined()
+    expect(readViewParam("?view=mine", [])).toBeUndefined()
   })
 
   it("supports a custom key and URLSearchParams input", () => {
@@ -333,20 +362,14 @@ describe("readViewParam and writeViewParam", () => {
     )
   })
 
-  it("returns undefined when there are no views", () => {
-    expect(readViewParam("?view=mine", [])).toBeUndefined()
-  })
-
   it("writes the active id and keeps other params", () => {
-    expect(writeViewParam("?q=bug", "mine", views)).toBe("q=bug&view=mine")
+    expect(writeViewParam("?q=bug", "mine")).toBe("q=bug&view=mine")
+    expect(writeViewParam("?q=bug&view=mine", "all")).toBe("q=bug&view=all")
+    expect(writeViewParam("", "mine", "v")).toBe("v=mine")
   })
 
-  it("drops the param for the default view", () => {
-    expect(writeViewParam("?q=bug&view=mine", "all", views)).toBe("q=bug")
-  })
-
-  it("round-trips", () => {
-    expect(readViewParam(writeViewParam("", "mine", views), views)).toBe("mine")
-    expect(readViewParam(writeViewParam("", "all", views), views)).toBe("all")
+  it("round-trips, including the default view", () => {
+    expect(readViewParam(writeViewParam("", "mine"), views)).toBe("mine")
+    expect(readViewParam(writeViewParam("", "all"), views)).toBe("all")
   })
 })

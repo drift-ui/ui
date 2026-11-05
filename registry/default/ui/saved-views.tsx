@@ -56,7 +56,7 @@ export interface SavedViewsProps<T = unknown> extends Omit<
   onActiveChange?: (activeId: string) => void
 
   currentData?: T
-  isEqual?: (saved: T | undefined, current: T) => boolean
+  isEqual?: (saved: T, current: T) => boolean
 
   isDirty?: boolean
   onSave?: (view: SavedView<T>) => MaybePromise
@@ -154,11 +154,12 @@ function SavedViews<T = unknown>({
     settersRef.current = { setViews, setActiveId }
   })
 
-  const [pendingIds, setPendingIds] = React.useState<ReadonlySet<string>>(
-    () => new Set()
-  )
+  const [pending, setPending] = React.useState<
+    ReadonlyMap<string, SavedViewAction>
+  >(() => new Map())
   const [failure, setFailure] = React.useState<string | null>(null)
-  const isActivePending = activeView ? pendingIds.has(activeView.id) : false
+  const isActivePending = activeView ? pending.has(activeView.id) : false
+  const isDefaultPending = [...pending.values()].includes("setDefault")
 
   function applyViews(next: SavedView<T>[]) {
     viewsRef.current = next
@@ -171,7 +172,7 @@ function SavedViews<T = unknown>({
   }
 
   function track(
-    result: MaybePromise,
+    persist: () => MaybePromise,
     {
       action,
       viewId,
@@ -181,22 +182,28 @@ function SavedViews<T = unknown>({
       action: SavedViewAction
       viewId: string
       message: string
-      revert: () => void
+      revert: () => boolean
     }
   ) {
     setFailure(null)
+    let result: MaybePromise
+    try {
+      result = persist()
+    } catch (error) {
+      result = Promise.reject(error)
+    }
     if (!result || typeof result.then !== "function") return
-    setPendingIds((prev) => new Set(prev).add(viewId))
+    setPending((prev) => new Map(prev).set(viewId, action))
     const settle = () =>
-      setPendingIds((prev) => {
-        const next = new Set(prev)
+      setPending((prev) => {
+        const next = new Map(prev)
         next.delete(viewId)
         return next
       })
     result.then(settle, (error: unknown) => {
       settle()
-      revert()
-      setFailure(`${message} The change was undone.`)
+      const undone = revert()
+      setFailure(undone ? `${message} The change was undone.` : message)
       onError?.(error, action)
     })
   }
@@ -242,23 +249,26 @@ function SavedViews<T = unknown>({
     const previousActiveId = activeIdRef.current
     applyViews([...views, newView])
     applyActive(newView.id)
-    track(persist(), {
+    track(persist, {
       action,
       viewId: newView.id,
       message,
       revert: () => {
-        const reverted = viewsRef.current.filter((v) => v.id !== newView.id)
+        const current = viewsRef.current
+        const reverted = current.filter((v) => v.id !== newView.id)
+        if (reverted.length === current.length) return false
         applyViews(reverted)
         if (activeIdRef.current === newView.id) {
           const fallback = getActiveSavedView(reverted, previousActiveId)
           if (fallback) applyActive(fallback.id)
         }
+        return true
       },
     })
   }
 
   function handleStartRename(view: SavedView<T>) {
-    if (pendingIds.has(view.id)) return
+    if (pending.has(view.id)) return
     setEditingId(view.id)
     setEditingName(view.name)
   }
@@ -269,20 +279,25 @@ function SavedViews<T = unknown>({
     setEditingId(null)
     if (!trimmed || !target || trimmed === target.name) return
     applyViews(renameSavedView(views, id, trimmed))
-    track(onRename?.({ ...target, name: trimmed }, trimmed), {
+    track(() => onRename?.({ ...target, name: trimmed }, trimmed), {
       action: "rename",
       viewId: id,
       message: `Couldn't rename "${target.name}".`,
-      revert: () =>
+      revert: () => {
+        const current = viewsRef.current
+        if (!current.some((v) => v.id === id && v.name === trimmed)) {
+          return false
+        }
         applyViews(
-          viewsRef.current.map((v) =>
-            v.id === id && v.name === trimmed ? { ...v, name: target.name } : v
-          )
-        ),
+          current.map((v) => (v.id === id ? { ...v, name: target.name } : v))
+        )
+        return true
+      },
     })
   }
 
   function handleDuplicate(view: SavedView<T>) {
+    if (pending.has(view.id)) return
     const duplicated = duplicateSavedView(view, views)
     addView(duplicated, "duplicate", `Couldn't duplicate "${view.name}".`, () =>
       onDuplicate?.(duplicated, view)
@@ -290,7 +305,7 @@ function SavedViews<T = unknown>({
   }
 
   function handleDelete(id: string) {
-    if (views.length <= 1 || pendingIds.has(id)) return
+    if (views.length <= 1 || pending.has(id)) return
     const index = views.findIndex((v) => v.id === id)
     const target = views[index]
     if (!target || target.isLocked) return
@@ -302,32 +317,37 @@ function SavedViews<T = unknown>({
     )
     applyViews(nextViews)
     if (wasActive && nextActiveId) applyActive(nextActiveId)
-    track(onDelete?.(id), {
+    track(() => onDelete?.(id), {
       action: "delete",
       viewId: id,
       message: `Couldn't delete "${target.name}".`,
       revert: () => {
-        applyViews(restoreSavedView(viewsRef.current, target, index))
+        const current = viewsRef.current
+        const restored = restoreSavedView(current, target, index)
+        if (restored === current) return false
+        applyViews(restored)
         if (wasActive && activeIdRef.current === nextActiveId) applyActive(id)
+        return true
       },
     })
   }
 
   function handleSetDefault(id: string) {
     const target = views.find((v) => v.id === id)
-    if (!target || pendingIds.has(id)) return
+    if (!target || isDefaultPending) return
     const previousDefaultId = views.find((v) => v.isDefault)?.id
     applyViews(setDefaultSavedView(views, id))
-    track(onSetDefault?.(id), {
+    track(() => onSetDefault?.(id), {
       action: "setDefault",
       viewId: id,
       message: `Couldn't make "${target.name}" the default.`,
       revert: () => {
         const current = viewsRef.current
-        if (current.find((v) => v.isDefault)?.id !== id) return
+        if (current.find((v) => v.isDefault)?.id !== id) return false
         applyViews(
           current.map((v) => ({ ...v, isDefault: v.id === previousDefaultId }))
         )
+        return true
       },
     })
   }
@@ -342,19 +362,24 @@ function SavedViews<T = unknown>({
     if (currentData !== undefined) {
       applyViews(views.map((v) => (v.id === activeView.id ? toSave : v)))
     }
-    track(onSave?.(toSave), {
+    track(() => onSave?.(toSave), {
       action: "save",
       viewId: activeView.id,
       message: `Couldn't save "${activeView.name}".`,
       revert: () => {
-        if (currentData === undefined) return
+        if (currentData === undefined) return false
+        const current = viewsRef.current
+        if (
+          !current.some((v) => v.id === toSave.id && v.data === toSave.data)
+        ) {
+          return false
+        }
         applyViews(
-          viewsRef.current.map((v) =>
-            v.id === toSave.id && v.data === toSave.data
-              ? { ...v, data: previousData }
-              : v
+          current.map((v) =>
+            v.id === toSave.id ? { ...v, data: previousData } : v
           )
         )
+        return true
       },
     })
   }
@@ -528,8 +553,8 @@ function SavedViews<T = unknown>({
                     key={view.id}
                     role="option"
                     aria-selected={isActive}
-                    aria-busy={pendingIds.has(view.id) || undefined}
-                    data-pending={pendingIds.has(view.id) || undefined}
+                    aria-busy={pending.has(view.id) || undefined}
+                    data-pending={pending.has(view.id) || undefined}
                     className={cn(
                       "group flex items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground data-pending:opacity-60 motion-safe:data-pending:animate-pulse",
                       isActive && "bg-accent/60 font-medium"
@@ -563,10 +588,10 @@ function SavedViews<T = unknown>({
                       <ViewOptionsMenu
                         view={view}
                         isOnlyView={views.length <= 1}
-                        isPending={pendingIds.has(view.id)}
+                        isPending={pending.has(view.id)}
                         allowRename={allowRename}
                         allowDuplicate={allowDuplicate}
-                        allowSetDefault={allowSetDefault}
+                        allowSetDefault={allowSetDefault && !isDefaultPending}
                         allowDelete={allowDelete}
                         onStartRename={() => handleStartRename(view)}
                         onDuplicate={() => handleDuplicate(view)}
@@ -642,8 +667,8 @@ function SavedViews<T = unknown>({
                 role="tab"
                 type="button"
                 aria-selected={isActive}
-                aria-busy={pendingIds.has(view.id) || undefined}
-                data-pending={pendingIds.has(view.id) || undefined}
+                aria-busy={pending.has(view.id) || undefined}
+                data-pending={pending.has(view.id) || undefined}
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => handleSelect(view.id)}
                 onDoubleClick={() => {
@@ -711,7 +736,7 @@ function SavedViews<T = unknown>({
               isPending={isActivePending}
               allowRename={allowRename}
               allowDuplicate={allowDuplicate}
-              allowSetDefault={allowSetDefault}
+              allowSetDefault={allowSetDefault && !isDefaultPending}
               allowDelete={allowDelete}
               onStartRename={() => handleStartRename(activeView)}
               onDuplicate={() => handleDuplicate(activeView)}

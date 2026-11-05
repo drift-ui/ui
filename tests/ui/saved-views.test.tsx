@@ -552,6 +552,35 @@ describe("SavedViews dirty tracking", () => {
     expect(screen.queryByText("Unsaved")).not.toBeInTheDocument()
   })
 
+  it("stays clean for views that have no data", () => {
+    render(<SavedViews defaultViews={SAMPLE_VIEWS} currentData={[]} />)
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument()
+  })
+
+  it("keeps the selection when the default changes and activeId is unset", async () => {
+    const user = userEvent.setup()
+    const onActiveChange = vi.fn()
+    render(
+      <SavedViews
+        variant="select"
+        defaultViews={SAMPLE_VIEWS}
+        activeId={undefined}
+        onActiveChange={onActiveChange}
+      />
+    )
+
+    await user.click(
+      screen.getByRole("button", { name: /Saved views: All Issues/i })
+    )
+    await openOptions(user, "Active Sprint")
+    await user.click(screen.getByRole("menuitem", { name: "Set as default" }))
+
+    expect(
+      screen.getByRole("button", { name: /Saved views: All Issues/i })
+    ).toBeInTheDocument()
+    expect(onActiveChange).not.toHaveBeenCalled()
+  })
+
   it("lets an isDirty prop override the computed value", () => {
     render(
       <SavedViews
@@ -831,6 +860,90 @@ describe("SavedViews async storage", () => {
     screen.getByRole("button", { name: "Dismiss" }).focus()
     await user.keyboard("{Enter}")
     expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+  })
+
+  it("rolls back when a callback throws before returning", async () => {
+    const user = userEvent.setup()
+    const onError = vi.fn()
+    const error = new Error("bad input")
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        onDelete={() => {
+          throw error
+        }}
+        onError={onError}
+      />
+    )
+
+    await openOptions(user, "All Issues")
+    await user.click(screen.getByRole("menuitem", { name: "Delete" }))
+
+    expect(
+      await screen.findByRole("tab", { name: "All Issues" })
+    ).toBeInTheDocument()
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      `Couldn't delete "All Issues". The change was undone.`
+    )
+    expect(onError).toHaveBeenCalledWith(error, "delete")
+  })
+
+  it("does not claim an undo when there was nothing to undo", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        isDirty
+        onSave={() => request.promise}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: "Save" }))
+    await act(async () => request.reject(new Error("nope")))
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      `Couldn't save "All Issues".`
+    )
+    expect(screen.getByRole("alert")).not.toHaveTextContent("undone")
+  })
+
+  it("allows one set default request at a time", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    const onSetDefault = vi.fn(() => request.promise)
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        defaultActiveId="active"
+        onSetDefault={onSetDefault}
+      />
+    )
+
+    await openOptions(user, "Active Sprint")
+    await user.click(screen.getByRole("menuitem", { name: "Set as default" }))
+    await user.click(screen.getByRole("tab", { name: "High Priority" }))
+    await openOptions(user, "High Priority")
+
+    expect(
+      screen.queryByRole("menuitem", { name: "Set as default" })
+    ).not.toBeInTheDocument()
+    expect(onSetDefault).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not commit a rename on blur after Escape", async () => {
+    const user = userEvent.setup()
+    const onRename = vi.fn()
+    render(<SavedViews defaultViews={SAMPLE_VIEWS} onRename={onRename} />)
+
+    screen.getByRole("tab", { name: "All Issues" }).focus()
+    await user.keyboard("{F2}")
+    const input = screen.getByRole("textbox", { name: "Rename view" })
+    await user.type(input, " edited")
+    await user.keyboard("{Escape}")
+
+    expect(onRename).not.toHaveBeenCalled()
+    expect(screen.getByRole("tab", { name: "All Issues" })).toHaveFocus()
   })
 
   it("rolls back in the select variant too", async () => {

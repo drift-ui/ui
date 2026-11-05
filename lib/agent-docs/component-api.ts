@@ -1754,10 +1754,10 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         },
         {
           name: "isEqual",
-          type: "(saved: T | undefined, current: T) => boolean",
+          type: "(saved: T, current: T) => boolean",
           default: "isViewDataEqual",
           description:
-            "Equality rule for dirty tracking. The default is a deep compare that ignores key order and undefined fields.",
+            "Equality rule for dirty tracking. The default is a deep compare that ignores key order and undefined fields. Views with no data are never dirty.",
         },
         {
           name: "isDirty",
@@ -1874,16 +1874,16 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "isViewDataEqual, isViewDirty",
       signature:
-        "isViewDataEqual(a: unknown, b: unknown): boolean; isViewDirty(view: SavedView<T> | undefined, currentData: T | undefined, isEqual?: (saved: T | undefined, current: T) => boolean): boolean",
+        "isViewDataEqual(a: unknown, b: unknown): boolean; isViewDirty(view: SavedView<T> | undefined, currentData: T | undefined, isEqual?: (saved: T, current: T) => boolean): boolean",
       description:
-        "The dirty tracking rule. Objects compare deeply with key order ignored and undefined fields treated as missing. Arrays keep their order, and dates compare by time.",
+        "The dirty tracking rule. Objects compare deeply with key order ignored and undefined fields treated as missing. Arrays keep their order, dates compare by time, Sets and Maps compare by content, and objects of different types are never equal. A view with no data is never dirty.",
     },
     {
       name: "readViewParam, writeViewParam",
       signature:
-        "readViewParam(search: string | URLSearchParams, views: SavedView<T>[], key?: string): string | undefined; writeViewParam(search: string | URLSearchParams, activeId: string, views: SavedView<T>[], key?: string): string",
+        "readViewParam(search: string | URLSearchParams, views: SavedView<T>[], key?: string): string | undefined; writeViewParam(search: string | URLSearchParams, activeId: string, key?: string): string",
       description:
-        'Map a ?view= search param to an active id and back. Unknown ids fall back to the default view, the default view drops the param, and other params are kept. key defaults to "view".',
+        'Map a ?view= search param to an active id and back, keeping other params. readViewParam returns undefined for a missing or unknown id; pass that straight to activeId and the component shows the view that was default when it mounted, so changing the default later does not move the selection. key defaults to "view".',
     },
   ],
   "secret-field": [
