@@ -60,8 +60,8 @@ function TimezonePicker({
   const [openedAt, setOpenedAt] = React.useState<Date | null>(null)
 
   const options = React.useMemo(
-    () => (isOpen && openedAt ? listTimezones(openedAt, timeZones) : []),
-    [isOpen, openedAt, timeZones]
+    () => (openedAt ? listTimezones(openedAt, timeZones) : []),
+    [openedAt, timeZones]
   )
   const matches = filterTimezones(options, query)
   const highlightedIndex = Math.min(
