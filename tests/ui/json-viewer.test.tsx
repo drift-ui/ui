@@ -368,4 +368,23 @@ describe("JsonViewer", () => {
       screen.queryByRole("treeitem", { name: /^name:"Alice"/ })
     ).not.toBeInTheDocument()
   })
+
+  it("constrains preview text in virtual mode and keeps Show more button visible and clickable", async () => {
+    const user = userEvent.setup()
+    const longText = "X".repeat(200)
+    render(
+      <JsonViewer virtual data={{ payload: longText }} maxStringLength={80} />
+    )
+
+    const showMore = screen.getByRole("button", { name: "Expand string" })
+    expect(showMore).toBeInTheDocument()
+    expect(showMore).toHaveAttribute("aria-expanded", "false")
+    expect(showMore).toHaveClass("shrink-0")
+
+    await user.click(showMore)
+    const showLess = screen.getByRole("button", { name: "Collapse string" })
+    expect(showLess).toBeInTheDocument()
+    expect(showLess).toHaveAttribute("aria-expanded", "true")
+    expect(showLess).toHaveClass("shrink-0")
+  })
 })

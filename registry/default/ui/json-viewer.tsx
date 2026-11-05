@@ -98,8 +98,14 @@ function ValueText({
         &quot;
         {isLong && !isExpanded ? (
           <>
-            <Highlight text={preview} query={query} />
-            <span className="text-muted-foreground">…</span>
+            <span
+              className={cn(
+                virtual && "max-w-[300px] min-w-0 truncate align-middle"
+              )}
+            >
+              <Highlight text={preview} query={query} />
+            </span>
+            <span className="shrink-0 text-muted-foreground">…</span>
             <button
               type="button"
               aria-expanded={false}
@@ -113,7 +119,7 @@ function ValueText({
                   event.stopPropagation()
                 }
               }}
-              className="cursor-pointer text-[10px] text-muted-foreground underline hover:text-foreground"
+              className="shrink-0 cursor-pointer text-[10px] text-muted-foreground underline hover:text-foreground"
             >
               Show more
             </button>
@@ -142,13 +148,19 @@ function ValueText({
                   event.stopPropagation()
                 }
               }}
-              className="cursor-pointer text-[10px] text-muted-foreground underline hover:text-foreground"
+              className="shrink-0 cursor-pointer text-[10px] text-muted-foreground underline hover:text-foreground"
             >
               Show less
             </button>
           </>
         ) : (
-          <Highlight text={value} query={query} />
+          <span
+            className={cn(
+              virtual && "max-w-[400px] min-w-0 truncate align-middle"
+            )}
+          >
+            <Highlight text={value} query={query} />
+          </span>
         )}
         &quot;
       </span>
