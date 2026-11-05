@@ -154,13 +154,7 @@ function ValueText({
             </button>
           </>
         ) : (
-          <span
-            className={cn(
-              virtual && "max-w-[400px] min-w-0 truncate align-middle"
-            )}
-          >
-            <Highlight text={value} query={query} />
-          </span>
+          <Highlight text={value} query={query} />
         )}
         &quot;
       </span>

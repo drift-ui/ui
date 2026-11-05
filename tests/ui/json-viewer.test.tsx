@@ -387,4 +387,19 @@ describe("JsonViewer", () => {
     expect(showLess).toHaveAttribute("aria-expanded", "true")
     expect(showLess).toHaveClass("shrink-0")
   })
+
+  it("does not truncate short strings in virtual mode so full text and search hits are inspectable", async () => {
+    const user = userEvent.setup()
+    const shortText = "short string under eighty characters"
+    render(<JsonViewer virtual data={{ message: shortText }} />)
+
+    expect(screen.getByText(new RegExp(shortText))).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "Expand string" })
+    ).not.toBeInTheDocument()
+
+    const search = screen.getByRole("searchbox")
+    await user.type(search, "eighty")
+    expect(screen.getByText("eighty")).toBeInTheDocument()
+  })
 })
