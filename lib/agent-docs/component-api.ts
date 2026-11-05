@@ -1876,7 +1876,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       signature:
         "isViewDataEqual(a: unknown, b: unknown): boolean; isViewDirty(view: SavedView<T> | undefined, currentData: T | undefined, isEqual?: (saved: T, current: T) => boolean): boolean",
       description:
-        "The dirty tracking rule. Plain objects compare deeply with key order ignored and undefined fields treated as missing. Arrays keep their order, dates compare by time, Set members and Map values compare deeply, Map keys compare by identity, cyclic data is safe, and objects of different types are never equal. Other class instances compare by own enumerable fields only, so pass isEqual for Temporal, URL and similar types. A view with no data is never dirty.",
+        "The dirty tracking rule. Plain objects compare deeply with key order ignored and undefined fields treated as missing. Arrays keep their order, dates compare by time, regular expressions compare by source and flags, Set members and Map values compare deeply, Map keys compare by identity, cyclic data is safe, and objects of different types are never equal. Other class instances compare by own enumerable fields only, so pass isEqual for Temporal, URL and similar types. A view with no data is never dirty.",
     },
     {
       name: "readViewParam, writeViewParam",

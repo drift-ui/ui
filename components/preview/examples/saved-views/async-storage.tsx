@@ -21,7 +21,10 @@ const INITIAL_VIEWS: SavedView<Sort>[] = [
 export function SavedViewsAsyncStoragePreview() {
   const [views, setViews] = React.useState(INITIAL_VIEWS)
   const [activeId, setActiveId] = React.useState("all")
-  const [sort, setSort] = React.useState<Sort>("updated")
+  const [draft, setDraft] = React.useState<{ viewId: string; sort: Sort }>()
+  const activeView = views.find((v) => v.id === activeId)
+  const sort =
+    draft?.viewId === activeId ? draft.sort : (activeView?.data ?? "updated")
   const [failRequests, setFailRequests] = React.useState(false)
   const [log, setLog] = React.useState<string[]>([])
 
@@ -37,21 +40,15 @@ export function SavedViewsAsyncStoragePreview() {
     })
   }
 
-  function select(id: string) {
-    setActiveId(id)
-    const view = views.find((v) => v.id === id)
-    setSort(view?.data ?? "updated")
-  }
-
   return (
     <div className="flex w-full flex-col gap-4">
       <SavedViews
         views={views}
         onViewsChange={setViews}
         activeId={activeId}
-        onActiveChange={select}
+        onActiveChange={setActiveId}
         currentData={sort}
-        onReset={(view) => setSort(view.data ?? "updated")}
+        onReset={() => setDraft(undefined)}
         onSave={(view) => request(`PUT /views/${view.id} sort=${view.data}`)}
         onCreate={(view) => request(`POST /views ${view.name}`)}
         onRename={(view) => request(`PATCH /views/${view.id}`)}
@@ -64,7 +61,10 @@ export function SavedViewsAsyncStoragePreview() {
         <button
           type="button"
           onClick={() =>
-            setSort((prev) => (prev === "updated" ? "priority" : "updated"))
+            setDraft({
+              viewId: activeId,
+              sort: sort === "updated" ? "priority" : "updated",
+            })
           }
           className="rounded-md border px-2.5 py-1 hover:bg-accent"
         >

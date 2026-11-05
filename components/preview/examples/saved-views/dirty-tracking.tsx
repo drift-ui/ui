@@ -10,6 +10,8 @@ type TableState = {
   search?: string
 }
 
+const EMPTY_STATE: TableState = { sort: "updated", columns: ["title"] }
+
 const INITIAL_VIEWS: SavedView<TableState>[] = [
   {
     id: "all",
@@ -27,14 +29,16 @@ const INITIAL_VIEWS: SavedView<TableState>[] = [
 export function SavedViewsDirtyTrackingPreview() {
   const [views, setViews] = React.useState(INITIAL_VIEWS)
   const [activeId, setActiveId] = React.useState("all")
-  const [state, setState] = React.useState<TableState>(
-    INITIAL_VIEWS[0].data as TableState
-  )
+  const [draft, setDraft] = React.useState<{
+    viewId: string
+    state: TableState
+  }>()
+  const activeView = views.find((v) => v.id === activeId)
+  const state =
+    draft?.viewId === activeId ? draft.state : (activeView?.data ?? EMPTY_STATE)
 
-  function select(id: string) {
-    setActiveId(id)
-    const view = views.find((v) => v.id === id)
-    if (view?.data) setState(view.data)
+  function update(change: (prev: TableState) => TableState) {
+    setDraft({ viewId: activeId, state: change(state) })
   }
 
   return (
@@ -43,15 +47,15 @@ export function SavedViewsDirtyTrackingPreview() {
         views={views}
         onViewsChange={setViews}
         activeId={activeId}
-        onActiveChange={select}
+        onActiveChange={setActiveId}
         currentData={state}
-        onReset={(view) => view.data && setState(view.data)}
+        onReset={() => setDraft(undefined)}
       />
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <button
           type="button"
           onClick={() =>
-            setState((prev) => ({
+            update((prev) => ({
               ...prev,
               sort: prev.sort === "updated" ? "priority" : "updated",
             }))
@@ -63,7 +67,7 @@ export function SavedViewsDirtyTrackingPreview() {
         <button
           type="button"
           onClick={() =>
-            setState((prev) => ({
+            update((prev) => ({
               columns: prev.columns,
               search: undefined,
               sort: prev.sort,
