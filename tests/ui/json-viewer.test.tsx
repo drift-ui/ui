@@ -315,4 +315,57 @@ describe("JsonViewer", () => {
 
     expect(screen.getAllByRole("treeitem").length).toBeLessThan(50)
   })
+
+  it("does not copy search-opened ancestors into base expanded state when user toggles another branch", async () => {
+    const user = userEvent.setup()
+    const data = {
+      users: [{ id: 1, name: "Alice" }],
+      settings: { theme: "dark" },
+    }
+    render(<JsonViewer data={data} defaultExpandDepth={0} />)
+
+    expect(
+      screen.queryByRole("treeitem", { name: /^name:"Alice"/ })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole("treeitem", { name: /^theme:"dark"/ })
+    ).not.toBeInTheDocument()
+
+    // Search for Alice: auto-expands users and users[0]
+    const search = screen.getByRole("searchbox")
+    await user.type(search, "Alice")
+    expect(row(/^name:"Alice"/)).toBeInTheDocument()
+
+    // User explicitly expands settings branch during search
+    await user.click(row(/^settings/))
+    expect(row(/^theme:"dark"/)).toBeInTheDocument()
+
+    // Clear search query
+    await user.clear(search)
+
+    // settings should stay open because user explicitly opened it
+    expect(row(/^theme:"dark"/)).toBeInTheDocument()
+    // users should collapse because its ancestors were search-only
+    expect(
+      screen.queryByRole("treeitem", { name: /^name:"Alice"/ })
+    ).not.toBeInTheDocument()
+  })
+
+  it("allows user to collapse a search ancestor during search", async () => {
+    const user = userEvent.setup()
+    const data = {
+      users: [{ id: 1, name: "Alice" }],
+    }
+    render(<JsonViewer data={data} defaultExpandDepth={0} />)
+
+    const search = screen.getByRole("searchbox")
+    await user.type(search, "Alice")
+    expect(row(/^name:"Alice"/)).toBeInTheDocument()
+
+    // Click users branch to collapse it during search
+    await user.click(row(/^users/))
+    expect(
+      screen.queryByRole("treeitem", { name: /^name:"Alice"/ })
+    ).not.toBeInTheDocument()
+  })
 })

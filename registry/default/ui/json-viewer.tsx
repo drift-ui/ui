@@ -90,8 +90,9 @@ function ValueText({
       <span
         className={cn(
           TYPE_CLASSES.string,
-          "inline-flex flex-wrap items-center gap-1",
-          virtual && "max-w-full overflow-hidden"
+          virtual
+            ? "inline-flex max-w-full flex-nowrap items-center gap-1 overflow-hidden"
+            : "inline-flex flex-wrap items-center gap-1"
         )}
       >
         &quot;
@@ -211,12 +212,65 @@ function JsonViewer({
     () => searchJson(filteredData, needle),
     [filteredData, needle]
   )
+  const [prevNeedle, setPrevNeedle] = React.useState(needle)
+  const [collapsedAncestors, setCollapsedAncestors] = React.useState<
+    Set<string>
+  >(() => new Set())
+
+  if (prevNeedle !== needle) {
+    setPrevNeedle(needle)
+    setCollapsedAncestors(new Set())
+  }
+
   const effectiveExpanded = React.useMemo(() => {
     if (!needle) return expanded
-    return [...new Set([...expanded, ...ancestors])]
-  }, [expanded, needle, ancestors])
+    const result = new Set(expanded)
+    for (const id of ancestors) {
+      if (!collapsedAncestors.has(id)) {
+        result.add(id)
+      }
+    }
+    return [...result]
+  }, [expanded, needle, ancestors, collapsedAncestors])
   const expandedIds = new Set(effectiveExpanded)
   const entriesById = new Map<string, JsonEntry>()
+
+  function handleExpandedChange(next: string[]) {
+    if (!needle) {
+      setExpanded(next)
+      return
+    }
+
+    const prevSet = new Set(effectiveExpanded)
+    const nextSet = new Set(next)
+
+    const added = next.filter((id) => !prevSet.has(id))
+    const removed = effectiveExpanded.filter((id) => !nextSet.has(id))
+
+    if (added.length > 0) {
+      setExpanded((prev) => [...new Set([...prev, ...added])])
+      if (collapsedAncestors.size > 0) {
+        setCollapsedAncestors((prev) => {
+          const updated = new Set(prev)
+          for (const id of added) updated.delete(id)
+          return updated
+        })
+      }
+    }
+
+    if (removed.length > 0) {
+      const removedSet = new Set(removed)
+      setExpanded((prev) => prev.filter((id) => !removedSet.has(id)))
+      const removedAncestors = removed.filter((id) => ancestors.has(id))
+      if (removedAncestors.length > 0) {
+        setCollapsedAncestors((prev) => {
+          const updated = new Set(prev)
+          for (const id of removedAncestors) updated.add(id)
+          return updated
+        })
+      }
+    }
+  }
 
   function copyEntry(entry: JsonEntry, target: CopyTarget) {
     const text = target === "value" ? formatValue(entry.value) : entry.path
@@ -390,7 +444,7 @@ function JsonViewer({
         aria-label={ariaLabel}
         items={toNodes(rootEntries(filteredData))}
         expanded={effectiveExpanded}
-        onExpandedChange={setExpanded}
+        onExpandedChange={handleExpandedChange}
         onKeyDown={handleKeyDown}
         virtual={virtual}
         className="overflow-auto"

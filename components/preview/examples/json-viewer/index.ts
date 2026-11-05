@@ -31,7 +31,7 @@ export const examples: ComponentExample[] = [
     id: "virtualized-large",
     title: "Virtualized large payload",
     description:
-      "Pass virtual to virtualize row rendering for large datasets; search results use deferred rendering.",
+      "Pass virtual to virtualize row rendering for large datasets; expand a range to browse its records.",
     Preview: JsonViewerVirtualizedLargePreview,
   },
   {
