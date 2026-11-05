@@ -164,7 +164,7 @@ function NotificationInbox<T extends InboxNotification = InboxNotification>({
   })
 
   const unread = countUnread(items)
-  const groups = open ? groupByDay(items, now ?? new Date(), locale) : []
+  const groups = groupByDay(items, now ?? new Date(), locale)
   const positions = new Map(
     groups
       .flatMap((group) => group.items)
