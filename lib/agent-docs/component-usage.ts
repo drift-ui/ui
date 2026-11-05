@@ -435,6 +435,36 @@ export function RegionsField() {
   )
 }`,
   },
+  "notification-inbox": {
+    notes:
+      "A bell button with an unread count that opens a popover of notifications grouped by day, newest first. items: InboxNotification[] with { id, title, body?, createdAt: Date | string, read?, href?, actor?: { name, avatarUrl? } }; extra fields are kept and passed to renderItem and actions. State: items/defaultItems/onItemsChange and open/defaultOpen/onOpenChange. Clicking an item marks it read, calls onItemClick and closes the popover; an item with href renders as a link. Each row has a Mark as read or Mark as unread button plus any actions ({ label, icon, onSelect }). onMarkRead(ids) and onMarkUnread(ids) fire for single items; Mark all as read fires onMarkAllRead() only, so a server can mark everything read, including items that are not loaded. With a controlled items array, update it in onItemsChange or in those callbacks, not both. renderItem replaces the row content and sits inside the row's button or link, so it must not contain interactive elements; NotificationItem renders the default content. Up and Down arrows, Home and End move between items. Other props go to the trigger button.",
+    example: `"use client"
+
+import * as React from "react"
+import { ArchiveIcon } from "lucide-react"
+
+import { NotificationInbox, type InboxNotification } from "@/components/ui/notification-inbox"
+
+export function Inbox({ initial }: { initial: InboxNotification[] }) {
+  const [items, setItems] = React.useState(initial)
+
+  return (
+    <NotificationInbox
+      items={items}
+      onItemsChange={setItems}
+      onMarkRead={(ids) => fetch("/api/notifications/read", { method: "POST", body: JSON.stringify({ ids }) })}
+      onMarkAllRead={() => fetch("/api/notifications/read-all", { method: "POST" })}
+      actions={[
+        {
+          label: "Archive",
+          icon: <ArchiveIcon className="size-3.5" />,
+          onSelect: (n) => setItems((current) => current.filter((item) => item.id !== n.id)),
+        },
+      ]}
+    />
+  )
+}`,
+  },
   "number-input": {
     notes:
       "Value is number | null. Props: min, max, step, locale, formatOptions (Intl.NumberFormatOptions, e.g. currency), name (submits the raw number through a hidden input). Arrow keys step, Shift or PageUp/PageDown step by 10x, Home/End jump to min/max. Typed text is parsed with the locale's separators.",

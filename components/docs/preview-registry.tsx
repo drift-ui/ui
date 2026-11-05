@@ -35,6 +35,7 @@ import { LabelPreview } from "@/components/preview/label-preview"
 import { MaskedInputPreview } from "@/components/preview/masked-input-preview"
 import { MentionTextareaPreview } from "@/components/preview/mention-textarea-preview"
 import { MultiSelectPreview } from "@/components/preview/multi-select-preview"
+import { NotificationInboxPreview } from "@/components/preview/notification-inbox-preview"
 import { NumberInputPreview } from "@/components/preview/number-input-preview"
 import { PasswordInputPreview } from "@/components/preview/password-input-preview"
 import { PermissionMatrixPreview } from "@/components/preview/permission-matrix-preview"
@@ -84,6 +85,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "masked-input": MaskedInputPreview,
   "mention-textarea": MentionTextareaPreview,
   "multi-select": MultiSelectPreview,
+  "notification-inbox": NotificationInboxPreview,
   "number-input": NumberInputPreview,
   "password-input": PasswordInputPreview,
   "permission-matrix": PermissionMatrixPreview,

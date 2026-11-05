@@ -1246,6 +1246,170 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       ],
     },
   ],
+  "notification-inbox": [
+    {
+      name: "NotificationInbox",
+      description:
+        "A bell button that shows the unread count and opens notifications grouped by day, newest first. Up and Down arrows, Home and End move between items, and Escape closes the popover.",
+      props: [
+        {
+          name: "items",
+          type: "T[]",
+          description:
+            "Controlled notifications. T extends InboxNotification, so extra fields reach renderItem and actions typed.",
+        },
+        {
+          name: "defaultItems",
+          type: "T[]",
+          default: "[]",
+          description: "Initial notifications when uncontrolled.",
+        },
+        {
+          name: "onItemsChange",
+          type: "(items: T[]) => void",
+          description:
+            "Called with the full list after an item is opened, marked read or unread, or after Mark all as read.",
+        },
+        {
+          name: "onMarkRead",
+          type: "(ids: string[]) => void",
+          description:
+            "Called when an unread item is opened or its Mark as read button is pressed.",
+        },
+        {
+          name: "onMarkUnread",
+          type: "(ids: string[]) => void",
+          description: "Called when Mark as unread is pressed on a read item.",
+        },
+        {
+          name: "onMarkAllRead",
+          type: "() => void",
+          description:
+            "Called by Mark all as read. onMarkRead is not called for it.",
+        },
+        {
+          name: "onItemClick",
+          type: "(notification: T) => void",
+          description:
+            "Called when an item is opened, after it is marked read. The popover then closes.",
+        },
+        {
+          name: "actions",
+          type: "NotificationAction<T>[]",
+          default: "[]",
+          description:
+            "Extra icon buttons on each row, each { label, icon, onSelect(notification) }. If onSelect removes the item, focus moves to the next item.",
+        },
+        {
+          name: "renderItem",
+          type: "(notification: T) => ReactNode",
+          description:
+            "Replaces the content of each row. It renders inside the row's button or link, so it must not contain interactive elements. Defaults to NotificationItem.",
+        },
+        {
+          name: "open",
+          type: "boolean",
+          description: "Controlled open state of the popover.",
+        },
+        {
+          name: "defaultOpen",
+          type: "boolean",
+          default: "false",
+          description: "Initial open state when uncontrolled.",
+        },
+        {
+          name: "onOpenChange",
+          type: "(open: boolean) => void",
+          description: "Called when the popover opens or closes.",
+        },
+        {
+          name: "now",
+          type: "Date",
+          description:
+            "Reference time for the Today and Yesterday headings. Defaults to the current time when the popover renders.",
+        },
+        {
+          name: "locale",
+          type: "string",
+          description:
+            "Locale for day headings and times. Defaults to the browser locale.",
+        },
+        {
+          name: "aria-label",
+          type: "string",
+          default: '"Notifications"',
+          description:
+            "Panel heading and the trigger's accessible name, which adds the unread count.",
+        },
+      ],
+      rest: "<button> (the trigger)",
+    },
+    {
+      name: "InboxNotification",
+      description: "One notification.",
+      props: [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "Unique id.",
+        },
+        {
+          name: "title",
+          type: "string",
+          required: true,
+          description:
+            "Main line. Also names the row's action buttons for screen readers.",
+        },
+        {
+          name: "body",
+          type: "string",
+          description: "Secondary text, clamped to two lines.",
+        },
+        {
+          name: "createdAt",
+          type: "Date | string",
+          required: true,
+          description:
+            "Any value new Date() accepts. Sets the day group and the time. Items with an invalid date go last under Earlier.",
+        },
+        {
+          name: "read",
+          type: "boolean",
+          default: "false",
+          description: "Unread items show a dot and count toward the badge.",
+        },
+        {
+          name: "href",
+          type: "string",
+          description: "Renders the row as a link instead of a button.",
+        },
+        {
+          name: "actor",
+          type: "{ name: string; avatarUrl?: string }",
+          description:
+            "Shows an avatar, with initials when there is no avatarUrl or it fails to load.",
+        },
+      ],
+    },
+    {
+      name: "NotificationItem",
+      description:
+        "The default row content: avatar, title, body and time. Takes the InboxNotification fields, so <NotificationItem {...notification} /> works inside renderItem.",
+      props: [
+        {
+          name: "locale",
+          type: "string",
+          description: "Locale for the time.",
+        },
+        {
+          name: "className",
+          type: "string",
+          description: "Classes for the content wrapper.",
+        },
+      ],
+    },
+  ],
   "number-input": [
     {
       name: "NumberInput",

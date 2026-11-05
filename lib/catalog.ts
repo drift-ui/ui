@@ -97,6 +97,7 @@ const ENTRY_LAYOUT: {
     category: "workflow",
     stageClassName: "flex-col flex-nowrap items-stretch justify-start",
   },
+  { slug: "notification-inbox", category: "workflow" },
   {
     slug: "permission-matrix",
     category: "workflow",
