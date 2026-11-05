@@ -76,8 +76,8 @@ const INITIAL_VIEWS: SavedView<Filter[]>[] = [
   },
 ]
 
-function sameFilters(saved: Filter[] | undefined, current: Filter[]) {
-  return serializeFilters(saved ?? []) === serializeFilters(current)
+function sameFilters(saved: Filter[], current: Filter[]) {
+  return serializeFilters(saved) === serializeFilters(current)
 }
 
 export function SavedViewsPreview() {

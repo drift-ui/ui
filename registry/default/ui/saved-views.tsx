@@ -139,11 +139,10 @@ function SavedViews<T = unknown>({
     [views, activeId]
   )
 
-  const computedDirty = React.useMemo(
-    () => isViewDirty(activeView, currentData, isEqual),
-    [activeView, currentData, isEqual]
+  const isDirty = React.useMemo(
+    () => isDirtyProp ?? isViewDirty(activeView, currentData, isEqual),
+    [isDirtyProp, activeView, currentData, isEqual]
   )
-  const isDirty = isDirtyProp ?? computedDirty
 
   const viewsRef = React.useRef(views)
   const activeIdRef = React.useRef(activeId)
@@ -160,6 +159,13 @@ function SavedViews<T = unknown>({
   const [failure, setFailure] = React.useState<string | null>(null)
   const isActivePending = activeView ? pending.has(activeView.id) : false
   const isDefaultPending = [...pending.values()].includes("setDefault")
+
+  function canDelete(id: string) {
+    return views.some((v) => {
+      const action = pending.get(v.id)
+      return v.id !== id && action !== "create" && action !== "duplicate"
+    })
+  }
 
   function applyViews(next: SavedView<T>[]) {
     viewsRef.current = next
@@ -204,7 +210,8 @@ function SavedViews<T = unknown>({
       settle()
       const undone = revert()
       setFailure(undone ? `${message} The change was undone.` : message)
-      onError?.(error, action)
+      if (onError) onError(error, action)
+      else console.error(error)
     })
   }
 
@@ -285,9 +292,7 @@ function SavedViews<T = unknown>({
       message: `Couldn't rename "${target.name}".`,
       revert: () => {
         const current = viewsRef.current
-        if (!current.some((v) => v.id === id && v.name === trimmed)) {
-          return false
-        }
+        if (!current.some((v) => v.id === id)) return false
         applyViews(
           current.map((v) => (v.id === id ? { ...v, name: target.name } : v))
         )
@@ -305,7 +310,7 @@ function SavedViews<T = unknown>({
   }
 
   function handleDelete(id: string) {
-    if (views.length <= 1 || pending.has(id)) return
+    if (!canDelete(id) || pending.has(id)) return
     const index = views.findIndex((v) => v.id === id)
     const target = views[index]
     if (!target || target.isLocked) return
@@ -367,10 +372,10 @@ function SavedViews<T = unknown>({
       viewId: activeView.id,
       message: `Couldn't save "${activeView.name}".`,
       revert: () => {
-        if (currentData === undefined) return false
         const current = viewsRef.current
         if (
-          !current.some((v) => v.id === toSave.id && v.data === toSave.data)
+          currentData === undefined ||
+          !current.some((v) => v.id === toSave.id)
         ) {
           return false
         }
@@ -587,7 +592,7 @@ function SavedViews<T = unknown>({
                       allowDelete) && (
                       <ViewOptionsMenu
                         view={view}
-                        isOnlyView={views.length <= 1}
+                        isOnlyView={!canDelete(view.id)}
                         isPending={pending.has(view.id)}
                         allowRename={allowRename}
                         allowDuplicate={allowDuplicate}
@@ -732,7 +737,7 @@ function SavedViews<T = unknown>({
           !editingId && (
             <ViewOptionsMenu
               view={activeView}
-              isOnlyView={views.length <= 1}
+              isOnlyView={!canDelete(activeView.id)}
               isPending={isActivePending}
               allowRename={allowRename}
               allowDuplicate={allowDuplicate}

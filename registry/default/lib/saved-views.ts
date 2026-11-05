@@ -162,9 +162,30 @@ function definedKeys(value: object): string[] {
 }
 
 export function isViewDataEqual(a: unknown, b: unknown): boolean {
+  return equal(a, b, new WeakMap())
+}
+
+function equal(
+  a: unknown,
+  b: unknown,
+  seen: WeakMap<object, WeakSet<object>>
+): boolean {
   if (a === b || Object.is(a, b)) return true
   if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false
   if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return false
+  if (seen.get(a)?.has(b)) return true
+  const pairs = seen.get(a) ?? new WeakSet<object>()
+  seen.set(a, pairs.add(b))
+  const result = equalObjects(a, b, seen)
+  pairs.delete(b)
+  return result
+}
+
+function equalObjects(
+  a: object,
+  b: object,
+  seen: WeakMap<object, WeakSet<object>>
+): boolean {
   if (a instanceof Date && b instanceof Date) {
     return a.getTime() === b.getTime()
   }
@@ -172,19 +193,26 @@ export function isViewDataEqual(a: unknown, b: unknown): boolean {
     return String(a) === String(b)
   }
   if (a instanceof Set && b instanceof Set) {
-    return a.size === b.size && [...a].every((item) => b.has(item))
+    if (a.size !== b.size) return false
+    const unmatched = [...b]
+    return [...a].every((item) => {
+      const index = unmatched.findIndex((other) => equal(item, other, seen))
+      if (index === -1) return false
+      unmatched.splice(index, 1)
+      return true
+    })
   }
   if (a instanceof Map && b instanceof Map) {
     return (
       a.size === b.size &&
       [...a].every(
-        ([key, value]) => b.has(key) && isViewDataEqual(value, b.get(key))
+        ([key, value]) => b.has(key) && equal(value, b.get(key), seen)
       )
     )
   }
   if (Array.isArray(a) && Array.isArray(b)) {
     return (
-      a.length === b.length && a.every((item, i) => isViewDataEqual(item, b[i]))
+      a.length === b.length && a.every((item, i) => equal(item, b[i], seen))
     )
   }
   const keysA = definedKeys(a)
@@ -192,9 +220,10 @@ export function isViewDataEqual(a: unknown, b: unknown): boolean {
   return (
     keysA.length === keysB.length &&
     keysA.every((key) =>
-      isViewDataEqual(
+      equal(
         (a as Record<string, unknown>)[key],
-        (b as Record<string, unknown>)[key]
+        (b as Record<string, unknown>)[key],
+        seen
       )
     )
   )
@@ -215,7 +244,7 @@ export function readViewParam<T>(
   key = "view"
 ): string | undefined {
   const id = new URLSearchParams(search).get(key)
-  return views.find((v) => v.id === id)?.id
+  return getActiveSavedView(views, id)?.id
 }
 
 export function writeViewParam(

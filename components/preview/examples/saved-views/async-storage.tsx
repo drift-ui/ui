@@ -4,14 +4,24 @@ import * as React from "react"
 
 import { SavedViews, type SavedView } from "@/registry/default/ui/saved-views"
 
-const INITIAL_VIEWS: SavedView[] = [
-  { id: "all", name: "All Issues", isDefault: true, isLocked: true },
-  { id: "mine", name: "Assigned to Me" },
-  { id: "stale", name: "Stale" },
+type Sort = "updated" | "priority"
+
+const INITIAL_VIEWS: SavedView<Sort>[] = [
+  {
+    id: "all",
+    name: "All Issues",
+    isDefault: true,
+    isLocked: true,
+    data: "updated",
+  },
+  { id: "mine", name: "Assigned to Me", data: "priority" },
+  { id: "stale", name: "Stale", data: "updated" },
 ]
 
 export function SavedViewsAsyncStoragePreview() {
   const [views, setViews] = React.useState(INITIAL_VIEWS)
+  const [activeId, setActiveId] = React.useState("all")
+  const [sort, setSort] = React.useState<Sort>("updated")
   const [failRequests, setFailRequests] = React.useState(false)
   const [log, setLog] = React.useState<string[]>([])
 
@@ -27,25 +37,48 @@ export function SavedViewsAsyncStoragePreview() {
     })
   }
 
+  function select(id: string) {
+    setActiveId(id)
+    const view = views.find((v) => v.id === id)
+    setSort(view?.data ?? "updated")
+  }
+
   return (
     <div className="flex w-full flex-col gap-4">
       <SavedViews
         views={views}
         onViewsChange={setViews}
+        activeId={activeId}
+        onActiveChange={select}
+        currentData={sort}
+        onReset={(view) => setSort(view.data ?? "updated")}
+        onSave={(view) => request(`PUT /views/${view.id} sort=${view.data}`)}
         onCreate={(view) => request(`POST /views ${view.name}`)}
         onRename={(view) => request(`PATCH /views/${view.id}`)}
         onDuplicate={(view) => request(`POST /views ${view.name}`)}
         onDelete={(id) => request(`DELETE /views/${id}`)}
         onSetDefault={(id) => request(`PUT /views/default ${id}`)}
+        onError={() => {}}
       />
-      <label className="flex items-center gap-2 text-xs">
-        <input
-          type="checkbox"
-          checked={failRequests}
-          onChange={(event) => setFailRequests(event.target.checked)}
-        />
-        Make requests fail
-      </label>
+      <div className="flex flex-wrap items-center gap-4 text-xs">
+        <button
+          type="button"
+          onClick={() =>
+            setSort((prev) => (prev === "updated" ? "priority" : "updated"))
+          }
+          className="rounded-md border px-2.5 py-1 hover:bg-accent"
+        >
+          Sort by {sort === "updated" ? "priority" : "updated"}
+        </button>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={failRequests}
+            onChange={(event) => setFailRequests(event.target.checked)}
+          />
+          Make requests fail
+        </label>
+      </div>
       <ul className="font-mono text-xs text-muted-foreground">
         {log.map((line, index) => (
           <li key={`${index}-${line}`}>{line}</li>

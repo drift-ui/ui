@@ -267,6 +267,33 @@ describe("isViewDataEqual", () => {
     expect(isViewDataEqual(/a/i, /b/i)).toBe(false)
   })
 
+  it("matches object members of Sets by content, one to one", () => {
+    expect(
+      isViewDataEqual(
+        new Set([{ id: 1 }, { id: 2 }]),
+        new Set([{ id: 2 }, { id: 1 }])
+      )
+    ).toBe(true)
+    expect(
+      isViewDataEqual(
+        new Set([{ v: 1 }, { v: 1 }]),
+        new Set([{ v: 1 }, { v: 2 }])
+      )
+    ).toBe(false)
+  })
+
+  it("handles cyclic data without overflowing the stack", () => {
+    type Node = { name: string; self?: Node }
+    const a: Node = { name: "a" }
+    a.self = a
+    const b: Node = { name: "a" }
+    b.self = b
+    const c: Node = { name: "c" }
+    c.self = c
+    expect(isViewDataEqual(a, b)).toBe(true)
+    expect(isViewDataEqual(a, c)).toBe(false)
+  })
+
   it("does not treat objects of different types as equal", () => {
     expect(isViewDataEqual(new Set(), {})).toBe(false)
     expect(isViewDataEqual(new Map(), new Set())).toBe(false)
@@ -350,9 +377,16 @@ describe("readViewParam and writeViewParam", () => {
     expect(readViewParam("?view=mine", views)).toBe("mine")
   })
 
-  it("returns undefined for a missing or unknown id", () => {
-    expect(readViewParam("", views)).toBeUndefined()
-    expect(readViewParam("?view=gone", views)).toBeUndefined()
+  it("resolves a missing or unknown id to the default view", () => {
+    expect(readViewParam("", views)).toBe("all")
+    expect(readViewParam("?view=gone", views)).toBe("all")
+  })
+
+  it("falls back to the first view when none is the default", () => {
+    expect(readViewParam("", [{ id: "a", name: "A" }])).toBe("a")
+  })
+
+  it("returns undefined when there are no views", () => {
     expect(readViewParam("?view=mine", [])).toBeUndefined()
   })
 

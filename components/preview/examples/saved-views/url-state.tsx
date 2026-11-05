@@ -40,8 +40,7 @@ export function SavedViewsUrlStatePreview() {
         allowSetDefault={false}
       />
       <p className="text-xs text-muted-foreground">
-        With no param or an unknown id, the component shows the view that was
-        default when it mounted.
+        A missing or unknown id shows the default view.
       </p>
     </div>
   )

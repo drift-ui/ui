@@ -1,6 +1,7 @@
+import * as React from "react"
 import { act, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { SavedViews, type SavedView } from "@/registry/default/ui/saved-views"
 
@@ -557,28 +558,17 @@ describe("SavedViews dirty tracking", () => {
     expect(screen.queryByText("Unsaved")).not.toBeInTheDocument()
   })
 
-  it("keeps the selection when the default changes and activeId is unset", async () => {
-    const user = userEvent.setup()
-    const onActiveChange = vi.fn()
+  it("skips the compare when isDirty is passed", () => {
+    const isEqual = vi.fn(() => true)
     render(
       <SavedViews
-        variant="select"
-        defaultViews={SAMPLE_VIEWS}
-        activeId={undefined}
-        onActiveChange={onActiveChange}
+        defaultViews={DATA_VIEWS}
+        currentData={{ status: "open" }}
+        isEqual={isEqual}
+        isDirty
       />
     )
-
-    await user.click(
-      screen.getByRole("button", { name: /Saved views: All Issues/i })
-    )
-    await openOptions(user, "Active Sprint")
-    await user.click(screen.getByRole("menuitem", { name: "Set as default" }))
-
-    expect(
-      screen.getByRole("button", { name: /Saved views: All Issues/i })
-    ).toBeInTheDocument()
-    expect(onActiveChange).not.toHaveBeenCalled()
+    expect(isEqual).not.toHaveBeenCalled()
   })
 
   it("lets an isDirty prop override the computed value", () => {
@@ -616,6 +606,14 @@ describe("SavedViews dirty tracking", () => {
 })
 
 describe("SavedViews async storage", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it("marks a created view pending until the promise resolves", async () => {
     const user = userEvent.setup()
     const request = deferred()
@@ -944,6 +942,81 @@ describe("SavedViews async storage", () => {
 
     expect(onRename).not.toHaveBeenCalled()
     expect(screen.getByRole("tab", { name: "All Issues" })).toHaveFocus()
+  })
+
+  it("keeps the last saved view when the other view is still being created", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    render(
+      <SavedViews
+        defaultViews={[{ id: "solo", name: "Solo" }]}
+        onCreate={() => request.promise}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: "Create new view" }))
+    await user.type(screen.getByPlaceholderText("New view name..."), "Draft")
+    await user.click(screen.getByRole("button", { name: "Create view" }))
+    await user.click(screen.getByRole("tab", { name: "Solo" }))
+    await openOptions(user, "Solo")
+
+    expect(
+      screen.queryByRole("menuitem", { name: "Delete" })
+    ).not.toBeInTheDocument()
+
+    await act(async () => request.resolve())
+    await user.keyboard("{Escape}")
+    await openOptions(user, "Solo")
+    expect(screen.getByRole("menuitem", { name: "Delete" })).toBeInTheDocument()
+  })
+
+  it("rolls back a rename even when the parent normalizes the name", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    function Normalizing() {
+      const [views, setViews] = React.useState(SAMPLE_VIEWS)
+      return (
+        <SavedViews
+          views={views}
+          onViewsChange={(next) =>
+            setViews(next.map((v) => ({ ...v, name: v.name.toUpperCase() })))
+          }
+          onRename={() => request.promise}
+        />
+      )
+    }
+    render(<Normalizing />)
+
+    screen.getByRole("tab", { name: "All Issues" }).focus()
+    await user.keyboard("{F2}")
+    const input = screen.getByRole("textbox", { name: "Rename view" })
+    await user.clear(input)
+    await user.type(input, "everything{Enter}")
+    expect(screen.getByRole("tab", { name: "EVERYTHING" })).toBeInTheDocument()
+
+    await act(async () => request.reject(new Error("nope")))
+    expect(screen.getByRole("tab", { name: "ALL ISSUES" })).toBeInTheDocument()
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "The change was undone."
+    )
+  })
+
+  it("logs the error when there is no onError", async () => {
+    const user = userEvent.setup()
+    const error = new Error("boom")
+    const spy = vi.spyOn(console, "error")
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        onDelete={() => Promise.reject(error)}
+      />
+    )
+
+    await openOptions(user, "All Issues")
+    await user.click(screen.getByRole("menuitem", { name: "Delete" }))
+    await screen.findByRole("alert")
+
+    expect(spy).toHaveBeenCalledWith(error)
   })
 
   it("rolls back in the select variant too", async () => {
