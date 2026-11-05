@@ -140,3 +140,76 @@ export function getActiveSavedView<T>(
   }
   return views.find((v) => v.isDefault) ?? views[0]
 }
+
+export function restoreSavedView<T>(
+  views: SavedView<T>[],
+  view: SavedView<T>,
+  index: number
+): SavedView<T>[] {
+  if (views.some((v) => v.id === view.id)) return views
+  const at = Math.min(Math.max(index, 0), views.length)
+  return [...views.slice(0, at), view, ...views.slice(at)]
+}
+
+function definedKeys(value: object): string[] {
+  return Object.keys(value).filter(
+    (key) => (value as Record<string, unknown>)[key] !== undefined
+  )
+}
+
+export function isViewDataEqual(a: unknown, b: unknown): boolean {
+  if (a === b || Object.is(a, b)) return true
+  if (a instanceof Date || b instanceof Date) {
+    return a instanceof Date && b instanceof Date && a.getTime() === b.getTime()
+  }
+  if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false
+  if (Array.isArray(a) || Array.isArray(b)) {
+    return (
+      Array.isArray(a) &&
+      Array.isArray(b) &&
+      a.length === b.length &&
+      a.every((item, i) => isViewDataEqual(item, b[i]))
+    )
+  }
+  const keysA = definedKeys(a)
+  const keysB = definedKeys(b)
+  return (
+    keysA.length === keysB.length &&
+    keysA.every((key) =>
+      isViewDataEqual(
+        (a as Record<string, unknown>)[key],
+        (b as Record<string, unknown>)[key]
+      )
+    )
+  )
+}
+
+export function isViewDirty<T>(
+  view: SavedView<T> | undefined,
+  currentData: T | undefined,
+  isEqual: (saved: T | undefined, current: T) => boolean = isViewDataEqual
+): boolean {
+  if (!view || currentData === undefined) return false
+  return !isEqual(view.data, currentData)
+}
+
+export function readViewParam<T>(
+  search: string | URLSearchParams,
+  views: SavedView<T>[],
+  key = "view"
+): string | undefined {
+  const id = new URLSearchParams(search).get(key)
+  return getActiveSavedView(views, id)?.id
+}
+
+export function writeViewParam<T>(
+  search: string | URLSearchParams,
+  activeId: string,
+  views: SavedView<T>[],
+  key = "view"
+): string {
+  const params = new URLSearchParams(search)
+  if (activeId === getActiveSavedView(views)?.id) params.delete(key)
+  else params.set(key, activeId)
+  return params.toString()
+}

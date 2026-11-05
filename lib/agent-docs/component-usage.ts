@@ -595,31 +595,51 @@ export function StandupRepeat({ start }: { start: Date }) {
   },
   "saved-views": {
     notes:
-      "SavedViews manages named combinations of filters, sorting and columns on table and list screens. For views that store configuration data, manage views and onViewsChange in controlled state, or pass currentData to attach to newly created views; data must be serializable if using duplicate. When isDirty is true, an unsaved indicator appears and Save/Discard buttons show up. Context menu on each view supports Rename (also accessible via F2 or double click), Duplicate, Set as default, and Delete (with safety guards against deleting the last view or locked views). Add button (+) creates a new view. Set variant='select' for a compact dropdown view switcher. Pure helpers live in @/lib/saved-views: createSavedView, duplicateSavedView, renameSavedView, deleteSavedView, and setDefaultSavedView. Installs button, input, badge, and popover.",
+      "SavedViews manages named combinations of filters, sorting and columns on table and list screens. Pass currentData and the component works out isDirty by comparing it with the active view's data: objects compare deeply, key order and undefined fields are ignored, arrays keep their order and dates compare by time. Pass isEqual to change the rule (for filter-builder data, compare serializeFilters output so filter ids don't count), or pass isDirty to override it. Save writes currentData to the active view; Discard calls onReset so you can restore view.data. To keep the active view in the URL, read it with readViewParam(searchParams, views) and write it in onActiveChange with writeViewParam(searchParams, id, views); the default view drops the param and unknown ids fall back to the default, and the component itself has no router code. For server storage, return a Promise from onCreate, onRename, onDuplicate, onDelete, onSetDefault or onSave. The change shows at once and the view is marked aria-busy, its options menu and rename are blocked until the request settles, and a rejected Promise undoes only that change, shows an inline role=alert message and calls onError(error, action). Rename works with F2 or double click; delete is blocked for locked views and the last view. variant='select' gives a compact dropdown. Scale limit, measured in Chrome on a dev build at 4x CPU throttle: moving between tabs takes about 60 ms with 100 views, 115 ms with 200 and 230 ms with 500, and comparing currentData with 2,000 filters takes about 2.5 ms. Keep lists to about 100 views. Pure helpers live in @/lib/saved-views. Installs button, input, badge, and popover.",
     example: `"use client"
 
 import { useState } from "react"
+import { readViewParam, writeViewParam } from "@/lib/saved-views"
 import { SavedViews, type SavedView } from "@/components/ui/saved-views"
 
-const INITIAL_VIEWS: SavedView<{ status: string }>[] = [
-  { id: "all", name: "All Issues", isDefault: true, data: { status: "all" } },
-  { id: "active", name: "Active Sprint", data: { status: "active" } },
-]
+type Filters = { status: string }
 
-export function IssueViewSwitcher() {
-  const [views, setViews] = useState(INITIAL_VIEWS)
-  const [activeId, setActiveId] = useState("all")
-  const [isDirty, setIsDirty] = useState(false)
+export function IssueViewSwitcher({
+  initialViews,
+  search,
+  onSearchChange,
+}: {
+  initialViews: SavedView<Filters>[]
+  search: string
+  onSearchChange: (search: string) => void
+}) {
+  const [views, setViews] = useState(initialViews)
+  const activeId = readViewParam(search, views) ?? ""
+  const activeView = views.find((view) => view.id === activeId)
+  const [filters, setFilters] = useState<Filters>(
+    activeView?.data ?? { status: "all" }
+  )
 
   return (
     <SavedViews
       views={views}
       onViewsChange={setViews}
       activeId={activeId}
-      onActiveChange={setActiveId}
-      isDirty={isDirty}
-      onSave={(view) => setIsDirty(false)}
-      onReset={(view) => setIsDirty(false)}
+      onActiveChange={(id) => {
+        onSearchChange(writeViewParam(search, id, views))
+        const next = views.find((view) => view.id === id)
+        if (next?.data) setFilters(next.data)
+      }}
+      currentData={filters}
+      onReset={(view) => view.data && setFilters(view.data)}
+      onSave={(view) =>
+        fetch(\`/api/views/\${view.id}\`, {
+          method: "PUT",
+          body: JSON.stringify(view),
+        }).then((res) => {
+          if (!res.ok) throw new Error("Save failed")
+        })
+      }
     />
   )
 }`,

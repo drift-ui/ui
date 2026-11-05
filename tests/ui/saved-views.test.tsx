@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -506,5 +506,361 @@ describe("SavedViews", () => {
     // ArrowUp -> back to first item
     await user.keyboard("{ArrowUp}")
     expect(menuItems[0]).toHaveFocus()
+  })
+})
+
+function deferred() {
+  let resolve!: () => void
+  let reject!: (error: unknown) => void
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, resolve, reject }
+}
+
+async function openOptions(
+  user: ReturnType<typeof userEvent.setup>,
+  name: string
+) {
+  await user.click(screen.getByRole("button", { name: `Options for ${name}` }))
+}
+
+describe("SavedViews dirty tracking", () => {
+  const DATA_VIEWS: SavedView<{ status: string; q?: string }>[] = [
+    { id: "all", name: "All", isDefault: true, data: { status: "any" } },
+    { id: "open", name: "Open", data: { status: "open" } },
+  ]
+
+  it("works out isDirty from currentData", () => {
+    const { rerender } = render(
+      <SavedViews defaultViews={DATA_VIEWS} currentData={{ status: "any" }} />
+    )
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument()
+
+    rerender(
+      <SavedViews defaultViews={DATA_VIEWS} currentData={{ status: "open" }} />
+    )
+    expect(screen.getByText("Unsaved")).toBeInTheDocument()
+
+    rerender(
+      <SavedViews
+        defaultViews={DATA_VIEWS}
+        currentData={{ q: undefined, status: "any" }}
+      />
+    )
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument()
+  })
+
+  it("lets an isDirty prop override the computed value", () => {
+    render(
+      <SavedViews
+        defaultViews={DATA_VIEWS}
+        currentData={{ status: "open" }}
+        isDirty={false}
+      />
+    )
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument()
+  })
+
+  it("uses a custom isEqual", () => {
+    render(
+      <SavedViews
+        defaultViews={DATA_VIEWS}
+        currentData={{ status: "ANY" }}
+        isEqual={(saved, current) =>
+          saved?.status.toLowerCase() === current.status.toLowerCase()
+        }
+      />
+    )
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument()
+  })
+
+  it("is clean after saving in uncontrolled mode", async () => {
+    const user = userEvent.setup()
+    render(
+      <SavedViews defaultViews={DATA_VIEWS} currentData={{ status: "done" }} />
+    )
+    await user.click(screen.getByRole("button", { name: "Save" }))
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument()
+  })
+})
+
+describe("SavedViews async storage", () => {
+  it("marks a created view pending until the promise resolves", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        onCreate={() => request.promise}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: "Create new view" }))
+    await user.type(screen.getByPlaceholderText("New view name..."), "Mine")
+    await user.click(screen.getByRole("button", { name: "Create view" }))
+
+    const tab = screen.getByRole("tab", { name: "Mine" })
+    expect(tab).toHaveAttribute("aria-busy", "true")
+    expect(tab).toHaveAttribute("aria-selected", "true")
+
+    await act(async () => request.resolve())
+    expect(tab).not.toHaveAttribute("aria-busy")
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+  })
+
+  it("rolls back a failed create and reselects the previous view", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    const onError = vi.fn()
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        defaultActiveId="active"
+        onCreate={() => request.promise}
+        onError={onError}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: "Create new view" }))
+    await user.type(screen.getByPlaceholderText("New view name..."), "Mine")
+    await user.click(screen.getByRole("button", { name: "Create view" }))
+    expect(screen.getByRole("tab", { name: "Mine" })).toBeInTheDocument()
+
+    const error = new Error("offline")
+    await act(async () => request.reject(error))
+
+    expect(screen.queryByRole("tab", { name: "Mine" })).not.toBeInTheDocument()
+    expect(screen.getByRole("tab", { name: "Active Sprint" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      `Couldn't create "Mine". The change was undone.`
+    )
+    expect(onError).toHaveBeenCalledWith(error, "create")
+  })
+
+  it("rolls back a failed rename", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        onRename={() => request.promise}
+      />
+    )
+
+    screen.getByRole("tab", { name: "All Issues" }).focus()
+    await user.keyboard("{F2}")
+    const input = screen.getByRole("textbox", { name: "Rename view" })
+    await user.clear(input)
+    await user.type(input, "Everything{Enter}")
+    expect(screen.getByRole("tab", { name: "Everything" })).toHaveAttribute(
+      "aria-busy",
+      "true"
+    )
+
+    await act(async () => request.reject(new Error("nope")))
+    expect(screen.getByRole("tab", { name: "All Issues" })).toBeInTheDocument()
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      `Couldn't rename "All Issues".`
+    )
+  })
+
+  it("restores a deleted view at its position and reselects it", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    const onViewsChange = vi.fn()
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        defaultActiveId="active"
+        onDelete={() => request.promise}
+        onViewsChange={onViewsChange}
+      />
+    )
+
+    await openOptions(user, "Active Sprint")
+    await user.click(screen.getByRole("menuitem", { name: "Delete" }))
+    expect(
+      screen.queryByRole("tab", { name: "Active Sprint" })
+    ).not.toBeInTheDocument()
+
+    await act(async () => request.reject(new Error("nope")))
+
+    const tabs = screen.getAllByRole("tab")
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      "All Issues",
+      "Active Sprint",
+      "High Priority",
+    ])
+    expect(tabs[1]).toHaveAttribute("aria-selected", "true")
+    expect(onViewsChange).toHaveBeenLastCalledWith(SAMPLE_VIEWS)
+  })
+
+  it("does not steal the selection back if the user moved on", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        defaultActiveId="active"
+        onDelete={() => request.promise}
+      />
+    )
+
+    await openOptions(user, "Active Sprint")
+    await user.click(screen.getByRole("menuitem", { name: "Delete" }))
+    await user.click(screen.getByRole("tab", { name: "High Priority" }))
+
+    await act(async () => request.reject(new Error("nope")))
+    expect(screen.getByRole("tab", { name: "High Priority" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+  })
+
+  it("rolls back a failed set default", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    const onViewsChange = vi.fn()
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        defaultActiveId="high"
+        onSetDefault={() => request.promise}
+        onViewsChange={onViewsChange}
+      />
+    )
+
+    await openOptions(user, "High Priority")
+    await user.click(screen.getByRole("menuitem", { name: "Set as default" }))
+    expect(onViewsChange).toHaveBeenLastCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "high", isDefault: true }),
+      ])
+    )
+
+    await act(async () => request.reject(new Error("nope")))
+    const last = onViewsChange.mock.lastCall?.[0] as SavedView[]
+    expect(last.find((v) => v.isDefault)?.id).toBe("all")
+  })
+
+  it("restores the saved data when a save fails", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    render(
+      <SavedViews
+        defaultViews={[{ id: "a", name: "A", data: { q: "old" } }]}
+        currentData={{ q: "new" }}
+        onSave={() => request.promise}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: "Save" }))
+    expect(screen.queryByText("Unsaved")).not.toBeInTheDocument()
+
+    await act(async () => request.reject(new Error("nope")))
+    expect(screen.getByText("Unsaved")).toBeInTheDocument()
+    expect(screen.getByRole("alert")).toHaveTextContent(`Couldn't save "A".`)
+  })
+
+  it("blocks actions on a pending view", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    const onSave = vi.fn(() => request.promise)
+    render(
+      <SavedViews
+        defaultViews={[{ id: "a", name: "A", data: { q: "old" } }]}
+        currentData={{ q: "new" }}
+        isDirty
+        onSave={onSave}
+      />
+    )
+
+    const save = screen.getByRole("button", { name: "Save" })
+    await user.click(save)
+    expect(save).toHaveAttribute("aria-disabled", "true")
+    await user.click(save)
+    expect(onSave).toHaveBeenCalledTimes(1)
+
+    const options = screen.getByRole("button", { name: "Options for A" })
+    expect(options).toHaveAttribute("aria-disabled", "true")
+    await user.click(options)
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+
+    screen.getByRole("tab", { name: /^A/ }).focus()
+    await user.keyboard("{F2}")
+    expect(
+      screen.queryByRole("textbox", { name: "Rename view" })
+    ).not.toBeInTheDocument()
+
+    await act(async () => request.resolve())
+    expect(options).not.toHaveAttribute("aria-disabled")
+  })
+
+  it("keeps sync callbacks optimistic with no pending state", async () => {
+    const user = userEvent.setup()
+    render(<SavedViews defaultViews={SAMPLE_VIEWS} onCreate={() => {}} />)
+
+    await user.click(screen.getByRole("button", { name: "Create new view" }))
+    await user.type(screen.getByPlaceholderText("New view name..."), "Mine")
+    await user.keyboard("{Enter}")
+
+    expect(screen.getByRole("tab", { name: "Mine" })).not.toHaveAttribute(
+      "aria-busy"
+    )
+  })
+
+  it("dismisses the error with the keyboard", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    render(
+      <SavedViews
+        defaultViews={SAMPLE_VIEWS}
+        onDelete={() => request.promise}
+      />
+    )
+
+    await openOptions(user, "All Issues")
+    await user.click(screen.getByRole("menuitem", { name: "Delete" }))
+    await act(async () => request.reject(new Error("nope")))
+
+    screen.getByRole("button", { name: "Dismiss" }).focus()
+    await user.keyboard("{Enter}")
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+  })
+
+  it("rolls back in the select variant too", async () => {
+    const user = userEvent.setup()
+    const request = deferred()
+    render(
+      <SavedViews
+        variant="select"
+        defaultViews={SAMPLE_VIEWS}
+        onRename={() => request.promise}
+      />
+    )
+
+    await user.click(
+      screen.getByRole("button", { name: /Saved views: All Issues/i })
+    )
+    await openOptions(user, "High Priority")
+    await user.click(screen.getByRole("menuitem", { name: "Rename" }))
+    const input = screen.getByRole("textbox", { name: "Rename view" })
+    await user.clear(input)
+    await user.type(input, "Urgent{Enter}")
+    expect(screen.getByRole("option", { name: /Urgent/ })).toHaveAttribute(
+      "aria-busy",
+      "true"
+    )
+
+    await act(async () => request.reject(new Error("nope")))
+    expect(
+      screen.getByRole("option", { name: /High Priority/ })
+    ).not.toHaveAttribute("aria-busy")
+    expect(screen.getByRole("alert")).toBeInTheDocument()
   })
 })

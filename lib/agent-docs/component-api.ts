@@ -1750,19 +1750,26 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           name: "currentData",
           type: "T",
           description:
-            "Current configuration data attached to new views and persisted on save in uncontrolled mode.",
+            "Current configuration data. New views take it, Save writes it to the active view, and isDirty is worked out by comparing it with the active view's data.",
+        },
+        {
+          name: "isEqual",
+          type: "(saved: T | undefined, current: T) => boolean",
+          default: "isViewDataEqual",
+          description:
+            "Equality rule for dirty tracking. The default is a deep compare that ignores key order and undefined fields.",
         },
         {
           name: "isDirty",
           type: "boolean",
-          default: "false",
           description:
-            "Whether the current view has unsaved changes. Shows unsaved indicator and Save/Discard buttons.",
+            "Overrides the computed unsaved state. Shows the unsaved indicator and the Save and Discard buttons. Leave it out to compare currentData with the active view.",
         },
         {
           name: "onSave",
-          type: "(view: SavedView<T>) => void",
-          description: "Called when the Save button is clicked.",
+          type: "(view: SavedView<T>) => void | Promise<unknown>",
+          description:
+            "Called when the Save button is clicked. Return a Promise to mark the view pending and undo the change if it rejects.",
         },
         {
           name: "onReset",
@@ -1771,28 +1778,39 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         },
         {
           name: "onCreate",
-          type: "(view: SavedView<T>) => void",
-          description: "Called when a new view is created.",
+          type: "(view: SavedView<T>) => void | Promise<unknown>",
+          description:
+            "Called when a new view is created. Return a Promise to mark the view pending and undo the change if it rejects.",
         },
         {
           name: "onRename",
-          type: "(view: SavedView<T>, newName: string) => void",
-          description: "Called when a view is renamed.",
+          type: "(view: SavedView<T>, newName: string) => void | Promise<unknown>",
+          description:
+            "Called when a view is renamed. Return a Promise to mark the view pending and undo the change if it rejects.",
         },
         {
           name: "onDuplicate",
-          type: "(newView: SavedView<T>, sourceView: SavedView<T>) => void",
-          description: "Called when a view is duplicated.",
+          type: "(newView: SavedView<T>, sourceView: SavedView<T>) => void | Promise<unknown>",
+          description:
+            "Called when a view is duplicated. Return a Promise to mark the view pending and undo the change if it rejects.",
         },
         {
           name: "onDelete",
-          type: "(deletedViewId: string) => void",
-          description: "Called when a view is deleted.",
+          type: "(deletedViewId: string) => void | Promise<unknown>",
+          description:
+            "Called when a view is deleted. Return a Promise to mark the view pending and undo the change if it rejects.",
         },
         {
           name: "onSetDefault",
-          type: "(defaultViewId: string) => void",
-          description: "Called when a view is marked as default.",
+          type: "(defaultViewId: string) => void | Promise<unknown>",
+          description:
+            "Called when a view is marked as default. Return a Promise to mark the view pending and undo the change if it rejects.",
+        },
+        {
+          name: "onError",
+          type: '(error: unknown, action: "create" | "rename" | "duplicate" | "delete" | "setDefault" | "save") => void',
+          description:
+            "Called with the rejection reason after a change is undone, for logging or a toast. An inline alert is shown either way.",
         },
         {
           name: "variant",
@@ -1852,6 +1870,20 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       signature:
         "createSavedView(name: string, options?: Partial<SavedView<T>>): SavedView<T>; duplicateSavedView(source: SavedView<T>, views: SavedView<T>[]): SavedView<T>; renameSavedView(views: SavedView<T>[], id: string, name: string): SavedView<T>[]; deleteSavedView(views: SavedView<T>[], id: string, activeId?: string): { views: SavedView<T>[]; nextActiveId: string | null }; setDefaultSavedView(views: SavedView<T>[], id: string): SavedView<T>[]",
       description: "Pure logic helpers imported from @/lib/saved-views.",
+    },
+    {
+      name: "isViewDataEqual, isViewDirty",
+      signature:
+        "isViewDataEqual(a: unknown, b: unknown): boolean; isViewDirty(view: SavedView<T> | undefined, currentData: T | undefined, isEqual?: (saved: T | undefined, current: T) => boolean): boolean",
+      description:
+        "The dirty tracking rule. Objects compare deeply with key order ignored and undefined fields treated as missing. Arrays keep their order, and dates compare by time.",
+    },
+    {
+      name: "readViewParam, writeViewParam",
+      signature:
+        "readViewParam(search: string | URLSearchParams, views: SavedView<T>[], key?: string): string | undefined; writeViewParam(search: string | URLSearchParams, activeId: string, views: SavedView<T>[], key?: string): string",
+      description:
+        'Map a ?view= search param to an active id and back. Unknown ids fall back to the default view, the default view drops the param, and other params are kept. key defaults to "view".',
     },
   ],
   "secret-field": [

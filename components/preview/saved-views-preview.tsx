@@ -5,6 +5,7 @@ import { CircleDotIcon, HashIcon, TextIcon } from "lucide-react"
 
 import {
   matchesFilter,
+  serializeFilters,
   type Filter,
   type FilterField,
 } from "@/registry/default/lib/filter"
@@ -75,17 +76,8 @@ const INITIAL_VIEWS: SavedView<Filter[]>[] = [
   },
 ]
 
-function areFiltersEqual(a: Filter[], b: Filter[]) {
-  if (a.length !== b.length) return false
-  return a.every((f, i) => {
-    const other = b[i]
-    return (
-      other &&
-      f.fieldId === other.fieldId &&
-      f.operator === other.operator &&
-      f.value === other.value
-    )
-  })
+function sameFilters(saved: Filter[] | undefined, current: Filter[]) {
+  return serializeFilters(saved ?? []) === serializeFilters(current)
 }
 
 export function SavedViewsPreview() {
@@ -106,7 +98,6 @@ export function SavedViewsPreview() {
   }
 
   const savedFilters = currentView?.data ?? []
-  const isDirty = !areFiltersEqual(activeFilters, savedFilters)
 
   function handleSave(view: SavedView<Filter[]>) {
     setViews((prev) =>
@@ -140,7 +131,7 @@ export function SavedViewsPreview() {
         activeId={activeId}
         onActiveChange={handleActiveChange}
         currentData={activeFilters}
-        isDirty={isDirty}
+        isEqual={sameFilters}
         onSave={handleSave}
         onReset={handleReset}
         onCreate={handleCreate}
