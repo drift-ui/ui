@@ -1268,7 +1268,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           name: "onItemsChange",
           type: "(items: T[]) => void",
           description:
-            "Called with the full list after an item is opened, marked read or unread, or after Mark all as read.",
+            "Called with the full list when read state changes: an unread item is opened, an item is marked read or unread, or Mark all as read runs. Opening a read item changes nothing, so track opens with onItemClick.",
         },
         {
           name: "onMarkRead",

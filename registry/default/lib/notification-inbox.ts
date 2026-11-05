@@ -47,9 +47,9 @@ export function formatDayLabel(date: Date, now: Date, locale?: string) {
   const daysAgo = Math.round(
     (startOfDay(now).getTime() - startOfDay(date).getTime()) / DAY_MS
   )
-  if (daysAgo <= 1) {
+  if (Math.abs(daysAgo) <= 1) {
     const relative = new Intl.RelativeTimeFormat(locale, { numeric: "auto" })
-    return capitalize(relative.format(-Math.max(daysAgo, 0), "day"), locale)
+    return capitalize(relative.format(-daysAgo, "day"), locale)
   }
   return new Intl.DateTimeFormat(locale, {
     weekday: "long",

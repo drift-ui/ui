@@ -7,7 +7,7 @@ export const examples: ComponentExample[] = [
     id: "controlled",
     title: "Controlled with actions",
     description:
-      "Own the items array, sync read state with onMarkRead, onMarkUnread and onMarkAllRead, and add per-item actions such as Archive.",
+      "Own the items array and keep it in sync through onItemsChange. onMarkRead, onMarkUnread and onMarkAllRead report each change, for example to persist it, and actions add per-item buttons such as Archive.",
     Preview: NotificationInboxControlledPreview,
   },
   {

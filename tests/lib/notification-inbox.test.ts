@@ -44,8 +44,10 @@ describe("formatDayLabel", () => {
     expect(formatDayLabel(at(4, 0), NOW, "en-US")).toBe("Yesterday")
   })
 
-  it("treats a future time as today", () => {
-    expect(formatDayLabel(at(6, 9), NOW, "en-US")).toBe("Today")
+  it("labels future days instead of folding them into Today", () => {
+    expect(formatDayLabel(at(5, 23), NOW, "en-US")).toBe("Today")
+    expect(formatDayLabel(at(6, 9), NOW, "en-US")).toBe("Tomorrow")
+    expect(formatDayLabel(at(8, 9), NOW, "en-US")).toBe("Sunday, November 8")
   })
 
   it("names older days and adds the year only for another year", () => {
