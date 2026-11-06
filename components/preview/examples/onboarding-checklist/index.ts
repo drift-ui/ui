@@ -22,7 +22,7 @@ export const examples: ComponentExample[] = [
     id: "with-tour",
     title: "With interactive tour",
     description:
-      "Trigger an onboarding tour from an action button and automatically complete the checklist task upon tour finish.",
+      "Trigger an onboarding tour from an action button and automatically complete the checklist task upon tour completion.",
     Preview: OnboardingChecklistWithTourPreview,
   },
 ]

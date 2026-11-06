@@ -48,15 +48,19 @@ export function OnboardingChecklistWithTourPreview() {
     },
   ]
 
-  const handleTourChange = (open: boolean) => {
-    setIsTourOpen(open)
-    if (!open && !completed.includes("take-tour")) {
+  const handleTourComplete = () => {
+    if (!completed.includes("take-tour")) {
       setCompleted((prev) => [...prev, "take-tour"])
     }
   }
 
   return (
-    <Tour steps={TOUR_STEPS} open={isTourOpen} onOpenChange={handleTourChange}>
+    <Tour
+      steps={TOUR_STEPS}
+      open={isTourOpen}
+      onOpenChange={setIsTourOpen}
+      onComplete={handleTourComplete}
+    >
       <div className="flex w-full max-w-xl flex-col gap-6">
         <TourTarget name="checklist-card">
           <OnboardingChecklist

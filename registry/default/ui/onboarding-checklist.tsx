@@ -163,99 +163,105 @@ function OnboardingChecklist({
         </div>
       </CardHeader>
 
-      {isExpanded && (
-        <CardContent id={contentId}>
-          <ul className="flex flex-col gap-2.5" role="list">
-            {items.map((item) => {
-              const isChecked = isItemCompleted(completed, item.id)
-              const inputId = `${generatedId}-item-${item.id}`
+      <CardContent id={contentId} hidden={!isExpanded}>
+        <ul className="flex flex-col gap-2.5" role="list">
+          {items.map((item) => {
+            const isChecked = isItemCompleted(completed, item.id)
+            const inputId = `${generatedId}-item-${item.id}`
 
-              return (
-                <li
-                  key={item.id}
-                  className={cn(
-                    "flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors",
-                    isChecked
-                      ? "border-muted bg-muted/40"
-                      : "border-border bg-card",
-                    item.disabled && "opacity-60"
-                  )}
-                >
-                  <div className="flex min-w-0 flex-1 items-start gap-3">
-                    <div className="pt-0.5">
-                      <input
-                        type="checkbox"
-                        id={inputId}
-                        checked={isChecked}
-                        disabled={item.disabled}
-                        onChange={() => handleToggle(item)}
+            return (
+              <li
+                key={item.id}
+                className={cn(
+                  "flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors",
+                  isChecked
+                    ? "border-muted bg-muted/40"
+                    : "border-border bg-card",
+                  item.disabled && "opacity-60"
+                )}
+              >
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <div className="pt-0.5">
+                    <input
+                      type="checkbox"
+                      id={inputId}
+                      checked={isChecked}
+                      disabled={item.disabled}
+                      onChange={() => handleToggle(item)}
+                      className={cn(
+                        "size-4 shrink-0 cursor-pointer rounded border-input text-primary accent-primary",
+                        "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
+                        "disabled:cursor-not-allowed disabled:opacity-50"
+                      )}
+                    />
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                    <label
+                      htmlFor={inputId}
+                      className={cn(
+                        "cursor-pointer text-sm leading-tight font-medium select-none",
+                        isChecked && "text-muted-foreground line-through",
+                        item.disabled && "cursor-not-allowed"
+                      )}
+                    >
+                      {item.title}
+                    </label>
+                    {item.description && (
+                      <div
                         className={cn(
-                          "size-4 shrink-0 cursor-pointer rounded border-input text-primary accent-primary",
-                          "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none",
-                          "disabled:cursor-not-allowed disabled:opacity-50"
-                        )}
-                      />
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                      <label
-                        htmlFor={inputId}
-                        className={cn(
-                          "cursor-pointer text-sm leading-tight font-medium select-none",
-                          isChecked && "text-muted-foreground line-through",
-                          item.disabled && "cursor-not-allowed"
+                          "text-xs leading-relaxed text-muted-foreground",
+                          isChecked && "opacity-75"
                         )}
                       >
-                        {item.title}
-                      </label>
-                      {item.description && (
-                        <div
-                          className={cn(
-                            "text-xs leading-relaxed text-muted-foreground",
-                            isChecked && "opacity-75"
-                          )}
-                        >
-                          {item.description}
-                        </div>
-                      )}
-                    </div>
+                        {item.description}
+                      </div>
+                    )}
                   </div>
+                </div>
 
-                  {item.action && (
-                    <div className="shrink-0">
-                      {item.action.href ? (
-                        <a
-                          href={item.action.href}
-                          className={cn(
-                            buttonVariants({ variant: "outline", size: "sm" }),
-                            "h-8 text-xs",
-                            item.action.disabled &&
-                              "pointer-events-none opacity-50"
-                          )}
-                          aria-disabled={item.action.disabled}
-                          tabIndex={item.action.disabled ? -1 : undefined}
-                        >
-                          {item.action.label}
-                        </a>
-                      ) : (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-xs"
-                          disabled={item.action.disabled}
-                          onClick={item.action.onClick}
-                        >
-                          {item.action.label}
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </CardContent>
-      )}
+                {item.action && (
+                  <div className="shrink-0">
+                    {item.action.href ? (
+                      <a
+                        href={
+                          item.action.disabled ? undefined : item.action.href
+                        }
+                        role={item.action.disabled ? "link" : undefined}
+                        className={cn(
+                          buttonVariants({ variant: "outline", size: "sm" }),
+                          "h-8 text-xs",
+                          item.action.disabled &&
+                            "pointer-events-none opacity-50"
+                        )}
+                        aria-disabled={item.action.disabled}
+                        tabIndex={item.action.disabled ? -1 : undefined}
+                        onClick={
+                          item.action.disabled
+                            ? (e) => e.preventDefault()
+                            : undefined
+                        }
+                      >
+                        {item.action.label}
+                      </a>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        disabled={item.action.disabled}
+                        onClick={item.action.onClick}
+                      >
+                        {item.action.label}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </CardContent>
     </Card>
   )
 }

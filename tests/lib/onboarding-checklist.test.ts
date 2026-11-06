@@ -46,6 +46,13 @@ describe("calculateProgress", () => {
       isComplete: false,
       ratioText: "0 of 0 done",
     })
+    expect(calculateProgress(5, -2)).toEqual({
+      total: 5,
+      completedCount: 0,
+      percentage: 0,
+      isComplete: false,
+      ratioText: "0 of 5 done",
+    })
     expect(calculateProgress(5, 10)).toEqual({
       total: 5,
       completedCount: 5,
@@ -85,6 +92,11 @@ describe("getCompletedCount", () => {
     expect(getCompletedCount(items, ["task-1", "task-3", "unknown-task"])).toBe(
       2
     )
+  })
+
+  it("deduplicates completed ids", () => {
+    const items = [{ id: "task-1" }, { id: "task-2" }]
+    expect(getCompletedCount(items, ["task-1", "task-1"])).toBe(1)
   })
 
   it("returns 0 if none are completed", () => {

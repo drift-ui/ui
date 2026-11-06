@@ -185,6 +185,15 @@ describe("OnboardingChecklist", () => {
         title: "Disabled action",
         action: { label: "Disabled action", onClick: vi.fn(), disabled: true },
       },
+      {
+        id: "disabled-link-step",
+        title: "Disabled link action",
+        action: {
+          label: "Disabled link",
+          href: "https://drift-ui.dev",
+          disabled: true,
+        },
+      },
     ]
 
     render(<OnboardingChecklist items={items} />)
@@ -201,12 +210,17 @@ describe("OnboardingChecklist", () => {
     // Disabled button action
     const disabledBtn = screen.getByRole("button", { name: "Disabled action" })
     expect(disabledBtn).toBeDisabled()
+
+    // Disabled link action
+    const disabledLink = screen.getByRole("link", { name: "Disabled link" })
+    expect(disabledLink).not.toHaveAttribute("href")
+    expect(disabledLink).toHaveAttribute("aria-disabled", "true")
   })
 
   it("supports collapsible mode uncontrolled", async () => {
     const user = userEvent.setup()
 
-    render(
+    const { container } = render(
       <OnboardingChecklist
         title="Collapsible setup"
         items={SAMPLE_ITEMS}
@@ -219,7 +233,8 @@ describe("OnboardingChecklist", () => {
       name: "Collapse checklist",
     })
     expect(toggleButton).toHaveAttribute("aria-expanded", "true")
-    expect(screen.getByRole("list")).toBeInTheDocument()
+    const content = container.querySelector('[data-slot="card-content"]')
+    expect(content).not.toHaveAttribute("hidden")
 
     // Collapse
     await user.click(toggleButton)
@@ -227,18 +242,18 @@ describe("OnboardingChecklist", () => {
     expect(
       screen.getByRole("button", { name: "Expand checklist" })
     ).toBeInTheDocument()
-    expect(screen.queryByRole("list")).not.toBeInTheDocument()
+    expect(content).toHaveAttribute("hidden")
 
     // Re-expand
     await user.click(screen.getByRole("button", { name: "Expand checklist" }))
-    expect(screen.getByRole("list")).toBeInTheDocument()
+    expect(content).not.toHaveAttribute("hidden")
   })
 
   it("supports collapsible mode controlled with onOpenChange", async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()
 
-    const { rerender } = render(
+    const { container, rerender } = render(
       <OnboardingChecklist
         items={SAMPLE_ITEMS}
         collapsible
@@ -247,7 +262,8 @@ describe("OnboardingChecklist", () => {
       />
     )
 
-    expect(screen.queryByRole("list")).not.toBeInTheDocument()
+    const content = container.querySelector('[data-slot="card-content"]')
+    expect(content).toHaveAttribute("hidden")
     const expandBtn = screen.getByRole("button", { name: "Expand checklist" })
     await user.click(expandBtn)
     expect(onOpenChange).toHaveBeenCalledWith(true)
@@ -260,7 +276,7 @@ describe("OnboardingChecklist", () => {
         onOpenChange={onOpenChange}
       />
     )
-    expect(screen.getByRole("list")).toBeInTheDocument()
+    expect(content).not.toHaveAttribute("hidden")
   })
 
   it("supports keyboard toggling with Space on checkboxes", async () => {

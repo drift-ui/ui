@@ -59,5 +59,5 @@ export function getCompletedCount(
   completed: readonly string[]
 ): number {
   const validIds = new Set(items.map((item) => item.id))
-  return completed.filter((id) => validIds.has(id)).length
+  return new Set(completed.filter((id) => validIds.has(id))).size
 }

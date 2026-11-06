@@ -485,7 +485,7 @@ export function BudgetField() {
   },
   "onboarding-checklist": {
     notes:
-      "A setup guide on account dashboards with a task list, accessible native checkbox controls, action buttons, and a semantic progress bar ('2 of 5 done'). Supports controlled and uncontrolled completion state via completed and onCompletedChange, individual item toggle notifications via onItemToggle(item, completed), and collapsible mode via collapsible, open, and onOpenChange. Items take id, title, optional description, and an optional action with label and either onClick or href (rendering a styled button or anchor without asChild).",
+      "A setup guide on account dashboards with a task list, accessible native checkbox controls, action buttons, and a semantic progress bar ('2 of 5 done'). Supports controlled completion via completed and onCompletedChange, and uncontrolled completion initialized with defaultCompleted. Individual item toggle notifications use onItemToggle(item, completed). Collapsible mode supports controlled open/onOpenChange and uncontrolled initialization via defaultOpen. Items take id, title, optional description, and an optional action with label and either onClick or href (rendering a styled button or anchor without asChild).",
     example: `"use client"
 
 import { useState } from "react"
