@@ -393,7 +393,7 @@ describe("JsonViewer", () => {
     const shortText = "short string under eighty characters"
     render(<JsonViewer virtual data={{ message: shortText }} />)
 
-    expect(screen.getByText(new RegExp(shortText))).toBeInTheDocument()
+expect(screen.getByText(new RegExp(shortText))).not.toHaveClass("truncate")
     expect(
       screen.queryByRole("button", { name: "Expand string" })
     ).not.toBeInTheDocument()
