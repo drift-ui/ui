@@ -102,6 +102,11 @@ const ENTRY_LAYOUT: {
   },
   { slug: "notification-inbox", category: "workflow" },
   {
+    slug: "onboarding-checklist",
+    category: "workflow",
+    stageClassName: "flex-col flex-nowrap items-stretch",
+  },
+  {
     slug: "permission-matrix",
     category: "workflow",
     stageClassName: "flex-col flex-nowrap items-stretch",

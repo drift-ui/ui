@@ -71,6 +71,11 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ["Shift", ...PAGE], action: "Step by the large step" },
     { keys: HOME_END, action: "Jump to min or max" },
   ],
+  "onboarding-checklist": [
+    { keys: ["Space"], action: "Toggle the focused checklist item" },
+    { keys: ["Enter"], action: "Activate the action button or link" },
+    { keys: ["Tab"], action: "Move focus between items and actions" },
+  ],
   "permission-matrix": [
     { keys: ARROWS, action: "Move between cells" },
     { keys: HOME_END, action: "First or last column" },

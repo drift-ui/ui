@@ -483,6 +483,44 @@ export function BudgetField() {
   )
 }`,
   },
+  "onboarding-checklist": {
+    notes:
+      "A setup guide on account dashboards with a task list, accessible native checkbox controls, action buttons, and a semantic progress bar ('2 of 5 done'). Supports controlled and uncontrolled completion state via completed and onCompletedChange, individual item toggle notifications via onItemToggle(item, completed), and collapsible mode via collapsible, open, and onOpenChange. Items take id, title, optional description, and an optional action with label and either onClick or href (rendering a styled button or anchor without asChild).",
+    example: `"use client"
+
+import { useState } from "react"
+import { OnboardingChecklist } from "@/components/ui/onboarding-checklist"
+
+const items = [
+  {
+    id: "profile",
+    title: "Complete your profile",
+    description: "Add your name, role, and timezone.",
+    action: { label: "Edit profile", onClick: () => {} },
+  },
+  {
+    id: "invite",
+    title: "Invite your team",
+    description: "Collaborate with colleagues on shared projects.",
+    action: { label: "Invite", onClick: () => {} },
+  },
+]
+
+export function DashboardChecklist() {
+  const [completed, setCompleted] = useState(["profile"])
+
+  return (
+    <OnboardingChecklist
+      title="Getting started"
+      description="Finish setting up your workspace."
+      items={items}
+      completed={completed}
+      onCompletedChange={setCompleted}
+      collapsible
+    />
+  )
+}`,
+  },
   "password-input": {
     notes:
       "PasswordInput accepts every input prop except type and adds an accessible reveal toggle. PasswordStrength takes value and renders a 4 segment meter with a polite live region; override scoring with getScore(value) => 0 | 1 | 2 | 3 | 4 and labels with a 5 item tuple.",

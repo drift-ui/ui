@@ -1450,6 +1450,144 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<input>",
     },
   ],
+  "onboarding-checklist": [
+    {
+      name: "OnboardingChecklist",
+      description:
+        "Dashboard setup guide with a list of tasks, accessible checkboxes, action buttons, and a progress bar.",
+      props: [
+        {
+          name: "items",
+          type: "OnboardingChecklistItem[]",
+          required: true,
+          description: "List of checklist tasks to display.",
+        },
+        {
+          name: "title",
+          type: "ReactNode",
+          default: '"Getting started"',
+          description: "Card header title.",
+        },
+        {
+          name: "description",
+          type: "ReactNode",
+          description: "Card header description text.",
+        },
+        {
+          name: "completed",
+          type: "string[]",
+          description: "Controlled array of completed task IDs.",
+        },
+        {
+          name: "defaultCompleted",
+          type: "string[]",
+          default: "[]",
+          description: "Initial completed task IDs when uncontrolled.",
+        },
+        {
+          name: "onCompletedChange",
+          type: "(completed: string[]) => void",
+          description: "Called when any task is checked or unchecked.",
+        },
+        {
+          name: "onItemToggle",
+          type: "(item: OnboardingChecklistItem, completed: boolean) => void",
+          description: "Called with the toggled item and its new state.",
+        },
+        {
+          name: "collapsible",
+          type: "boolean",
+          default: "false",
+          description:
+            "Whether the checklist can be collapsed down to header and progress.",
+        },
+        {
+          name: "open",
+          type: "boolean",
+          description: "Controlled open state when collapsible.",
+        },
+        {
+          name: "defaultOpen",
+          type: "boolean",
+          default: "true",
+          description: "Initial open state when collapsible and uncontrolled.",
+        },
+        {
+          name: "onOpenChange",
+          type: "(open: boolean) => void",
+          description: "Called when collapsible open state toggles.",
+        },
+        {
+          name: "progressFormat",
+          type: "(progress: OnboardingChecklistProgress) => ReactNode",
+          description: "Custom formatter for the progress ratio indicator.",
+        },
+      ],
+      rest: "Card root",
+    },
+    {
+      name: "OnboardingChecklistItem",
+      description: "Individual task item definition.",
+      props: [
+        {
+          name: "id",
+          type: "string",
+          required: true,
+          description: "Unique identifier for tracking completion.",
+        },
+        {
+          name: "title",
+          type: "string",
+          required: true,
+          description: "Task title text.",
+        },
+        {
+          name: "description",
+          type: "ReactNode",
+          description: "Optional supplementary details.",
+        },
+        {
+          name: "action",
+          type: "OnboardingChecklistAction",
+          description: "Action button or link for completing the step.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables toggling this item.",
+        },
+      ],
+    },
+    {
+      name: "OnboardingChecklistAction",
+      description: "Action button or link configuration for a task.",
+      props: [
+        {
+          name: "label",
+          type: "string",
+          required: true,
+          description: "Button or link text.",
+        },
+        {
+          name: "onClick",
+          type: "(event: MouseEvent<HTMLButtonElement>) => void",
+          description: "Click handler rendering a Button.",
+        },
+        {
+          name: "href",
+          type: "string",
+          description: "URL rendering a styled anchor link.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables the action control.",
+        },
+      ],
+    },
+  ],
   "password-input": [
     {
       name: "PasswordInput",
