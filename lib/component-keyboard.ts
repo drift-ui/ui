@@ -49,6 +49,12 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ["Mod+C"], action: "Copy the value" },
     { keys: ["Mod+Shift+C"], action: "Copy the path" },
   ],
+  "log-viewer": [
+    { keys: UP_DOWN, action: "Scroll through log lines" },
+    { keys: HOME_END, action: "Jump to start or end of logs" },
+    { keys: PAGE, action: "Scroll by one page" },
+    { keys: ["Escape"], action: "Clear search filter" },
+  ],
   "mention-textarea": [
     { keys: UP_DOWN, action: "Move through suggestions" },
     { keys: ["Enter", "Tab"], action: "Insert the mention" },

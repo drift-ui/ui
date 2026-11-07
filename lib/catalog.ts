@@ -81,6 +81,7 @@ const ENTRY_LAYOUT: {
   { slug: "description-list", category: "structure" },
   { slug: "diff-viewer", category: "structure" },
   { slug: "json-viewer", category: "structure" },
+  { slug: "log-viewer", category: "structure" },
   { slug: "sortable-list", category: "structure" },
   { slug: "stepper", category: "structure" },
   { slug: "timeline", category: "structure" },

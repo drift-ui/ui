@@ -1087,6 +1087,116 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<label>",
     },
   ],
+  "log-viewer": [
+    {
+      name: "LogViewer",
+      description:
+        "High-throughput virtualized log viewer with ANSI color parsing, search, level filtering, and tail auto-scroll.",
+      props: [
+        {
+          name: "defaultFollow",
+          type: "boolean",
+          default: "true",
+          description: "Initial follow state when uncontrolled.",
+        },
+        {
+          name: "defaultLevel",
+          type: "string",
+          default: '"all"',
+          description: "Initial level filter when uncontrolled.",
+        },
+        {
+          name: "defaultSearch",
+          type: "string",
+          default: '""',
+          description: "Initial search query when uncontrolled.",
+        },
+        {
+          name: "emptyMessage",
+          type: "ReactNode",
+          default: '"No log lines matching criteria"',
+          description:
+            "Message or element displayed when no logs match filters.",
+        },
+        {
+          name: "filterable",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to render log level filter buttons in the toolbar.",
+        },
+        {
+          name: "follow",
+          type: "boolean",
+          description: "Controlled tail auto-scroll state.",
+        },
+        {
+          name: "height",
+          type: "number | string",
+          default: "400",
+          description: "Height of the virtualized log list viewport.",
+        },
+        {
+          name: "level",
+          type: "string",
+          description: "Controlled level filter.",
+        },
+        {
+          name: "lines",
+          type: "LogLine[]",
+          required: true,
+          description: "Array of log entries to display.",
+        },
+        {
+          name: "onFollowChange",
+          type: "(follow: boolean) => void",
+          description: "Called when follow state changes.",
+        },
+        {
+          name: "onLevelChange",
+          type: "(level: string) => void",
+          description: "Called when level filter changes.",
+        },
+        {
+          name: "onSearchChange",
+          type: "(search: string) => void",
+          description: "Called when search query changes.",
+        },
+        {
+          name: "rowHeight",
+          type: "number",
+          default: "24",
+          description: "Estimated line height in pixels for the virtual list.",
+        },
+        {
+          name: "search",
+          type: "string",
+          description: "Controlled search query.",
+        },
+        {
+          name: "searchable",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to render the search filter input in the toolbar.",
+        },
+        {
+          name: "showLineNumbers",
+          type: "boolean",
+          default: "true",
+          description: "Whether to display line numbers in the gutter.",
+        },
+        {
+          name: "showTimestamps",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to display timestamps if present in the log line.",
+        },
+      ],
+      rest: "<div>",
+    },
+  ],
   "masked-input": [
     {
       name: "MaskedInput",

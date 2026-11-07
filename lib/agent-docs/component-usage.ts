@@ -391,6 +391,30 @@ export function NameField() {
   )
 }`,
   },
+  "log-viewer": {
+    notes:
+      "High-throughput virtualized log viewer with ANSI color parsing, search, level filtering, and tail auto-scroll. lines is an array of LogLine ({ id, message, timestamp?, level? }). parseAnsi converts ANSI escape sequences into styled text spans safely without dangerouslySetInnerHTML. Follow mode auto-scrolls to new lines when at the bottom; scrolling up automatically pauses follow, and clicking the floating Jump to latest button resumes it. Search filters across all log line text, and level filter buttons isolate lines by log severity (e.g. error, warn, info, debug). VirtualList ensures smooth 60fps rendering even with tens of thousands of lines.",
+    example: `"use client"
+
+import { LogViewer, type LogLine } from "@/components/ui/log-viewer"
+
+const LOG_LINES: LogLine[] = [
+  { id: "1", timestamp: Date.now() - 3000, level: "info", message: "Build started..." },
+  { id: "2", timestamp: Date.now() - 2000, level: "info", message: "\\u001b[32mCompiled successfully\\u001b[0m in 1.2s" },
+  { id: "3", timestamp: Date.now() - 1000, level: "warn", message: "\\u001b[33mWarning: asset size exceeds recommended budget\\u001b[0m" },
+]
+
+export function BuildLogs() {
+  return (
+    <LogViewer
+      lines={LOG_LINES}
+      height={360}
+      showLineNumbers
+      showTimestamps
+    />
+  )
+}`,
+  },
   "masked-input": {
     notes:
       "MaskedInput and CurrencyInput format typed input while storing unmasked or numeric values. MaskedInput takes mask (tokens: # digit, a or A letter, * alphanumeric) and stores raw unmasked characters in value/onValueChange or defaultValue. Caret position does not jump when inserting or deleting characters over fixed mask delimiters. CurrencyInput accepts currency and locale to format currency with Intl.NumberFormat live while storing integer cents (number | null) in value/onValueChange. Supports min and max clamping (enforced on blur and capping max during input), and name submits the raw value or cents via a hidden input.",
