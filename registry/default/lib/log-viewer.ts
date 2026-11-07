@@ -167,7 +167,10 @@ export function parseAnsi(rawText: string): AnsiSegment[] {
 
     for (let i = 0; i < params.length; i++) {
       const code = params[i]
-      if (Number.isNaN(code) || code === 0) {
+      if (Number.isNaN(code)) {
+        continue
+      }
+      if (code === 0) {
         currentStyle = {}
       } else if (code === 1) {
         currentStyle.bold = true
@@ -204,41 +207,63 @@ export function parseAnsi(rawText: string): AnsiSegment[] {
         currentStyle.color = ANSI_BRIGHT_FG_MAP[code]
       } else if (code >= 100 && code <= 107) {
         currentStyle.backgroundColor = ANSI_BRIGHT_BG_MAP[code]
-      } else if (code === 38) {
+      } else if (code === 38 || code === 48) {
+        const isFg = code === 38
         if (params[i + 1] === 5 && params[i + 2] !== undefined) {
-          currentStyle.color = map256ToAnsiColor(params[i + 2])
+          const mapped = map256ToAnsiColor(params[i + 2])
+          if (isFg) currentStyle.color = mapped
+          else currentStyle.backgroundColor = mapped
           i += 2
         } else if (params[i + 1] === 2) {
-          if (
-            params[i + 2] !== undefined &&
-            params[i + 3] !== undefined &&
-            params[i + 4] !== undefined
+          let r: number | undefined
+          let g: number | undefined
+          let b: number | undefined
+          let consumed = 4
+
+          if (Number.isNaN(params[i + 2])) {
+            // Colon-form with empty color-space: 38:2::r:g:b
+            r = params[i + 3]
+            g = params[i + 4]
+            b = params[i + 5]
+            consumed = 5
+          } else if (
+            params[i + 5] !== undefined &&
+            !Number.isNaN(params[i + 2]) &&
+            !Number.isNaN(params[i + 3]) &&
+            !Number.isNaN(params[i + 4]) &&
+            !Number.isNaN(params[i + 5])
           ) {
-            const r = Math.min(5, Math.floor(params[i + 2] / 51))
-            const g = Math.min(5, Math.floor(params[i + 3] / 51))
-            const b = Math.min(5, Math.floor(params[i + 4] / 51))
-            currentStyle.color = map256ToAnsiColor(16 + 36 * r + 6 * g + b)
+            // Colon-form with color-space ID: 38:2:cs:r:g:b
+            r = params[i + 3]
+            g = params[i + 4]
+            b = params[i + 5]
+            consumed = 5
+          } else {
+            // Semicolon-form: 38;2;r;g;b or 38:2:r:g:b
+            r = params[i + 2]
+            g = params[i + 3]
+            b = params[i + 4]
+            consumed = 4
           }
-          i += 4
-        }
-      } else if (code === 48) {
-        if (params[i + 1] === 5 && params[i + 2] !== undefined) {
-          currentStyle.backgroundColor = map256ToAnsiColor(params[i + 2])
-          i += 2
-        } else if (params[i + 1] === 2) {
+
           if (
-            params[i + 2] !== undefined &&
-            params[i + 3] !== undefined &&
-            params[i + 4] !== undefined
+            r !== undefined &&
+            g !== undefined &&
+            b !== undefined &&
+            !Number.isNaN(r) &&
+            !Number.isNaN(g) &&
+            !Number.isNaN(b)
           ) {
-            const r = Math.min(5, Math.floor(params[i + 2] / 51))
-            const g = Math.min(5, Math.floor(params[i + 3] / 51))
-            const b = Math.min(5, Math.floor(params[i + 4] / 51))
-            currentStyle.backgroundColor = map256ToAnsiColor(
-              16 + 36 * r + 6 * g + b
+            const rStep = Math.min(5, Math.max(0, Math.floor(r / 51)))
+            const gStep = Math.min(5, Math.max(0, Math.floor(g / 51)))
+            const bStep = Math.min(5, Math.max(0, Math.floor(b / 51)))
+            const mapped = map256ToAnsiColor(
+              16 + 36 * rStep + 6 * gStep + bStep
             )
+            if (isFg) currentStyle.color = mapped
+            else currentStyle.backgroundColor = mapped
           }
-          i += 4
+          i += consumed
         }
       }
     }

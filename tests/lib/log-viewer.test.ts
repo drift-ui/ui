@@ -75,6 +75,16 @@ describe("parseAnsi", () => {
     const input = "\x1b[38;2;255;0;0mRedRGB\x1b[0m"
     const parsed = parseAnsi(input)
     expect(parsed).toEqual([{ text: "RedRGB", style: { color: "bright-red" } }])
+
+    const colonEmptyCs = "\x1b[38:2::255:0:0mColonRed\x1b[0m"
+    expect(parseAnsi(colonEmptyCs)).toEqual([
+      { text: "ColonRed", style: { color: "bright-red" } },
+    ])
+
+    const colonWithCs = "\x1b[38:2:1:255:0:0mCsRed\x1b[0m"
+    expect(parseAnsi(colonWithCs)).toEqual([
+      { text: "CsRed", style: { color: "bright-red" } },
+    ])
   })
 
   it("strips non-SGR sequences like OSC titles, cursor controls, and private CSI modes", () => {
@@ -118,7 +128,7 @@ describe("filterLogs", () => {
   })
 
   it("filters by search query case-insensitively across stripped ANSI text", () => {
-    const filtered = filterLogs(sampleLines, { search: "Database connection" })
+    const filtered = filterLogs(sampleLines, { search: "DATABASE CONNECTION" })
     expect(filtered).toHaveLength(1)
     expect(filtered[0].id).toBe(3)
   })
