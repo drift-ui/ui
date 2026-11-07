@@ -161,10 +161,21 @@ function LogViewer({
     onChange: onLevelChange,
   })
 
-  const availableLevels = React.useMemo(() => getLogLevels(lines), [lines])
+  const indexedLines = React.useMemo(
+    () =>
+      lines.map((line, idx) => ({
+        ...line,
+        lineNumber: line.lineNumber ?? idx + 1,
+      })),
+    [lines]
+  )
+  const availableLevels = React.useMemo(
+    () => getLogLevels(indexedLines),
+    [indexedLines]
+  )
   const filteredLines = React.useMemo(
-    () => filterLogs(lines, { search, level }),
-    [lines, search, level]
+    () => filterLogs(indexedLines, { search, level }),
+    [indexedLines, search, level]
   )
 
   React.useEffect(() => {
@@ -193,11 +204,20 @@ function LogViewer({
     }
   }
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape" && search) {
+      event.preventDefault()
+      setSearch("")
+    }
+    props.onKeyDown?.(event)
+  }
+
   return (
     <div
       data-slot="log-viewer"
       role="region"
       aria-label="Log viewer"
+      onKeyDown={handleKeyDown}
       className={cn(
         "relative flex flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm",
         className
@@ -213,6 +233,12 @@ function LogViewer({
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape" && search) {
+                    e.stopPropagation()
+                    setSearch("")
+                  }
+                }}
                 placeholder="Search logs..."
                 className="h-8 pr-7 pl-8 text-xs"
                 aria-label="Search logs"
@@ -236,6 +262,7 @@ function LogViewer({
                 type="button"
                 size="sm"
                 variant={level === "all" ? "secondary" : "ghost"}
+                aria-pressed={level === "all"}
                 className="h-7 px-2 text-xs"
                 onClick={() => setLevel("all")}
               >
@@ -247,6 +274,7 @@ function LogViewer({
                   type="button"
                   size="sm"
                   variant={level.toLowerCase() === lvl ? "secondary" : "ghost"}
+                  aria-pressed={level.toLowerCase() === lvl}
                   className="h-7 px-2 text-xs capitalize"
                   onClick={() => setLevel(lvl)}
                 >
@@ -284,6 +312,10 @@ function LogViewer({
       </div>
 
       <div
+        role="log"
+        aria-live="polite"
+        aria-atomic="false"
+        aria-label="Log output"
         className="relative flex-1"
         style={{ height: typeof height === "number" ? `${height}px` : height }}
       >
@@ -294,9 +326,6 @@ function LogViewer({
         ) : (
           <VirtualList
             ref={listRef}
-            role="log"
-            aria-live="polite"
-            aria-atomic="false"
             aria-label="Log lines"
             items={filteredLines}
             estimateSize={rowHeight}
@@ -311,7 +340,7 @@ function LogViewer({
               >
                 {showLineNumbers && (
                   <span className="w-10 shrink-0 text-right text-zinc-500 tabular-nums select-none">
-                    {index + 1}
+                    {line.lineNumber ?? index + 1}
                   </span>
                 )}
                 {showTimestamps && line.timestamp && (

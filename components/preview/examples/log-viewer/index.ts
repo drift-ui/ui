@@ -15,7 +15,7 @@ export const examples: ComponentExample[] = [
     id: "search-filter",
     title: "Search and level filtering",
     description:
-      "Isolate log lines by log level (such as error or warn) and filter lines matching a search query with instant highlighting.",
+      "Isolate log lines by log level (such as error or warn) and filter lines matching a search query with a live match count.",
     Preview: LogViewerSearchFilterPreview,
   },
   {

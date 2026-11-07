@@ -5,6 +5,7 @@ export type LogLine = {
   timestamp?: string | Date | number
   level?: LogLevel
   message: string
+  lineNumber?: number
 }
 
 export type AnsiColor =
@@ -85,13 +86,60 @@ const ANSI_BRIGHT_BG_MAP: Record<number, AnsiColor> = {
   107: "bright-white",
 }
 
+export function map256ToAnsiColor(code: number): AnsiColor {
+  if (code >= 0 && code <= 7) {
+    return ANSI_FG_MAP[30 + code] ?? "white"
+  }
+  if (code >= 8 && code <= 15) {
+    return ANSI_BRIGHT_FG_MAP[90 + (code - 8)] ?? "bright-white"
+  }
+  if (code >= 16 && code <= 231) {
+    const n = code - 16
+    const r = Math.floor(n / 36)
+    const g = Math.floor((n % 36) / 6)
+    const b = n % 6
+
+    if (r === g && g === b) {
+      if (r < 2) return "bright-black"
+      if (r < 4) return "white"
+      return "bright-white"
+    }
+
+    if (r > g && r > b) {
+      if (g >= 3) return r >= 4 ? "bright-yellow" : "yellow"
+      if (b >= 3) return r >= 4 ? "bright-magenta" : "magenta"
+      return r >= 3 ? "bright-red" : "red"
+    }
+    if (g > r && g > b) {
+      if (b >= 3) return g >= 4 ? "bright-cyan" : "cyan"
+      if (r >= 3) return g >= 4 ? "bright-yellow" : "yellow"
+      return g >= 3 ? "bright-green" : "green"
+    }
+    if (b > r && b > g) {
+      if (r >= 3) return b >= 4 ? "bright-magenta" : "magenta"
+      if (g >= 3) return b >= 4 ? "bright-cyan" : "cyan"
+      return b >= 3 ? "bright-blue" : "blue"
+    }
+    if (r === g && r > b) return r >= 3 ? "bright-yellow" : "yellow"
+    if (g === b && g > r) return g >= 3 ? "bright-cyan" : "cyan"
+    if (r === b && r > g) return r >= 3 ? "bright-magenta" : "magenta"
+    return "white"
+  }
+  if (code >= 232 && code <= 255) {
+    if (code < 238) return "bright-black"
+    if (code < 248) return "white"
+    return "bright-white"
+  }
+  return "white"
+}
+
 export function parseAnsi(rawText: string): AnsiSegment[] {
   if (!rawText) return []
 
-  // 1. Strip OSC sequences, non-SGR CSI sequences, and standard 2-char escapes
+  // 1. Strip OSC sequences, non-SGR CSI sequences (including private modes like ?25l), and standard 2-char escapes
   const text = rawText
     .replace(/\x1b\].*?(?:\x07|\x1b\\)/g, "")
-    .replace(/\x1b\[[0-9;:]*[^0-9;:m]/gi, "")
+    .replace(/\x1b\[[0-9;?><=]*[ -/]*[@-ln-~]/g, "")
     .replace(/\x1b[@-Z\\-_]/g, "")
 
   if (!text.includes("\x1b[")) {
@@ -156,26 +204,42 @@ export function parseAnsi(rawText: string): AnsiSegment[] {
         currentStyle.color = ANSI_BRIGHT_FG_MAP[code]
       } else if (code >= 100 && code <= 107) {
         currentStyle.backgroundColor = ANSI_BRIGHT_BG_MAP[code]
-      } else if (
-        code === 38 &&
-        params[i + 1] === 5 &&
-        params[i + 2] !== undefined
-      ) {
-        const c = params[i + 2]
-        if (c >= 0 && c <= 7) currentStyle.color = ANSI_FG_MAP[30 + c]
-        else if (c >= 8 && c <= 15)
-          currentStyle.color = ANSI_BRIGHT_FG_MAP[90 + (c - 8)]
-        i += 2
-      } else if (
-        code === 48 &&
-        params[i + 1] === 5 &&
-        params[i + 2] !== undefined
-      ) {
-        const c = params[i + 2]
-        if (c >= 0 && c <= 7) currentStyle.backgroundColor = ANSI_BG_MAP[40 + c]
-        else if (c >= 8 && c <= 15)
-          currentStyle.backgroundColor = ANSI_BRIGHT_BG_MAP[100 + (c - 8)]
-        i += 2
+      } else if (code === 38) {
+        if (params[i + 1] === 5 && params[i + 2] !== undefined) {
+          currentStyle.color = map256ToAnsiColor(params[i + 2])
+          i += 2
+        } else if (params[i + 1] === 2) {
+          if (
+            params[i + 2] !== undefined &&
+            params[i + 3] !== undefined &&
+            params[i + 4] !== undefined
+          ) {
+            const r = Math.min(5, Math.floor(params[i + 2] / 51))
+            const g = Math.min(5, Math.floor(params[i + 3] / 51))
+            const b = Math.min(5, Math.floor(params[i + 4] / 51))
+            currentStyle.color = map256ToAnsiColor(16 + 36 * r + 6 * g + b)
+          }
+          i += 4
+        }
+      } else if (code === 48) {
+        if (params[i + 1] === 5 && params[i + 2] !== undefined) {
+          currentStyle.backgroundColor = map256ToAnsiColor(params[i + 2])
+          i += 2
+        } else if (params[i + 1] === 2) {
+          if (
+            params[i + 2] !== undefined &&
+            params[i + 3] !== undefined &&
+            params[i + 4] !== undefined
+          ) {
+            const r = Math.min(5, Math.floor(params[i + 2] / 51))
+            const g = Math.min(5, Math.floor(params[i + 3] / 51))
+            const b = Math.min(5, Math.floor(params[i + 4] / 51))
+            currentStyle.backgroundColor = map256ToAnsiColor(
+              16 + 36 * r + 6 * g + b
+            )
+          }
+          i += 4
+        }
       }
     }
 
@@ -190,6 +254,13 @@ export function parseAnsi(rawText: string): AnsiSegment[] {
   }
 
   return segments
+}
+
+export function stripAnsi(text: string): string {
+  if (!text) return ""
+  return parseAnsi(text)
+    .map((segment) => segment.text)
+    .join("")
 }
 
 export function filterLogs(
@@ -215,8 +286,16 @@ export function filterLogs(
     }
 
     if (hasSearch) {
-      const messageLower = line.message.toLowerCase()
-      if (!messageLower.includes(searchLower)) {
+      const plainMessage = stripAnsi(line.message).toLowerCase()
+      const levelText = (line.level ?? "").toLowerCase()
+      const timeText = line.timestamp
+        ? formatTimestamp(line.timestamp).toLowerCase()
+        : ""
+      if (
+        !plainMessage.includes(searchLower) &&
+        !levelText.includes(searchLower) &&
+        !timeText.includes(searchLower)
+      ) {
         return false
       }
     }

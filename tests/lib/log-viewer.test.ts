@@ -5,6 +5,7 @@ import {
   formatTimestamp,
   getLogLevels,
   parseAnsi,
+  stripAnsi,
   type LogLine,
 } from "@/registry/default/lib/log-viewer"
 
@@ -57,20 +58,39 @@ describe("parseAnsi", () => {
     ])
   })
 
-  it("parses 256-color standard and bright palette sequences", () => {
-    const input = "\x1b[38;5;2mGreen\x1b[0m \x1b[48;5;9mRedBg\x1b[0m"
-    expect(parseAnsi(input)).toEqual([
-      { text: "Green", style: { color: "green" } },
-      { text: " ", style: {} },
-      { text: "RedBg", style: { backgroundColor: "bright-red" } },
-    ])
+  it("parses 256-color standard, bright, and extended palette sequences", () => {
+    const input =
+      "\x1b[38;5;2mGreen\x1b[0m \x1b[48;5;9mRedBg\x1b[0m \x1b[38;5;196mColor196\x1b[0m"
+    const parsed = parseAnsi(input)
+    expect(parsed[0]).toEqual({ text: "Green", style: { color: "green" } })
+    expect(parsed[2]).toEqual({
+      text: "RedBg",
+      style: { backgroundColor: "bright-red" },
+    })
+    expect(parsed[4].text).toBe("Color196")
+    expect(parsed[4].style.color).toBe("bright-red")
   })
 
-  it("strips non-SGR sequences like OSC titles and cursor controls", () => {
-    const input = "\x1b]0;Build Title\x07\x1b[2K\x1b[32m✔ Built in 200ms\x1b[0m"
+  it("atomically consumes 24-bit RGB codes without corrupting styles", () => {
+    const input = "\x1b[38;2;255;0;0mRedRGB\x1b[0m"
+    const parsed = parseAnsi(input)
+    expect(parsed).toEqual([{ text: "RedRGB", style: { color: "bright-red" } }])
+  })
+
+  it("strips non-SGR sequences like OSC titles, cursor controls, and private CSI modes", () => {
+    const input =
+      "\x1b]0;Build Title\x07\x1b[2K\x1b[?25l\x1b[32m✔ Built in 200ms\x1b[0m"
     expect(parseAnsi(input)).toEqual([
       { text: "✔ Built in 200ms", style: { color: "green" } },
     ])
+  })
+})
+
+describe("stripAnsi", () => {
+  it("removes all ANSI escape codes leaving plain text", () => {
+    const input =
+      "\x1b[1;31mError:\x1b[0m Connection to \x1b[4;34mserver\x1b[0m failed"
+    expect(stripAnsi(input)).toBe("Error: Connection to server failed")
   })
 })
 
@@ -78,7 +98,11 @@ describe("filterLogs", () => {
   const sampleLines: LogLine[] = [
     { id: 1, level: "info", message: "Server started on port 3000" },
     { id: 2, level: "warn", message: "High memory usage detected" },
-    { id: 3, level: "error", message: "Database connection failed" },
+    {
+      id: 3,
+      level: "error",
+      message: "\x1b[31mDatabase connection\x1b[0m failed",
+    },
     { id: 4, level: "info", message: "Health check passed" },
   ]
 
@@ -93,8 +117,8 @@ describe("filterLogs", () => {
     expect(filtered[0].id).toBe(3)
   })
 
-  it("filters by search query case-insensitively", () => {
-    const filtered = filterLogs(sampleLines, { search: "CONNECTION" })
+  it("filters by search query case-insensitively across stripped ANSI text", () => {
+    const filtered = filterLogs(sampleLines, { search: "Database connection" })
     expect(filtered).toHaveLength(1)
     expect(filtered[0].id).toBe(3)
   })
@@ -136,6 +160,9 @@ describe("formatTimestamp", () => {
   })
 
   it("formats parseable ISO string or returns raw string if invalid", () => {
+    const validIso = "2026-11-07T14:05:09.000Z"
+    const expected = formatTimestamp(new Date(validIso))
+    expect(formatTimestamp(validIso)).toBe(expected)
     expect(formatTimestamp("invalid date")).toBe("invalid date")
   })
 })

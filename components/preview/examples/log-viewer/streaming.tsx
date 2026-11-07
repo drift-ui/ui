@@ -56,15 +56,20 @@ export function LogViewerStreamingPreview() {
 
     const interval = setInterval(() => {
       setLines((prev) => {
-        const nextIndex = prev.length % SAMPLE_MESSAGES.length
+        const nextIndex =
+          (prev.length - INITIAL_STREAM.length) % SAMPLE_MESSAGES.length
         const sample = SAMPLE_MESSAGES[nextIndex]
+        const lastId = prev.length > 0 ? Number(prev[prev.length - 1].id) : 0
         const newLine: LogLine = {
-          id: String(prev.length + 1),
+          id: String(lastId + 1),
           timestamp: Date.now(),
           level: sample.level,
           message: sample.message,
         }
-        return [...prev, newLine]
+        const updated = [...prev, newLine]
+        return updated.length > 50
+          ? updated.slice(updated.length - 50)
+          : updated
       })
     }, 1500)
 

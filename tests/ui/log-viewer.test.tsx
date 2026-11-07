@@ -62,9 +62,10 @@ describe("LogViewer", () => {
     expect(
       screen.getByRole("region", { name: "Log viewer" })
     ).toBeInTheDocument()
-    const logRegion = screen.getByRole("log", { name: "Log lines" })
+    const logRegion = screen.getByRole("log", { name: "Log output" })
     expect(logRegion).toHaveAttribute("aria-live", "polite")
     expect(logRegion).toHaveAttribute("aria-atomic", "false")
+    expect(screen.getByRole("list", { name: "Log lines" })).toBeInTheDocument()
 
     expect(
       screen.getByText("Server initialized on port 3000")
@@ -119,7 +120,7 @@ describe("LogViewer", () => {
     expect(debugSpan.className).toContain("text-cyan-600")
   })
 
-  it("filters logs by search query and clears search", async () => {
+  it("filters logs by search query, clears search with button or Escape key", async () => {
     const user = userEvent.setup()
     render(<LogViewer lines={TEST_LOGS} />)
 
@@ -132,6 +133,12 @@ describe("LogViewer", () => {
     ).not.toBeInTheDocument()
     expect(screen.getByText("1 of 4 lines")).toBeInTheDocument()
 
+    // Test Escape key clears search
+    await user.keyboard("{Escape}")
+    expect(screen.getByText("4 lines")).toBeInTheDocument()
+
+    // Test clear button clears search
+    await user.type(searchInput, "Database")
     const clearButton = screen.getByRole("button", { name: "Clear search" })
     await user.click(clearButton)
 
@@ -141,26 +148,34 @@ describe("LogViewer", () => {
     ).toBeInTheDocument()
   })
 
-  it("filters logs by severity level", async () => {
+  it("filters logs by severity level with aria-pressed and preserves line numbers", async () => {
     const user = userEvent.setup()
     render(<LogViewer lines={TEST_LOGS} />)
 
     const errorButton = screen.getByRole("button", { name: "error" })
+    const allButton = screen.getByRole("button", { name: "All" })
+
+    expect(allButton).toHaveAttribute("aria-pressed", "true")
+    expect(errorButton).toHaveAttribute("aria-pressed", "false")
+
     await user.click(errorButton)
 
+    expect(errorButton).toHaveAttribute("aria-pressed", "true")
+    expect(allButton).toHaveAttribute("aria-pressed", "false")
     expect(screen.getByText("Database connection timeout")).toBeInTheDocument()
     expect(
       screen.queryByText("Server initialized on port 3000")
     ).not.toBeInTheDocument()
     expect(screen.getByText("1 of 4 lines")).toBeInTheDocument()
 
-    const allButton = screen.getByRole("button", { name: "All" })
+    // Original line number in stream (line 3) is preserved in gutter
+    expect(screen.getByText("3")).toBeInTheDocument()
+    expect(screen.queryByText("1")).not.toBeInTheDocument()
+
     await user.click(allButton)
 
     expect(screen.getByText("4 lines")).toBeInTheDocument()
-    expect(
-      screen.getByText("Server initialized on port 3000")
-    ).toBeInTheDocument()
+    expect(screen.getByText("1")).toBeInTheDocument()
   })
 
   it("shows empty message when no lines match criteria", async () => {
@@ -196,12 +211,22 @@ describe("LogViewer", () => {
 
   it("shows jump to latest button when follow is paused and restores follow on click", async () => {
     const user = userEvent.setup()
-    render(<LogViewer lines={TEST_LOGS} follow={false} />)
+    render(<LogViewer lines={TEST_LOGS} defaultFollow={false} />)
 
+    expect(
+      screen.getByRole("button", { name: "Resume auto-scroll" })
+    ).toBeInTheDocument()
     const jumpButton = screen.getByRole("button", { name: "Jump to latest" })
     expect(jumpButton).toBeInTheDocument()
 
     await user.click(jumpButton)
+
+    expect(
+      screen.getByRole("button", { name: "Pause auto-scroll" })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "Jump to latest" })
+    ).not.toBeInTheDocument()
   })
 
   it("pauses follow when user scrolls away from bottom", () => {
@@ -214,7 +239,7 @@ describe("LogViewer", () => {
       />
     )
 
-    const list = screen.getByRole("log")
+    const list = screen.getByRole("list", { name: "Log lines" })
     fireEvent.scroll(list, {
       target: {
         scrollTop: 100,

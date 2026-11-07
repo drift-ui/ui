@@ -393,7 +393,7 @@ export function NameField() {
   },
   "log-viewer": {
     notes:
-      "High-throughput virtualized log viewer with ANSI color parsing, search, level filtering, and tail auto-scroll. lines is an array of LogLine ({ id, message, timestamp?, level? }). parseAnsi converts ANSI escape sequences into styled text spans safely without dangerouslySetInnerHTML. Follow mode auto-scrolls to new lines when at the bottom; scrolling up automatically pauses follow, and clicking the floating Jump to latest button resumes it. Search filters across all log line text, and level filter buttons isolate lines by log severity (e.g. error, warn, info, debug). VirtualList ensures smooth 60fps rendering even with tens of thousands of lines.",
+      "High-throughput virtualized log viewer with ANSI color parsing, search, level filtering, and tail auto-scroll. lines is an array of LogLine ({ id, message, timestamp?, level?, lineNumber? }). parseAnsi converts ANSI escape sequences into styled text spans safely without dangerouslySetInnerHTML. Follow mode auto-scrolls to new lines when at the bottom; scrolling up automatically pauses follow, and clicking the floating Jump to latest button resumes it. Search filters across stripped log messages, levels, and formatted timestamps. Level filter buttons isolate lines by log severity (e.g. error, warn, info, debug) while preserving original line numbers in the gutter. VirtualList ensures smooth 60fps rendering even with tens of thousands of lines.",
     example: `"use client"
 
 import { LogViewer, type LogLine } from "@/components/ui/log-viewer"
