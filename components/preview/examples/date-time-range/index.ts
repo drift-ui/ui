@@ -4,6 +4,7 @@ import { DateTimeRangeControlledPreview } from "@/components/preview/examples/da
 import { DateTimeRangeLocalePreview } from "@/components/preview/examples/date-time-range/locale"
 import { DateTimeRangePresetsPreview } from "@/components/preview/examples/date-time-range/presets"
 import { DateTimeRangeSingleMonthPreview } from "@/components/preview/examples/date-time-range/single-month"
+import { DateTimeRangeTypedPreview } from "@/components/preview/examples/date-time-range/typed"
 import type { ComponentExample } from "@/lib/component-docs"
 
 export const examples: ComponentExample[] = [
@@ -20,6 +21,13 @@ export const examples: ComponentExample[] = [
     description:
       "presets is a list of labels and ranges. They are built once in useState, so the pressed preset still matches after a re-render.",
     Preview: DateTimeRangePresetsPreview,
+  },
+  {
+    id: "typed",
+    title: "Typed ranges",
+    description:
+      'Type "last 24 hours", "yesterday to now" or "mon 9am to fri 5pm" in the popover. The parsed range shows as you type and Enter applies it. max is now, so a range in the future is cut off at the current time. Pass parse to read other phrasings or languages, for example with chrono-node.',
+    Preview: DateTimeRangeTypedPreview,
   },
   {
     id: "bounds",

@@ -146,12 +146,13 @@
       "name": "date-time-range",
       "type": "registry:ui",
       "title": "Date-Time Range",
-      "description": "A date range picker with start and end times, presets, and min and max limits.",
+      "description": "A date range picker with start and end times, presets, typed ranges like \"last 7 days\", and min and max limits.",
       "dependencies": ["lucide-react", "react-day-picker"],
       "registryDependencies": [
         "utils",
         "button",
         "calendar",
+        "input",
         "popover",
         "@drift-ui/time-field",
         "@drift-ui/use-controllable-state"

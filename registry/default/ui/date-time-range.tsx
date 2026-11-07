@@ -10,18 +10,23 @@ import {
   isRangeAllowed,
   isSameRange,
   monthToShow,
+  parseRangeText,
   pickDays,
+  resolveTypedRange,
   setRangeTime,
   timeOf,
   timeZoneLabel,
   type DateTimeRange,
   type DateTimeRangePreset,
   type RangeEdge,
+  type RangeParser,
+  type TypedRangeResult,
 } from "@/registry/default/lib/date-time-range"
 import { cn } from "@/registry/default/lib/utils"
 import { useControllableState } from "@/registry/default/hooks/use-controllable-state"
 import { Button, buttonVariants } from "@/registry/default/ui/button"
 import { Calendar } from "@/registry/default/ui/calendar"
+import { Input } from "@/registry/default/ui/input"
 import {
   Popover,
   PopoverContent,
@@ -48,6 +53,7 @@ function DateTimeRangePicker({
   locale,
   placeholder = "Pick a date range",
   numberOfMonths = 2,
+  parse = parseRangeText,
   disabled,
   className,
   ...props
@@ -64,6 +70,7 @@ function DateTimeRangePicker({
   locale?: string
   placeholder?: string
   numberOfMonths?: number
+  parse?: RangeParser
 }) {
   const { value: range, setValue: setRange } = useControllableState({
     value,
@@ -73,6 +80,9 @@ function DateTimeRangePicker({
   const bounds = { min, max }
   const [isOpen, setIsOpen] = React.useState(false)
   const [month, setMonth] = React.useState(() => monthToShow(range, bounds))
+  const [typedText, setTypedText] = React.useState("")
+  const [typed, setTyped] = React.useState<TypedRangeResult | null>(null)
+  const [showTypedError, setShowTypedError] = React.useState(false)
   const startTime = timeOf(range.from, DEFAULT_START_TIME)
   const endTime = timeOf(range.to, DEFAULT_END_TIME)
   const label = formatRange(range, locale)
@@ -84,6 +94,10 @@ function DateTimeRangePicker({
   const triggerText = !label ? placeholder : isHydrated ? label : ""
   const hourCycle = hourCycleOf(locale)
   const fieldId = React.useId()
+  const typedId = `${fieldId}-typed`
+  const typedHintId = `${fieldId}-typed-hint`
+  const typedError = showTypedError ? typed?.error : undefined
+  const typedPreview = typed?.range ? formatRange(typed.range, locale) : null
   const disabledDays: Matcher[] = [
     ...(min ? [{ before: min }] : []),
     ...(max ? [{ after: max }] : []),
@@ -91,7 +105,36 @@ function DateTimeRangePicker({
 
   function handleOpenChange(open: boolean) {
     if (open) setMonth(monthToShow(range, bounds))
+    else clearTyped()
     setIsOpen(open)
+  }
+
+  function clearTyped() {
+    setTypedText("")
+    setTyped(null)
+    setShowTypedError(false)
+  }
+
+  function editTyped(text: string) {
+    setTypedText(text)
+    setTyped(
+      text.trim() ? resolveTypedRange(text, new Date(), bounds, parse) : null
+    )
+    setShowTypedError(false)
+  }
+
+  function applyTyped(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter" || !typedText.trim()) return
+    event.preventDefault()
+    const result = resolveTypedRange(typedText, new Date(), bounds, parse)
+    if (result.error !== undefined) {
+      setTyped(result)
+      setShowTypedError(true)
+      return
+    }
+    setRange(result.range)
+    setMonth(monthToShow(result.range, bounds))
+    clearTyped()
   }
 
   function selectDays(days: DateRange | undefined) {
@@ -154,6 +197,33 @@ function DateTimeRangePicker({
           </div>
         )}
         <div className="flex flex-col">
+          <div className="grid gap-1.5 border-b p-3">
+            <label htmlFor={typedId} className="text-sm font-medium">
+              Type a range
+            </label>
+            <Input
+              id={typedId}
+              value={typedText}
+              onChange={(event) => editTyped(event.target.value)}
+              onKeyDown={applyTyped}
+              placeholder='"last 7 days" or "mon to fri"'
+              autoComplete="off"
+              spellCheck={false}
+              aria-describedby={typedHintId}
+              aria-invalid={typedError ? true : undefined}
+            />
+            <p
+              id={typedHintId}
+              data-slot="date-time-range-typed-hint"
+              aria-live="polite"
+              className={cn(
+                "min-h-4 text-xs text-muted-foreground",
+                typedError && "text-destructive"
+              )}
+            >
+              {typedError ?? typedPreview}
+            </p>
+          </div>
           <Calendar
             mode="range"
             autoFocus
@@ -216,4 +286,9 @@ function DateTimeRangePicker({
   )
 }
 
-export { DateTimeRangePicker, type DateTimeRange, type DateTimeRangePreset }
+export {
+  DateTimeRangePicker,
+  type DateTimeRange,
+  type DateTimeRangePreset,
+  type RangeParser,
+}

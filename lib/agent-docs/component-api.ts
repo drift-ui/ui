@@ -447,14 +447,14 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "DateTimeRangePicker",
       description:
-        "A popover with presets, a range calendar and start and end TimeFields. Times default to 09:00 and 17:00 and show the local time zone. Open with Enter or Space, move between days with the arrow keys, press Enter on the first and last day, Tab to the times, and close with Escape. With the default two months, opening takes about 30 ms and each arrow key about 20 ms of render time (Chrome, Apple M4, production build). Every visible day re-renders on each key, so cost grows with numberOfMonths: at 12 months, opening takes about 220 ms and an arrow key about 40 ms. 1,000 presets add about 20 ms to opening and 10 ms to picking a day.",
+        "A popover with presets, a field for typed ranges, a range calendar and start and end TimeFields. Times default to 09:00 and 17:00 and show the local time zone. Open with Enter or Space, Shift+Tab from the calendar to the typed field and press Enter to apply what you typed, move between days with the arrow keys, press Enter on the first and last day, Tab to the times, and close with Escape. With the default two months, opening takes about 30 ms and each arrow key about 20 ms of render time (Chrome, Apple M4, production build). Every visible day re-renders on each key, so cost grows with numberOfMonths: at 12 months, opening takes about 220 ms and an arrow key about 40 ms. 1,000 presets add about 20 ms to opening and 10 ms to picking a day.",
       rest: "<button>",
       props: [
         STATE_PROPS.value("{ from?: Date; to?: Date }", "range"),
         STATE_PROPS.defaultValue("{ from?: Date; to?: Date }", "{}"),
         STATE_PROPS.onValueChange(
           "(range: { from?: Date; to?: Date }) => void",
-          "when a day, time or preset changes, or the range is cleared"
+          "when a day, time, preset or typed range changes, or the range is cleared"
         ),
         {
           name: "presets",
@@ -480,6 +480,13 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           type: "string",
           description:
             "Locale for the trigger label, the time zone name and the 12 or 24 hour clock.",
+        },
+        {
+          name: "parse",
+          type: "(text: string, now: Date) => { from?: Date; to?: Date } | null",
+          default: "parseRangeText",
+          description:
+            'Reads the typed field. The built-in parser handles English like "last 7 days", "next fri 3pm" and "yesterday to now". Return null for text you can\'t read. The result is clamped to min and max, and a range ending before it starts is rejected.',
         },
         {
           name: "placeholder",

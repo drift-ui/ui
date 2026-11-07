@@ -3,7 +3,10 @@ import userEvent from "@testing-library/user-event"
 import { renderToString } from "react-dom/server"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import { timeZoneLabel } from "@/registry/default/lib/date-time-range"
+import {
+  formatRange,
+  timeZoneLabel,
+} from "@/registry/default/lib/date-time-range"
 import { DateTimeRangePicker } from "@/registry/default/ui/date-time-range"
 
 const TODAY = new Date(2026, 2, 9, 10, 0)
@@ -13,6 +16,10 @@ function dayButton(day: number) {
   return screen.getByRole("button", {
     name: new RegExp(`March ${day}(st|nd|rd|th), 2026`),
   })
+}
+
+function typedField() {
+  return screen.getByRole("textbox", { name: "Type a range" })
 }
 
 function timeField(label: "Start time" | "End time") {
@@ -292,6 +299,128 @@ describe("DateTimeRangePicker", () => {
     const trigger = screen.getByRole("button", { name: /Pick a date range/ })
     expect(trigger).toHaveAttribute("id", "window")
     expect(trigger).toHaveAttribute("aria-invalid", "true")
+  })
+
+  it("reaches the typed field from the keyboard, previews the range and applies it on Enter", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
+      <DateTimeRangePicker
+        locale="en-US"
+        numberOfMonths={1}
+        onValueChange={onValueChange}
+      />
+    )
+
+    await user.tab()
+    await user.keyboard("{Enter}")
+    expect(dayButton(9)).toHaveFocus()
+    for (
+      let step = 0;
+      step < 5 && document.activeElement !== typedField();
+      step++
+    ) {
+      await user.tab({ shift: true })
+    }
+    expect(typedField()).toHaveFocus()
+
+    await user.keyboard("last 7 days")
+    const lastWeek = {
+      from: new Date(2026, 2, 2, 10, 0),
+      to: new Date(2026, 2, 9, 10, 0),
+    }
+    expect(typedField()).toHaveAccessibleDescription(
+      formatRange(lastWeek, "en-US") ?? ""
+    )
+    expect(onValueChange).not.toHaveBeenCalled()
+
+    await user.keyboard("{Enter}")
+    expect(onValueChange).toHaveBeenLastCalledWith(lastWeek)
+    expect(typedField()).toHaveValue("")
+    expect(screen.getByRole("dialog")).toBeInTheDocument()
+  })
+
+  it("keeps the range and explains text it can't read once Enter is pressed", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
+      <DateTimeRangePicker
+        numberOfMonths={1}
+        defaultValue={{ from: MARCH_10 }}
+        onValueChange={onValueChange}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: /Mar 10/ }))
+    await user.type(typedField(), "next blursday")
+    expect(typedField()).not.toHaveAttribute("aria-invalid")
+    expect(typedField()).toHaveAccessibleDescription("")
+
+    await user.keyboard("{Enter}")
+    expect(onValueChange).not.toHaveBeenCalled()
+    expect(typedField()).toHaveAttribute("aria-invalid", "true")
+    expect(typedField()).toHaveAccessibleDescription(/Couldn't read/)
+    expect(typedField()).toHaveValue("next blursday")
+
+    await user.keyboard("{Backspace}")
+    expect(typedField()).not.toHaveAttribute("aria-invalid")
+  })
+
+  it("clamps a typed range to min and max and shows its month", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    const max = new Date(2026, 3, 2, 18, 0)
+    render(
+      <DateTimeRangePicker
+        locale="en-US"
+        numberOfMonths={1}
+        max={max}
+        onValueChange={onValueChange}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: /Pick a date range/ }))
+    await user.type(typedField(), "next 6 weeks{Enter}")
+    expect(onValueChange).toHaveBeenLastCalledWith({ from: TODAY, to: max })
+
+    await user.type(typedField(), "in 2 months{Enter}")
+    expect(typedField()).toHaveAccessibleDescription(/outside the allowed/)
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+  })
+
+  it("uses a custom parse function with the current time", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    const range = {
+      from: new Date(2026, 5, 1, 9, 0),
+      to: new Date(2026, 5, 5, 17, 0),
+    }
+    const parse = vi.fn((text: string) => (text === "juni" ? range : null))
+    render(
+      <DateTimeRangePicker
+        locale="en-US"
+        numberOfMonths={1}
+        parse={parse}
+        onValueChange={onValueChange}
+      />
+    )
+
+    await user.click(screen.getByRole("button", { name: /Pick a date range/ }))
+    await user.type(typedField(), "juni{Enter}")
+    expect(parse).toHaveBeenLastCalledWith("juni", TODAY)
+    expect(onValueChange).toHaveBeenLastCalledWith(range)
+    expect(screen.getByText("June 2026")).toBeInTheDocument()
+  })
+
+  it("clears typed text when the popover closes", async () => {
+    const user = userEvent.setup()
+    render(<DateTimeRangePicker numberOfMonths={1} />)
+
+    await user.click(screen.getByRole("button", { name: /Pick a date range/ }))
+    await user.type(typedField(), "yesterday")
+    await user.keyboard("{Escape}")
+    await user.click(screen.getByRole("button", { name: /Pick a date range/ }))
+    expect(typedField()).toHaveValue("")
   })
 
   it("closes the popover with Done", async () => {
