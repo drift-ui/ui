@@ -421,6 +421,12 @@ describe("DateTimeRangePicker", () => {
     await user.keyboard("{Escape}")
     await user.click(screen.getByRole("button", { name: /Pick a date range/ }))
     expect(typedField()).toHaveValue("")
+
+    await user.type(typedField(), "banana{Enter}")
+    await user.click(screen.getByRole("button", { name: "Done" }))
+    await user.click(screen.getByRole("button", { name: /Pick a date range/ }))
+    expect(typedField()).toHaveValue("")
+    expect(typedField()).not.toHaveAttribute("aria-invalid")
   })
 
   it("closes the popover with Done", async () => {

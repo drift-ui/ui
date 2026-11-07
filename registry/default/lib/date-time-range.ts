@@ -164,9 +164,11 @@ function unitOf(token: string): Unit {
 }
 
 function shift(date: Date, amount: number, unit: Unit) {
+  if (unit === "minute" || unit === "hour") {
+    const minutes = unit === "hour" ? amount * 60 : amount
+    return new Date(date.getTime() + minutes * 60 * 1000)
+  }
   const next = new Date(date)
-  if (unit === "minute") next.setMinutes(next.getMinutes() + amount)
-  if (unit === "hour") next.setHours(next.getHours() + amount)
   if (unit === "day") next.setDate(next.getDate() + amount)
   if (unit === "week") next.setDate(next.getDate() + amount * 7)
   if (unit === "month" || unit === "year") {
@@ -287,6 +289,10 @@ export function parseRangeText(text: string, now: Date): DateTimeRange | null {
     : { from: moment.date, to: endOfDay(moment.date) }
 }
 
+function isValidDate(date: Date | undefined): date is Date {
+  return date !== undefined && Number.isFinite(date.getTime())
+}
+
 export function resolveTypedRange(
   text: string,
   now: Date,
@@ -296,7 +302,7 @@ export function resolveTypedRange(
   const range = parse(text, now) ?? {}
   const first = range.from ?? range.to
   const last = range.to ?? range.from
-  if (!first || !last) {
+  if (!isValidDate(first) || !isValidDate(last)) {
     return {
       error: `Couldn't read that range. Try "last 7 days" or "mon to fri".`,
     }

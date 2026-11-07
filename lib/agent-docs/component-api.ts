@@ -486,7 +486,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           type: "(text: string, now: Date) => { from?: Date; to?: Date } | null",
           default: "parseRangeText",
           description:
-            'Reads the typed field. The built-in parser handles English like "last 7 days", "next fri 3pm" and "yesterday to now". Return null for text you can\'t read. The result is clamped to min and max, and a range ending before it starts is rejected.',
+            'Reads the typed field. The built-in parser handles English like "last 7 days", "next fri 3pm" and "yesterday to now". Return null for text you can\'t read. A range that overlaps min or max is clamped to them, while one entirely outside them, or one ending before it starts, is rejected.',
         },
         {
           name: "placeholder",

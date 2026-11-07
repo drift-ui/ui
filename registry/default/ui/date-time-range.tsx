@@ -276,7 +276,7 @@ function DateTimeRangePicker({
             <Button variant="ghost" size="sm" onClick={() => setRange({})}>
               Clear
             </Button>
-            <Button size="sm" onClick={() => setIsOpen(false)}>
+            <Button size="sm" onClick={() => handleOpenChange(false)}>
               Done
             </Button>
           </div>

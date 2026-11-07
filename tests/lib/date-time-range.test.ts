@@ -284,6 +284,19 @@ describe("parseRangeText", () => {
     })
   })
 
+  it("counts minutes and hours as elapsed time across a clock change", () => {
+    // 03:30 on the day US clocks spring forward from 02:00 to 03:00
+    const afterSpringForward = new Date(2026, 2, 8, 3, 30)
+    const range = parseRangeText("last 2 hours", afterSpringForward)
+    expect(afterSpringForward.getTime() - range!.from!.getTime()).toBe(
+      2 * 60 * 60 * 1000
+    )
+    const ninetyMinutes = parseRangeText("last 90 minutes", afterSpringForward)
+    expect(afterSpringForward.getTime() - ninetyMinutes!.from!.getTime()).toBe(
+      90 * 60 * 1000
+    )
+  })
+
   it("keeps month and year steps inside the target month", () => {
     const endOfMarch = new Date(2026, 2, 31, 12, 0)
     expect(parseRangeText("last month", endOfMarch)?.from).toEqual(
@@ -420,6 +433,15 @@ describe("resolveTypedRange", () => {
     expect(resolveTypedRange("in 2 weeks", NOW, BOUNDS).error).toMatch(
       /outside/i
     )
+  })
+
+  it("rejects a range with dates too far away to represent", () => {
+    expect(resolveTypedRange("last 999999999 days", NOW).error).toMatch(
+      /couldn't read/i
+    )
+    expect(
+      resolveTypedRange("x", NOW, {}, () => ({ from: new Date(NaN) })).error
+    ).toMatch(/couldn't read/i)
   })
 
   it("uses a custom parser", () => {

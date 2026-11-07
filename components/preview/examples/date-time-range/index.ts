@@ -26,7 +26,7 @@ export const examples: ComponentExample[] = [
     id: "typed",
     title: "Typed ranges",
     description:
-      'Type "last 24 hours", "yesterday to now" or "mon 9am to fri 5pm" in the popover. The parsed range shows as you type and Enter applies it. max is now, so a range in the future is cut off at the current time. Pass parse to read other phrasings or languages, for example with chrono-node.',
+      'Type "last 24 hours", "yesterday to now" or "mon 9am to fri 5pm" in the popover. The parsed range shows as you type and Enter applies it. max is now, so a range that runs past the current time is cut off there, and one entirely in the future is rejected. Pass parse to read other phrasings or languages, for example with chrono-node.',
     Preview: DateTimeRangeTypedPreview,
   },
   {
