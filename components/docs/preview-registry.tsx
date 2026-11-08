@@ -11,6 +11,7 @@ import { MultiSelectPreview as BaseUiMultiSelectPreview } from "@/components/pre
 import { PopoverPreview as BaseUiPopoverPreview } from "@/components/preview/base/popover-preview"
 import { StepperPreview as BaseUiStepperPreview } from "@/components/preview/base/stepper-preview"
 import { TourPreview as BaseUiTourPreview } from "@/components/preview/base/tour-preview"
+import { AddressInputPreview } from "@/components/preview/address-input-preview"
 import { AvatarGroupPreview } from "@/components/preview/avatar-group-preview"
 import { AvatarPreview } from "@/components/preview/avatar-preview"
 import { BadgePreview } from "@/components/preview/badge-preview"
@@ -63,6 +64,7 @@ import { UptimeBarPreview } from "@/components/preview/uptime-bar-preview"
 import { VirtualListPreview } from "@/components/preview/virtual-list-preview"
 
 export const PREVIEWS: Record<string, ComponentType> = {
+  "address-input": AddressInputPreview,
   avatar: AvatarPreview,
   "avatar-group": AvatarGroupPreview,
   badge: BadgePreview,

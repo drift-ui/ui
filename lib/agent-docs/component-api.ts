@@ -34,6 +34,73 @@ const STATE_PROPS = {
 }
 
 export const COMPONENT_API: Record<string, ApiPart[]> = {
+  "address-input": [
+    {
+      name: "AddressInput",
+      description:
+        "A country select followed by the address fields that country uses, in its order and with its labels, such as State and ZIP code for the US or Prefecture first after the postal code for Japan. Tab moves through the fields in layout order, and the country is a native select, so arrow keys and typing a name pick a country. A postal code error appears when the field loses focus or a form is submitted, and is linked to the field with aria-describedby.",
+      rest: '<div role="group">',
+      props: [
+        STATE_PROPS.value(
+          "{ country: string; line1: string; line2: string; city: string; region: string; postalCode: string }",
+          "address"
+        ),
+        STATE_PROPS.defaultValue("Partial<Address>", "an empty address"),
+        STATE_PROPS.onValueChange(
+          "(address: Address) => void",
+          "on every edit, and when the country changes, with fields the new layout lacks cleared"
+        ),
+        {
+          name: "defaultCountry",
+          type: "string",
+          default: '"US"',
+          description:
+            "ISO 3166-1 alpha-2 country used when defaultValue has none.",
+        },
+        {
+          name: "countries",
+          type: "string[]",
+          default: "every country",
+          description:
+            "Country codes to offer, in display order. The current country is always listed.",
+        },
+        {
+          name: "layouts",
+          type: "Record<string, AddressLayout>",
+          description:
+            "Layouts by country code: rows (field order, grouped into rows), required, labels and postalCode ({ pattern, format }). They override the built-in layouts for AU, CA, DE, FR, GB, IN, JP and US and replace the generic layout for other countries.",
+        },
+        {
+          name: "locale",
+          type: "string",
+          default: '"en"',
+          description: "Locale for country names.",
+        },
+        {
+          name: "addressType",
+          type: '"shipping" | "billing"',
+          description:
+            'Prefixes every autocomplete token, such as "shipping postal-code", so a page with two addresses autofills each one.',
+        },
+        {
+          name: "name",
+          type: "string",
+          description:
+            "Submits each field with a form as name.country, name.line1, name.line2, name.city, name.region and name.postalCode.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          description: "Disables the country select and every field.",
+        },
+        {
+          name: "className",
+          type: "string",
+          description: "Classes for the group wrapper.",
+        },
+      ],
+    },
+  ],
   avatar: [
     {
       name: "Avatar",

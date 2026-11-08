@@ -56,6 +56,7 @@ const ENTRY_LAYOUT: {
   stageClassName?: string
   isFlagship?: boolean
 }[] = [
+  { slug: "address-input", category: "inputs" },
   { slug: "color-picker", category: "inputs" },
   { slug: "date-time-range", category: "inputs", isFlagship: true },
   { slug: "duration-input", category: "inputs" },

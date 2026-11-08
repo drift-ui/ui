@@ -4,6 +4,32 @@
   "homepage": "https://drift-ui.dev",
   "items": [
     {
+      "name": "address-input",
+      "type": "registry:ui",
+      "title": "Address Input",
+      "description": "Address fields that follow each country's field order, labels and postal code rules, with browser autofill.",
+      "registryDependencies": [
+        "utils",
+        "input",
+        "label",
+        "@drift-ui/use-controllable-state"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/address-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/address-input.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/countries.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "avatar",
       "type": "registry:ui",
       "title": "Avatar",
@@ -595,6 +621,10 @@
         },
         {
           "path": "registry/default/lib/phone-input.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/countries.ts",
           "type": "registry:lib"
         }
       ]
