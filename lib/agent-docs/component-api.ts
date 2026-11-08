@@ -2865,6 +2865,82 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       ],
     },
   ],
+  "trace-waterfall": [
+    {
+      name: "TraceWaterfall",
+      description:
+        "Waterfall timeline displaying distributed request spans as a collapsible tree and duration bars on a shared time axis.",
+      props: [
+        {
+          name: "spans",
+          type: "Span[]",
+          required: true,
+          description:
+            "Array of trace spans with id, parentId?, name, start, duration, status?, service?, color?.",
+        },
+        {
+          name: "selectedSpanId",
+          type: "string | null",
+          description: "Controlled id of the selected span.",
+        },
+        {
+          name: "defaultSelectedSpanId",
+          type: "string | null",
+          default: "null",
+          description: "Initially selected span id when uncontrolled.",
+        },
+        {
+          name: "onSpanSelect",
+          type: "(span: Span | null) => void",
+          description: "Called when a span is selected or deselected.",
+        },
+        {
+          name: "expandedSpanIds",
+          type: "string[]",
+          description: "Controlled ids of open branches.",
+        },
+        {
+          name: "defaultExpandedSpanIds",
+          type: "string[]",
+          default: "all parent spans",
+          description: "Initially expanded branch ids when uncontrolled.",
+        },
+        {
+          name: "onExpandedChange",
+          type: "(expandedIds: string[]) => void",
+          description: "Called when a branch opens or closes.",
+        },
+        {
+          name: "formatTime",
+          type: "(ms: number) => string",
+          default: "formatDuration",
+          description:
+            "Formats millisecond values for ruler ticks and duration badges.",
+        },
+        {
+          name: "minBarWidth",
+          type: "number",
+          default: "4",
+          description:
+            "Minimum pixel width for bars, ensuring zero-duration spans remain visible.",
+        },
+        {
+          name: "showTimeAxis",
+          type: "boolean",
+          default: "true",
+          description: "Renders the top timeline ruler with time intervals.",
+        },
+        {
+          name: "showGridLines",
+          type: "boolean",
+          default: "true",
+          description:
+            "Renders vertical alignment grid lines across rows matching ruler ticks.",
+        },
+      ],
+      rest: "<div>",
+    },
+  ],
   "transfer-list": [
     {
       name: "TransferList",

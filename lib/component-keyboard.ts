@@ -136,6 +136,13 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: LEFT_RIGHT, action: "Previous or next step" },
     { keys: ["Escape"], action: "End the tour" },
   ],
+  "trace-waterfall": [
+    { keys: UP_DOWN, action: "Move between spans" },
+    { keys: ["ArrowRight"], action: "Expand, then enter children" },
+    { keys: ["ArrowLeft"], action: "Collapse, then go to the parent" },
+    { keys: HOME_END, action: "First or last span" },
+    { keys: ["Enter", "Space"], action: "Select or deselect the span" },
+  ],
   "transfer-list": [
     { keys: UP_DOWN, action: "Move through items" },
     { keys: HOME_END, action: "First or last item" },

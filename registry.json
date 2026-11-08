@@ -944,6 +944,24 @@
       ]
     },
     {
+      "name": "trace-waterfall",
+      "type": "registry:ui",
+      "title": "Trace Waterfall",
+      "description": "Waterfall timeline showing nested trace spans as a collapsible hierarchy and timed duration bars.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["utils", "@drift-ui/use-controllable-state"],
+      "files": [
+        {
+          "path": "registry/default/ui/trace-waterfall.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/trace-waterfall.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "transfer-list",
       "type": "registry:ui",
       "title": "Transfer List",

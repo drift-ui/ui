@@ -85,6 +85,7 @@ const ENTRY_LAYOUT: {
   { slug: "sortable-list", category: "structure" },
   { slug: "stepper", category: "structure" },
   { slug: "timeline", category: "structure" },
+  { slug: "trace-waterfall", category: "structure" },
   { slug: "tree-view", category: "structure", isFlagship: true },
   { slug: "uptime-bar", category: "structure" },
   { slug: "virtual-list", category: "structure" },

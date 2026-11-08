@@ -976,6 +976,20 @@ export function DashboardTour() {
   )
 }`,
   },
+  "trace-waterfall": {
+    notes:
+      "Hierarchical trace waterfall visualizing distributed request spans and execution profiles. spans: Span[] with id, parentId?, name, start, duration, status? ('ok' | 'error' | 'warning'), service?, color?. Spans with missing parentId render as root spans. Full WAI-ARIA tree keyboard navigation: ArrowUp/ArrowDown move focus, ArrowRight expands or enters children, ArrowLeft collapses or moves to parent, Home/End jump to first/last span, Enter/Space select. Controlled or uncontrolled with expandedSpanIds/onExpandedChange and selectedSpanId/onSpanSelect. Zero-duration spans render with minBarWidth (default 4px). Bars use --chart-* tokens and bg-destructive for error spans.",
+    example: `import { TraceWaterfall, type Span } from "@/components/ui/trace-waterfall"
+
+const spans: Span[] = [
+  { id: "1", name: "GET /orders", start: 0, duration: 240, service: "gateway" },
+  { id: "2", parentId: "1", name: "SELECT orders", start: 18, duration: 90, status: "error", service: "postgres" },
+]
+
+export function RequestTrace() {
+  return <TraceWaterfall spans={spans} />
+}`,
+  },
   "transfer-list": {
     notes:
       "Move items between two listboxes: items: T[] with id and label, value/onValueChange or defaultValue as string[] representing target items. Ids in value that are not in items are preserved. Supports searchable for a search input per panel, showSelectAll, disabled, and custom renderItem. Select all, move selected and move all act on the items the search leaves visible. Each listbox is one tab stop: Arrow keys, Home and End move focus, Space or Enter toggles an item, Shift extends the selection, and double-click moves an item straight across.",

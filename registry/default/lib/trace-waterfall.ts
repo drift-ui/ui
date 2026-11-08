@@ -1,0 +1,218 @@
+export type SpanStatus = "ok" | "error" | "warning" | "unset"
+
+export type Span = {
+  id: string
+  parentId?: string
+  name: string
+  start: number
+  duration: number
+  status?: SpanStatus | string
+  service?: string
+  color?: string
+  attributes?: Record<string, string | number | boolean>
+}
+
+export type SpanNode = {
+  span: Span
+  children: SpanNode[]
+}
+
+export type TraceBounds = {
+  minStart: number
+  maxEnd: number
+  totalDuration: number
+}
+
+export type TimeTick = {
+  time: number
+  percent: number
+  label: string
+}
+
+export type FlattenedSpanRow = {
+  span: Span
+  depth: number
+  parentId: string | null
+  hasChildren: boolean
+  isExpanded: boolean
+  position: number
+  siblingCount: number
+  leftPercent: number
+  widthPercent: number
+  accessibleLabel: string
+  colorClass: string
+}
+
+const CHART_COLOR_CLASSES = [
+  "bg-chart-1 text-chart-1-foreground",
+  "bg-chart-2 text-chart-2-foreground",
+  "bg-chart-3 text-chart-3-foreground",
+  "bg-chart-4 text-chart-4-foreground",
+  "bg-chart-5 text-chart-5-foreground",
+]
+
+export function formatDuration(ms: number): string {
+  if (!Number.isFinite(ms) || ms <= 0) return "0 ms"
+  if (ms < 1) return `${Math.round(ms * 1000)} µs`
+  if (ms < 1000) {
+    const rounded = Number.isInteger(ms) ? ms : Number(ms.toFixed(1))
+    return `${rounded} ms`
+  }
+  const sec = ms / 1000
+  const formatted = sec >= 10 ? Math.round(sec) : Number(sec.toFixed(2))
+  return `${formatted} s`
+}
+
+export function getSpanColorClass(span: Span, index = 0): string {
+  if (span.status === "error") {
+    return "bg-destructive text-destructive-foreground"
+  }
+  if (span.color) {
+    return span.color
+  }
+  if (span.service) {
+    let hash = 0
+    for (let i = 0; i < span.service.length; i++) {
+      hash = (hash << 5) - hash + span.service.charCodeAt(i)
+      hash |= 0
+    }
+    const idx = Math.abs(hash) % CHART_COLOR_CLASSES.length
+    return CHART_COLOR_CLASSES[idx]
+  }
+  return CHART_COLOR_CLASSES[index % CHART_COLOR_CLASSES.length]
+}
+
+export function buildSpanTree(spans: Span[]): SpanNode[] {
+  const nodeMap = new Map<string, SpanNode>()
+  for (const span of spans) {
+    nodeMap.set(span.id, { span, children: [] })
+  }
+
+  const roots: SpanNode[] = []
+  for (const span of spans) {
+    const node = nodeMap.get(span.id)!
+    if (
+      span.parentId &&
+      nodeMap.has(span.parentId) &&
+      span.parentId !== span.id
+    ) {
+      nodeMap.get(span.parentId)!.children.push(node)
+    } else {
+      roots.push(node)
+    }
+  }
+
+  return roots
+}
+
+export function calculateTraceBounds(spans: Span[]): TraceBounds {
+  if (spans.length === 0) {
+    return { minStart: 0, maxEnd: 0, totalDuration: 1 }
+  }
+  let minStart = Infinity
+  let maxEnd = -Infinity
+  for (const s of spans) {
+    const start = Number.isFinite(s.start) ? s.start : 0
+    const duration = Number.isFinite(s.duration) ? Math.max(0, s.duration) : 0
+    if (start < minStart) minStart = start
+    if (start + duration > maxEnd) maxEnd = start + duration
+  }
+  if (!Number.isFinite(minStart)) minStart = 0
+  if (!Number.isFinite(maxEnd) || maxEnd < minStart) maxEnd = minStart
+  const totalDuration = Math.max(maxEnd - minStart, 1)
+  return { minStart, maxEnd, totalDuration }
+}
+
+export function calculateTimeTicks(
+  totalDuration: number,
+  count = 5
+): TimeTick[] {
+  const safeDuration = Math.max(totalDuration, 1)
+  const ticks: TimeTick[] = []
+  const stepCount = Math.max(count - 1, 1)
+  for (let i = 0; i <= stepCount; i++) {
+    const ratio = i / stepCount
+    const time = ratio * safeDuration
+    const percent = ratio * 100
+    ticks.push({
+      time,
+      percent,
+      label: formatDuration(time),
+    })
+  }
+  return ticks
+}
+
+export function flattenSpanTree(
+  rootNodes: SpanNode[],
+  expandedIds: ReadonlySet<string>,
+  bounds: TraceBounds
+): FlattenedSpanRow[] {
+  const rows: FlattenedSpanRow[] = []
+
+  function traverse(nodes: SpanNode[], depth: number, parentId: string | null) {
+    nodes.forEach((node, index) => {
+      const { span, children } = node
+      const hasChildren = children.length > 0
+      const isExpanded = hasChildren && expandedIds.has(span.id)
+      const leftPercent = Math.max(
+        0,
+        Math.min(
+          100,
+          ((span.start - bounds.minStart) / bounds.totalDuration) * 100
+        )
+      )
+      const widthPercent = Math.max(
+        0,
+        Math.min(
+          100 - leftPercent,
+          (Math.max(0, span.duration) / bounds.totalDuration) * 100
+        )
+      )
+
+      const accessibleLabel = `${span.name}, ${formatDuration(span.duration)}, starts at ${formatDuration(span.start)}${span.service ? ` (${span.service})` : ""}${span.status ? `, status ${span.status}` : ""}`
+
+      const colorClass = getSpanColorClass(span, rows.length)
+
+      rows.push({
+        span,
+        depth,
+        parentId,
+        hasChildren,
+        isExpanded,
+        position: index + 1,
+        siblingCount: nodes.length,
+        leftPercent,
+        widthPercent,
+        accessibleLabel,
+        colorClass,
+      })
+
+      if (isExpanded) {
+        traverse(children, depth + 1, span.id)
+      }
+    })
+  }
+
+  traverse(rootNodes, 0, null)
+  return rows
+}
+
+export function stepSpanRow(
+  rows: FlattenedSpanRow[],
+  currentIndex: number,
+  step: 1 | -1
+): number {
+  const next = currentIndex + step
+  if (next < 0 || next >= rows.length) return currentIndex
+  return next
+}
+
+export function findParentRowIndex(
+  rows: FlattenedSpanRow[],
+  currentIndex: number
+): number {
+  const current = rows[currentIndex]
+  if (!current || !current.parentId) return -1
+  return rows.findIndex((r) => r.span.id === current.parentId)
+}

@@ -57,6 +57,7 @@ import { TimeFieldPreview } from "@/components/preview/time-field-preview"
 import { TimelinePreview } from "@/components/preview/timeline-preview"
 import { TimezonePickerPreview } from "@/components/preview/timezone-picker-preview"
 import { TourPreview } from "@/components/preview/tour-preview"
+import { TraceWaterfallPreview } from "@/components/preview/trace-waterfall-preview"
 import { TransferListPreview } from "@/components/preview/transfer-list-preview"
 import { TreeViewPreview } from "@/components/preview/tree-view-preview"
 import { UptimeBarPreview } from "@/components/preview/uptime-bar-preview"
@@ -109,6 +110,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   timeline: TimelinePreview,
   "timezone-picker": TimezonePickerPreview,
   tour: TourPreview,
+  "trace-waterfall": TraceWaterfallPreview,
   "transfer-list": TransferListPreview,
   "tree-view": TreeViewPreview,
   "uptime-bar": UptimeBarPreview,
