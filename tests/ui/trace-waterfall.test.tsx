@@ -217,4 +217,53 @@ describe("TraceWaterfall", () => {
     expect(zeroBar).toBeInTheDocument()
     expect(zeroBar?.getAttribute("style")).toContain("max(0%, 6px)")
   })
+
+  it("supports controlled expandedSpanIds and selectedSpanId with parent rerenders", async () => {
+    const user = userEvent.setup()
+
+    function ControlledWaterfall() {
+      const [expanded, setExpanded] = React.useState<string[]>(["1"])
+      const [selected, setSelected] = React.useState<string | null>(null)
+
+      return (
+        <div>
+          <button type="button" onClick={() => setExpanded(["1", "3"])}>
+            Expand Checkpoint
+          </button>
+          <button type="button" onClick={() => setSelected("2")}>
+            Select Auth
+          </button>
+          <TraceWaterfall
+            spans={SAMPLE_SPANS}
+            expandedSpanIds={expanded}
+            onExpandedChange={setExpanded}
+            selectedSpanId={selected}
+            onSpanSelect={(s) => setSelected(s ? s.id : null)}
+          />
+        </div>
+      )
+    }
+
+    render(<ControlledWaterfall />)
+
+    // Initial state: "3" is collapsed, checkpoint.saved is not rendered
+    expect(
+      screen.queryByRole("treeitem", { name: /checkpoint\.saved/ })
+    ).not.toBeInTheDocument()
+
+    // Expand via parent button
+    await user.click(screen.getByRole("button", { name: "Expand Checkpoint" }))
+    expect(
+      screen.getByRole("treeitem", { name: /checkpoint\.saved/ })
+    ).toBeInTheDocument()
+
+    // Select via parent button
+    await user.click(screen.getByRole("button", { name: "Select Auth" }))
+    const authItem = screen.getByRole("treeitem", { name: /auth\.verify/ })
+    expect(authItem).toHaveAttribute("aria-selected", "true")
+
+    // Clicking the item deselects it in controlled mode
+    await user.click(authItem)
+    expect(authItem).toHaveAttribute("aria-selected", "false")
+  })
 })

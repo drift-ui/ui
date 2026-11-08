@@ -2876,7 +2876,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           type: "Span[]",
           required: true,
           description:
-            "Array of trace spans with id, parentId?, name, start, duration, status?, service?, color?.",
+            "Array of trace spans with id, parentId?, name, start, duration, status?, service?, color?, attributes?: Record<string, string | number | boolean>.",
         },
         {
           name: "selectedSpanId",

@@ -270,6 +270,8 @@ export function TraceWaterfall({
                       aria-hidden="true"
                       onClick={(e) => {
                         e.stopPropagation()
+                        setFocusedId(row.span.id)
+                        rowRefs.current.get(row.span.id)?.focus()
                         toggleExpand(row.span.id)
                       }}
                       className="flex size-4 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-transform hover:text-foreground"

@@ -84,19 +84,39 @@ export function getSpanColorClass(span: Span, index = 0): string {
 
 export function buildSpanTree(spans: Span[]): SpanNode[] {
   const nodeMap = new Map<string, SpanNode>()
+  const parentMap = new Map<string, string>()
   for (const span of spans) {
     nodeMap.set(span.id, { span, children: [] })
+    if (span.parentId && span.parentId !== span.id) {
+      parentMap.set(span.id, span.parentId)
+    }
+  }
+
+  // Detect and break cycles so cycle members safely promote to roots
+  const validParents = new Map<string, string>()
+  for (const [id, parentId] of parentMap.entries()) {
+    let curr: string | undefined = parentId
+    let hasCycle = false
+    const visited = new Set<string>([id])
+    while (curr && nodeMap.has(curr)) {
+      if (visited.has(curr)) {
+        hasCycle = true
+        break
+      }
+      visited.add(curr)
+      curr = parentMap.get(curr)
+    }
+    if (!hasCycle && nodeMap.has(parentId)) {
+      validParents.set(id, parentId)
+    }
   }
 
   const roots: SpanNode[] = []
   for (const span of spans) {
     const node = nodeMap.get(span.id)!
-    if (
-      span.parentId &&
-      nodeMap.has(span.parentId) &&
-      span.parentId !== span.id
-    ) {
-      nodeMap.get(span.parentId)!.children.push(node)
+    const parentId = validParents.get(span.id)
+    if (parentId && nodeMap.has(parentId)) {
+      nodeMap.get(parentId)!.children.push(node)
     } else {
       roots.push(node)
     }
@@ -155,22 +175,21 @@ export function flattenSpanTree(
       const { span, children } = node
       const hasChildren = children.length > 0
       const isExpanded = hasChildren && expandedIds.has(span.id)
+      const start = Number.isFinite(span.start) ? span.start : 0
+      const duration = Number.isFinite(span.duration)
+        ? Math.max(0, span.duration)
+        : 0
       const leftPercent = Math.max(
         0,
-        Math.min(
-          100,
-          ((span.start - bounds.minStart) / bounds.totalDuration) * 100
-        )
+        Math.min(100, ((start - bounds.minStart) / bounds.totalDuration) * 100)
       )
       const widthPercent = Math.max(
         0,
-        Math.min(
-          100 - leftPercent,
-          (Math.max(0, span.duration) / bounds.totalDuration) * 100
-        )
+        Math.min(100 - leftPercent, (duration / bounds.totalDuration) * 100)
       )
 
-      const accessibleLabel = `${span.name}, ${formatDuration(span.duration)}, starts at ${formatDuration(span.start)}${span.service ? ` (${span.service})` : ""}${span.status ? `, status ${span.status}` : ""}`
+      const normalizedStart = Math.max(0, start - bounds.minStart)
+      const accessibleLabel = `${span.name}, ${formatDuration(duration)}, starts at ${formatDuration(normalizedStart)}${span.service ? ` (${span.service})` : ""}${span.status ? `, status ${span.status}` : ""}`
 
       const colorClass = getSpanColorClass(span, rows.length)
 

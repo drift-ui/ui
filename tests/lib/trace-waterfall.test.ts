@@ -85,6 +85,18 @@ describe("buildSpanTree", () => {
     expect(tree).toHaveLength(1)
     expect(tree[0].children).toHaveLength(0)
   })
+
+  it("breaks multi-span parent cycles and promotes members to root level", () => {
+    const cycleSpans: Span[] = [
+      { id: "A", parentId: "B", name: "Span A", start: 0, duration: 10 },
+      { id: "B", parentId: "A", name: "Span B", start: 10, duration: 10 },
+    ]
+    const tree = buildSpanTree(cycleSpans)
+    expect(tree.length).toBeGreaterThanOrEqual(1)
+    const ids = tree.map((t) => t.span.id)
+    expect(ids).toContain("A")
+    expect(ids).toContain("B")
+  })
 })
 
 describe("calculateTraceBounds", () => {
@@ -172,6 +184,44 @@ describe("flattenSpanTree", () => {
     expect(leafRow.depth).toBe(2)
     expect(leafRow.parentId).toBe("3")
     expect(leafRow.widthPercent).toBe(0) // 0 duration
+  })
+
+  it("normalizes accessible label start time relative to minStart", () => {
+    const delayedSpans: Span[] = [
+      { id: "1", name: "delayed.root", start: 100, duration: 50 },
+      {
+        id: "2",
+        parentId: "1",
+        name: "delayed.child",
+        start: 120,
+        duration: 20,
+      },
+    ]
+    const tree = buildSpanTree(delayedSpans)
+    const bounds = calculateTraceBounds(delayedSpans)
+    const rows = flattenSpanTree(tree, new Set(["1"]), bounds)
+
+    // bounds.minStart is 100, so delayed.root starts at 0 ms relative to timeline
+    expect(rows[0].accessibleLabel).toContain(
+      "delayed.root, 50 ms, starts at 0 ms"
+    )
+    // delayed.child starts at 20 ms relative to timeline
+    expect(rows[1].accessibleLabel).toContain(
+      "delayed.child, 20 ms, starts at 20 ms"
+    )
+  })
+
+  it("safeguards against NaN start or duration values", () => {
+    const nanSpans: Span[] = [
+      { id: "nan", name: "corrupted", start: NaN, duration: NaN },
+    ]
+    const tree = buildSpanTree(nanSpans)
+    const bounds = calculateTraceBounds(nanSpans)
+    const rows = flattenSpanTree(tree, new Set(), bounds)
+
+    expect(Number.isNaN(rows[0].leftPercent)).toBe(false)
+    expect(Number.isNaN(rows[0].widthPercent)).toBe(false)
+    expect(rows[0].accessibleLabel).toContain("corrupted, 0 ms, starts at 0 ms")
   })
 })
 
