@@ -1,7 +1,5 @@
 "use client"
 
-import * as React from "react"
-
 import {
   TraceWaterfall,
   type Span,
@@ -14,6 +12,7 @@ const TRACE_SPANS: Span[] = [
     start: 0,
     duration: 320,
     service: "api-gateway",
+    attributes: { "http.method": "POST", "http.status_code": 402 },
   },
   {
     id: "auth",
@@ -21,7 +20,7 @@ const TRACE_SPANS: Span[] = [
     name: "jwt.verify",
     start: 12,
     duration: 28,
-    service: "auth-svc",
+    service: "api-gateway",
   },
   {
     id: "inventory",
@@ -38,6 +37,7 @@ const TRACE_SPANS: Span[] = [
     start: 52,
     duration: 48,
     service: "postgres",
+    attributes: { "db.system": "postgresql", "db.rows_returned": 3 },
   },
   {
     id: "payment",
@@ -46,6 +46,11 @@ const TRACE_SPANS: Span[] = [
     start: 115,
     duration: 140,
     service: "payment-svc",
+    status: "error",
+    attributes: {
+      "error.type": "card_declined",
+      "stripe.request_id": "req_8Fq2LxN0",
+    },
   },
   {
     id: "receipt",
@@ -58,24 +63,13 @@ const TRACE_SPANS: Span[] = [
 ]
 
 export function TraceWaterfallPreview() {
-  const [selectedSpan, setSelectedSpan] = React.useState<Span | null>(null)
-
   return (
-    <div className="flex w-full max-w-2xl flex-col gap-4">
+    <div className="w-full max-w-2xl">
       <TraceWaterfall
         spans={TRACE_SPANS}
         defaultExpandedSpanIds={["root", "inventory"]}
-        onSpanSelect={setSelectedSpan}
+        defaultSelectedSpanId="payment"
       />
-      {selectedSpan && (
-        <div className="rounded-md border border-border bg-muted/30 p-3 text-xs">
-          <div className="font-semibold">{selectedSpan.name}</div>
-          <div className="mt-1 text-muted-foreground">
-            Service: {selectedSpan.service ?? "unknown"} • Duration:{" "}
-            {selectedSpan.duration} ms • Start: {selectedSpan.start} ms
-          </div>
-        </div>
-      )}
     </div>
   )
 }

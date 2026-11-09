@@ -50,7 +50,6 @@ const PIPELINE_SPANS: Span[] = [
 ]
 
 export function TraceWaterfallInteractivePreview() {
-  const [selectedSpan, setSelectedSpan] = React.useState<Span | null>(null)
   const [expandedIds, setExpandedIds] = React.useState<string[]>(["pipeline"])
 
   return (
@@ -72,20 +71,7 @@ export function TraceWaterfallInteractivePreview() {
         spans={PIPELINE_SPANS}
         expandedSpanIds={expandedIds}
         onExpandedChange={setExpandedIds}
-        onSpanSelect={setSelectedSpan}
       />
-
-      {selectedSpan && (
-        <div className="rounded-md border border-border bg-muted/20 p-3 text-xs">
-          <div className="font-semibold">{selectedSpan.name}</div>
-          <div className="mt-1 grid grid-cols-2 gap-1 text-muted-foreground">
-            <div>Service: {selectedSpan.service}</div>
-            <div>Duration: {selectedSpan.duration} ms</div>
-            <div>Start: {selectedSpan.start} ms</div>
-            <div>ID: {selectedSpan.id}</div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

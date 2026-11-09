@@ -7,6 +7,7 @@ import {
   findParentRowIndex,
   flattenSpanTree,
   formatDuration,
+  getServiceColors,
   getSpanColorClass,
   stepSpanRow,
   type Span,
@@ -129,6 +130,7 @@ describe("formatDuration", () => {
     expect(formatDuration(240.5)).toBe("240.5 ms")
     expect(formatDuration(1500)).toBe("1.5 s")
     expect(formatDuration(12000)).toBe("12 s")
+    expect(formatDuration(12500)).toBe("12.5 s")
   })
 })
 
@@ -139,6 +141,35 @@ describe("calculateTimeTicks", () => {
     expect(ticks[0]).toEqual({ time: 0, percent: 0, label: "0 ms" })
     expect(ticks[2]).toEqual({ time: 100, percent: 50, label: "100 ms" })
     expect(ticks[4]).toEqual({ time: 200, percent: 100, label: "200 ms" })
+  })
+})
+
+describe("calculateTimeTicks with uneven durations", () => {
+  it("rounds ticks to readable steps", () => {
+    expect(calculateTimeTicks(410).map((t) => t.time)).toEqual([
+      0, 100, 200, 300, 400,
+    ])
+    expect(calculateTimeTicks(12500).map((t) => t.label)).toEqual([
+      "0 ms",
+      "2.5 s",
+      "5 s",
+      "7.5 s",
+      "10 s",
+      "12.5 s",
+    ])
+  })
+})
+
+describe("getServiceColors", () => {
+  it("gives each service a distinct color in first-seen order", () => {
+    const colors = getServiceColors([
+      { id: "a", name: "a", start: 0, duration: 1, service: "gateway" },
+      { id: "b", name: "b", start: 0, duration: 1, service: "auth" },
+      { id: "c", name: "c", start: 0, duration: 1, service: "gateway" },
+      { id: "d", name: "d", start: 0, duration: 1 },
+    ])
+    expect([...colors.keys()]).toEqual(["gateway", "auth"])
+    expect(colors.get("gateway")).not.toBe(colors.get("auth"))
   })
 })
 

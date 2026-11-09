@@ -2932,7 +2932,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           type: "(ms: number) => string",
           default: "formatDuration",
           description:
-            "Formats millisecond values for ruler ticks and duration badges.",
+            "Formats millisecond values for ruler ticks, row durations and the details panel.",
         },
         {
           name: "minBarWidth",
@@ -2953,6 +2953,13 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           default: "true",
           description:
             "Renders vertical alignment grid lines across rows matching ruler ticks.",
+        },
+        {
+          name: "showSpanDetails",
+          type: "boolean",
+          default: "true",
+          description:
+            "Shows a panel under the waterfall with the selected span's timing, status and attributes. Turn off when you render your own panel from onSpanSelect.",
         },
       ],
       rest: "<div>",

@@ -26,6 +26,7 @@ const SAMPLE_SPANS: Span[] = [
     duration: 90,
     service: "postgres",
     status: "error",
+    attributes: { "db.rows": 12 },
   },
   {
     id: "4",
@@ -265,5 +266,55 @@ describe("TraceWaterfall", () => {
     // Clicking the item deselects it in controlled mode
     await user.click(authItem)
     expect(authItem).toHaveAttribute("aria-selected", "false")
+  })
+
+  it("summarizes the trace and lists services in a legend", () => {
+    render(<TraceWaterfall spans={SAMPLE_SPANS} />)
+
+    expect(
+      screen.getByText(/240 ms · 5 spans · 4 services/)
+    ).toBeInTheDocument()
+    expect(screen.getByText(/1 error/)).toBeInTheDocument()
+    const legend = screen.getByRole("list", { name: "Services" })
+    expect(legend).toHaveTextContent("gateway")
+    expect(legend).toHaveTextContent("postgres")
+  })
+
+  it("shows details with attributes for the selected span and closes them", async () => {
+    const user = userEvent.setup()
+    render(
+      <TraceWaterfall spans={SAMPLE_SPANS} defaultExpandedSpanIds={["1"]} />
+    )
+
+    expect(
+      screen.queryByRole("region", { name: /Details for/ })
+    ).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole("treeitem", { name: /SELECT orders/ }))
+    const details = screen.getByRole("region", {
+      name: "Details for SELECT orders",
+    })
+    expect(details).toHaveTextContent("db.rows")
+    expect(details).toHaveTextContent("37.5%")
+    expect(details).toHaveTextContent("+25 ms")
+
+    await user.click(screen.getByRole("button", { name: "Close span details" }))
+    expect(
+      screen.queryByRole("region", { name: /Details for/ })
+    ).not.toBeInTheDocument()
+  })
+
+  it("hides the details panel when showSpanDetails is false", () => {
+    render(
+      <TraceWaterfall
+        spans={SAMPLE_SPANS}
+        defaultSelectedSpanId="1"
+        showSpanDetails={false}
+      />
+    )
+
+    expect(
+      screen.queryByRole("region", { name: /Details for/ })
+    ).not.toBeInTheDocument()
   })
 })

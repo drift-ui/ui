@@ -59,17 +59,36 @@ export function formatDuration(ms: number): string {
     return `${rounded} ms`
   }
   const sec = ms / 1000
-  const formatted = sec >= 10 ? Math.round(sec) : Number(sec.toFixed(2))
+  const formatted = Number(sec.toFixed(sec >= 10 ? 1 : 2))
   return `${formatted} s`
 }
 
-export function getSpanColorClass(span: Span, index = 0): string {
+export function getServiceColors(spans: Span[]): Map<string, string> {
+  const colors = new Map<string, string>()
+  for (const span of spans) {
+    if (span.service && !colors.has(span.service)) {
+      colors.set(
+        span.service,
+        CHART_COLOR_CLASSES[colors.size % CHART_COLOR_CLASSES.length]
+      )
+    }
+  }
+  return colors
+}
+
+export function getSpanColorClass(
+  span: Span,
+  index = 0,
+  serviceColors?: ReadonlyMap<string, string>
+): string {
   if (span.status === "error") {
     return "bg-destructive text-destructive-foreground"
   }
   if (span.color) {
     return span.color
   }
+  const assigned = span.service && serviceColors?.get(span.service)
+  if (assigned) return assigned
   if (span.service) {
     let hash = 0
     for (let i = 0; i < span.service.length; i++) {
@@ -143,20 +162,25 @@ export function calculateTraceBounds(spans: Span[]): TraceBounds {
   return { minStart, maxEnd, totalDuration }
 }
 
+export function niceTickStep(totalDuration: number, maxIntervals = 5) {
+  const raw = Math.max(totalDuration, 1) / Math.max(maxIntervals, 1)
+  const magnitude = 10 ** Math.floor(Math.log10(raw))
+  const multiplier = [1, 2, 2.5, 5, 10].find((m) => m * magnitude >= raw)!
+  return multiplier * magnitude
+}
+
 export function calculateTimeTicks(
   totalDuration: number,
-  count = 5
+  maxIntervals = 5
 ): TimeTick[] {
   const safeDuration = Math.max(totalDuration, 1)
+  const step = niceTickStep(safeDuration, maxIntervals)
   const ticks: TimeTick[] = []
-  const stepCount = Math.max(count - 1, 1)
-  for (let i = 0; i <= stepCount; i++) {
-    const ratio = i / stepCount
-    const time = ratio * safeDuration
-    const percent = ratio * 100
+  for (let i = 0; i * step <= safeDuration * (1 + 1e-9); i++) {
+    const time = Number((i * step).toPrecision(12))
     ticks.push({
       time,
-      percent,
+      percent: (time / safeDuration) * 100,
       label: formatDuration(time),
     })
   }
@@ -166,7 +190,8 @@ export function calculateTimeTicks(
 export function flattenSpanTree(
   rootNodes: SpanNode[],
   expandedIds: ReadonlySet<string>,
-  bounds: TraceBounds
+  bounds: TraceBounds,
+  serviceColors?: ReadonlyMap<string, string>
 ): FlattenedSpanRow[] {
   const rows: FlattenedSpanRow[] = []
 
@@ -191,7 +216,7 @@ export function flattenSpanTree(
       const normalizedStart = Math.max(0, start - bounds.minStart)
       const accessibleLabel = `${span.name}, ${formatDuration(duration)}, starts at ${formatDuration(normalizedStart)}${span.service ? ` (${span.service})` : ""}${span.status ? `, status ${span.status}` : ""}`
 
-      const colorClass = getSpanColorClass(span, rows.length)
+      const colorClass = getSpanColorClass(span, rows.length, serviceColors)
 
       rows.push({
         span,
