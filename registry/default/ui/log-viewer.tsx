@@ -63,8 +63,8 @@ const LEVEL_BADGE_CLASSES: Record<string, string> = {
   error: "bg-destructive/15 text-destructive border-destructive/20",
   warn: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20",
   info: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  debug: "bg-muted text-muted-foreground border-border",
-  trace: "bg-muted text-muted-foreground border-border",
+  debug: "bg-zinc-800 text-zinc-400 border-zinc-700",
+  trace: "bg-zinc-800 text-zinc-400 border-zinc-700",
 }
 
 function AnsiMessage({ message }: { message: string }) {
@@ -375,7 +375,13 @@ function LogViewer({
                 style={wrap ? { minHeight: rowHeight } : { height: rowHeight }}
               >
                 {showLineNumbers && (
-                  <span className="sticky left-0 z-10 -ml-3 w-16 shrink-0 bg-zinc-950 pr-3 text-right text-zinc-500 tabular-nums select-none group-hover:bg-zinc-900">
+                  <span
+                    className={cn(
+                      "w-10 shrink-0 text-right text-zinc-500 tabular-nums select-none",
+                      !wrap &&
+                        "sticky left-0 z-10 -ml-3 flex w-14 items-center justify-end self-stretch border-r border-zinc-800 bg-zinc-950 pr-2 group-hover:bg-zinc-900"
+                    )}
+                  >
                     {line.lineNumber ?? index + 1}
                   </span>
                 )}
@@ -389,7 +395,7 @@ function LogViewer({
                     className={cn(
                       "inline-flex w-12 shrink-0 items-center justify-center rounded border px-1 py-0.5 text-[10px] font-medium tracking-wider uppercase select-none",
                       LEVEL_BADGE_CLASSES[line.level.toLowerCase()] ??
-                        "border-border bg-muted text-muted-foreground"
+                        "border-zinc-700 bg-zinc-800 text-zinc-400"
                     )}
                   >
                     {line.level.toUpperCase()}
