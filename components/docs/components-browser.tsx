@@ -290,7 +290,7 @@ function SpecimenStage({
           {padNumber(total)}
         </span>
       </p>
-      <div className="@container flex max-h-[calc(100dvh-24rem)] min-h-80 items-center-safe overflow-y-auto rounded-[1.75rem] border bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent)] px-8 py-10">
+      <div className="@container flex max-h-[calc(100dvh-30rem)] min-h-56 items-center-safe overflow-y-auto rounded-[1.75rem] border bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent)] px-8 py-10">
         <div className="mx-auto w-full max-w-xl">{card.thumbnail}</div>
       </div>
       <div className="flex flex-col gap-4">
