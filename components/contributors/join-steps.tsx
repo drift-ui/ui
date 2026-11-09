@@ -51,7 +51,7 @@ function IssueList({ issues }: { issues: FirstIssue[] }) {
             <span className="w-10 shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
               #{issue.number}
             </span>
-            <span className="min-w-0 flex-1 text-sm text-pretty font-medium">
+            <span className="min-w-0 flex-1 text-sm font-medium text-pretty">
               {issue.title}
             </span>
             <ArrowUpRightIcon
