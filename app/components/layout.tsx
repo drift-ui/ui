@@ -1,4 +1,5 @@
 import { DocsSearch, type SearchGroup } from "@/components/docs/docs-search"
+import { DocsSectionsProvider } from "@/components/docs/docs-sections"
 import { MotionProvider } from "@/components/landing/motion-provider"
 import { SiteFooter } from "@/components/landing/site-footer"
 import { SiteNav } from "@/components/landing/site-nav"
@@ -20,10 +21,12 @@ export default function ComponentsLayout({
   return (
     <div className="flex min-h-dvh flex-col bg-background pb-20 text-foreground">
       <MotionProvider>
-        <SiteNav />
-        {children}
-        <SiteFooter />
-        <DocsSearch groups={SEARCH_GROUPS} />
+        <DocsSectionsProvider>
+          <SiteNav />
+          {children}
+          <SiteFooter />
+          <DocsSearch groups={SEARCH_GROUPS} />
+        </DocsSectionsProvider>
       </MotionProvider>
     </div>
   )

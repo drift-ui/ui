@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Tabs as TabsPrimitive } from "radix-ui"
 
+import { useDocsSections } from "@/components/docs/docs-sections"
 import { TabsRail } from "@/components/docs/tabs-rail"
 
 export type WorkbenchPanel = {
@@ -22,6 +23,7 @@ export function Workbench({
 }) {
   const dockRef = useRef<HTMLDivElement>(null)
   const [tab, setTab] = useState(panels[0]?.value ?? "")
+  const [, setSections] = useDocsSections()
 
   useEffect(() => {
     function openHashTarget() {
@@ -41,14 +43,24 @@ export function Workbench({
     return () => window.removeEventListener("hashchange", openHashTarget)
   }, [])
 
-  function selectTab(value: string) {
+  const selectTab = useCallback((value: string) => {
     setTab(value)
     window.history.replaceState(null, "", `#${value}`)
     const top = dockRef.current?.getBoundingClientRect().top ?? 0
     if (top < STUCK_BAR_BOTTOM || top > window.innerHeight * 0.6) {
       dockRef.current?.scrollIntoView({ block: "start" })
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    setSections({
+      items: panels.map(({ value, label }) => ({ value, label })),
+      active: tab,
+      open: selectTab,
+    })
+  }, [panels, tab, selectTab, setSections])
+
+  useEffect(() => () => setSections(null), [setSections])
 
   return (
     <TabsPrimitive.Root
@@ -57,7 +69,7 @@ export function Workbench({
       className="flex flex-col overflow-clip rounded-2xl border"
     >
       <div className="flex flex-col">{preview}</div>
-      <div className="sticky top-16 bottom-20 z-20 flex h-11 scrollbar-none items-center overflow-x-auto border-y bg-background/90 px-2 shadow-[0_-12px_24px_-16px] shadow-foreground/15 backdrop-blur-md">
+      <div className="sticky top-16 z-20 flex h-11 scrollbar-none items-center overflow-x-auto border-y bg-background/90 px-2 backdrop-blur-md">
         <TabsRail
           items={panels.map(({ value, label }) => ({ value, label }))}
           value={tab}

@@ -16,6 +16,7 @@ import {
 import { ShortcutKeys } from "@/registry/default/ui/shortcut-recorder"
 import { matchesShortcut } from "@/registry/default/lib/shortcut"
 import { useActiveComponent } from "@/components/docs/component-nav-list"
+import { useDocsSections } from "@/components/docs/docs-sections"
 import { scoreSearchEntry } from "@/lib/docs-search"
 import { componentPath } from "@/lib/primitive-library"
 
@@ -80,6 +81,8 @@ export function DocsSearch({ groups }: { groups: SearchGroup[] }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { library } = useActiveComponent()
+  const [sections] = useDocsSections()
+  const showSections = sections && !isOpen
 
   useEffect(() => {
     const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent)
@@ -132,14 +135,19 @@ export function DocsSearch({ groups }: { groups: SearchGroup[] }) {
       ref={rootRef}
       label="Search docs"
       filter={scoreSearchEntry}
-      onFocus={() => setIsOpen(true)}
+      onFocus={(event) => event.target === inputRef.current && setIsOpen(true)}
       onBlur={(event) => {
         if (!rootRef.current?.contains(event.relatedTarget as Node)) {
           setIsOpen(false)
         }
       }}
       onKeyDown={(event) => event.key === "Escape" && close()}
-      className="fixed inset-x-0 bottom-4 z-40 mx-auto h-auto w-[min(34rem,calc(100vw-2rem))] rounded-2xl border bg-popover/95 shadow-[0_16px_48px_-20px] shadow-foreground/30 backdrop-blur-md **:data-[slot=command-input-wrapper]:h-12 **:data-[slot=command-input-wrapper]:border-b-0 **:data-[slot=command-input-wrapper]:px-4 [&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:z-10 [&_[cmdk-group-heading]]:bg-popover [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:uppercase"
+      className={cn(
+        "fixed inset-x-0 bottom-4 z-40 mx-auto h-auto rounded-2xl border bg-popover/95 shadow-[0_16px_48px_-20px] shadow-foreground/30 backdrop-blur-md **:data-[slot=command-input-wrapper]:h-12 **:data-[slot=command-input-wrapper]:border-b-0 **:data-[slot=command-input-wrapper]:px-4 [&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:z-10 [&_[cmdk-group-heading]]:bg-popover [&_[cmdk-group-heading]]:font-mono [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:uppercase",
+        sections
+          ? "w-[min(44rem,calc(100vw-2rem))]"
+          : "w-[min(34rem,calc(100vw-2rem))]"
+      )}
     >
       <div
         className={cn(
@@ -173,18 +181,45 @@ export function DocsSearch({ groups }: { groups: SearchGroup[] }) {
           </CommandList>
         </div>
       </div>
-      <CommandInput
-        ref={inputRef}
-        value={query}
-        onValueChange={setQuery}
-        placeholder="Search components and pages"
-      />
-      {!isOpen && (
-        <ShortcutKeys
-          shortcut={SEARCH_SHORTCUT}
-          className="pointer-events-none absolute right-4 bottom-3.5"
-        />
-      )}
+      <div className="flex items-center">
+        {showSections && (
+          <nav
+            aria-label="Documentation sections"
+            className="flex min-w-0 shrink scrollbar-none items-center gap-0.5 overflow-x-auto border-r py-1.5 pr-1.5 pl-1.5"
+          >
+            {sections.items.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                aria-current={
+                  item.value === sections.active ? "true" : undefined
+                }
+                onClick={() => sections.open(item.value)}
+                className={cn(
+                  "h-9 shrink-0 rounded-lg px-2.5 text-sm whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                  item.value === sections.active && "bg-muted text-foreground"
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        )}
+        <div className="min-w-0 flex-1">
+          <CommandInput
+            ref={inputRef}
+            value={query}
+            onValueChange={setQuery}
+            placeholder={sections ? "Search" : "Search components and pages"}
+          />
+        </div>
+        {!isOpen && (
+          <ShortcutKeys
+            shortcut={SEARCH_SHORTCUT}
+            className="pointer-events-none mr-4 shrink-0 max-sm:hidden"
+          />
+        )}
+      </div>
     </Command>
   )
 }
