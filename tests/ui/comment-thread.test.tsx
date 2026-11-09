@@ -110,7 +110,7 @@ describe("CommentThread", () => {
       }),
     ])
     expect(article("Thanks")).toBeInTheDocument()
-    expect(screen.getByRole("status")).toHaveTextContent("Comment posted")
+    expect(screen.getByText("Comment posted")).toHaveAttribute("role", "status")
     expect(composer()).toHaveFocus()
   })
 
@@ -466,7 +466,10 @@ describe("CommentThread", () => {
       expect(screen.queryByText("Yes, with backoff.")).toBeNull()
     )
     expect(article("Second thread")).toHaveFocus()
-    expect(screen.getByRole("status")).toHaveTextContent("Comment deleted")
+    expect(screen.getByText("Comment deleted")).toHaveAttribute(
+      "role",
+      "status"
+    )
   })
 
   it("cancels a delete with Escape", async () => {
