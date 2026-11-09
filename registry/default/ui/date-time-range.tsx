@@ -190,8 +190,7 @@ function DateTimeRangePicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        collisionPadding={8}
-        className="flex max-h-(--radix-popover-content-available-height) w-auto max-w-[calc(100vw-1rem)] flex-col overflow-y-auto p-0 sm:flex-row"
+        className="flex max-h-[calc(var(--radix-popover-content-available-height,var(--available-height,100vh))-0.5rem)] w-auto max-w-[calc(100vw-1rem)] flex-col overflow-y-auto p-0 sm:flex-row"
       >
         {presets.length > 0 && (
           <div
