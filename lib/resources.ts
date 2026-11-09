@@ -4,6 +4,7 @@ import { AccessibilityTreeFix } from "@/components/resources/accessibility-tree-
 import { CodingAgentGuide } from "@/components/resources/coding-agent-guide"
 import { CollegeGuide } from "@/components/resources/college-guide"
 import { FirstPrReview } from "@/components/resources/first-pr-review"
+import { OneComponentSixteenFiles } from "@/components/resources/one-component-sixteen-files"
 import { OpenSourceGuide } from "@/components/resources/open-source-guide"
 import { MAINTAINERS, type Maintainer } from "@/lib/contributors"
 
@@ -46,6 +47,37 @@ export type Resource = {
 const [GAUTAM_ANAND] = MAINTAINERS
 
 export const RESOURCES: Resource[] = [
+  {
+    slug: "what-goes-into-one-component",
+    title: "What goes into one drift-ui component",
+    description:
+      "The trace waterfall installs as two files. Its pull request changed 16. A walk through each one, and the six bugs review caught before merge.",
+    publishedAt: "2026-11-09",
+    readMinutes: 5,
+    author: GAUTAM_ANAND,
+    tags: ["Contributing", "drift-ui"],
+    tldr: [
+      "Users install two files. The pull request also touched the registry manifest, docs, agent docs, the keyboard map, tests and the README.",
+      "Pure logic in a lib file meant 15 of the 22 tests needed no rendering.",
+      "Review found six bugs, including a two-span parent loop that emptied the whole tree.",
+      "Insert into every list alphabetically, because a test fails if you append.",
+    ],
+    image: {
+      src: "/images/resources/what-goes-into-one-component.png",
+      alt: "A pull request listing trace waterfall files with their added lines, and a blue card labelled 16 files changed, beside the headline Two files to install. Sixteen to ship.",
+    },
+    sections: [],
+    Content: OneComponentSixteenFiles,
+    outline: [
+      { id: "the-pr", label: "The pull request" },
+      { id: "the-files", label: "Where the 16 files go" },
+      { id: "split-logic", label: "Why the logic is separate" },
+      { id: "registry-entry", label: "The registry entry" },
+      { id: "keyboard", label: "The keyboard map" },
+      { id: "review", label: "What review caught" },
+      { id: "your-pr", label: "If you’re adding one" },
+    ],
+  },
   {
     slug: "fixing-our-accessibility-tree",
     title: "How we fixed the accessibility tree on drift-ui",
