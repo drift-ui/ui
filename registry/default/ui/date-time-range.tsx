@@ -39,8 +39,20 @@ const DEFAULT_END_TIME = "17:00"
 const EMPTY_RANGE: DateTimeRange = {}
 const NO_PRESETS: DateTimeRangePreset[] = []
 
+const SIDE_BY_SIDE_MONTHS = "(min-width: 48rem)"
+
 function subscribeToNothing() {
   return () => {}
+}
+
+function subscribeToMonthLayout(onChange: () => void) {
+  const query = window.matchMedia(SIDE_BY_SIDE_MONTHS)
+  query.addEventListener("change", onChange)
+  return () => query.removeEventListener("change", onChange)
+}
+
+function fitsMonthsSideBySide() {
+  return window.matchMedia(SIDE_BY_SIDE_MONTHS).matches
 }
 
 function DateTimeRangePicker({
@@ -90,6 +102,11 @@ function DateTimeRangePicker({
     subscribeToNothing,
     () => true,
     () => false
+  )
+  const fitsSideBySide = React.useSyncExternalStore(
+    subscribeToMonthLayout,
+    fitsMonthsSideBySide,
+    () => true
   )
   const triggerText = !label ? placeholder : isHydrated ? label : ""
   const hourCycle = hourCycleOf(locale)
@@ -173,7 +190,8 @@ function DateTimeRangePicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="flex w-auto max-w-[calc(100vw-1rem)] flex-col p-0 sm:flex-row"
+        collisionPadding={8}
+        className="flex max-h-(--radix-popover-content-available-height) w-auto max-w-[calc(100vw-1rem)] flex-col overflow-y-auto p-0 sm:flex-row"
       >
         {presets.length > 0 && (
           <div
@@ -227,7 +245,8 @@ function DateTimeRangePicker({
           <Calendar
             mode="range"
             autoFocus
-            numberOfMonths={numberOfMonths}
+            numberOfMonths={fitsSideBySide ? numberOfMonths : 1}
+            className="self-center"
             month={month}
             onMonthChange={setMonth}
             startMonth={min}
