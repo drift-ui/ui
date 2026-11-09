@@ -99,8 +99,8 @@ export const BLOCKS: Block[] = [
     group: "operations",
     name: "Trace inspector",
     description:
-      "Follow a failed request span by span, with the timing and status of the call that broke it.",
-    uses: ["trace-waterfall"],
+      "Follow a failed request span by span and read the attributes of the call that broke it.",
+    uses: ["trace-waterfall", "json-viewer"],
   },
   {
     kind: "api-keys",

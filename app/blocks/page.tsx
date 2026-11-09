@@ -2,10 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowRightIcon } from "lucide-react"
 
-import { BlockStage } from "@/components/landing/block-stage"
-import { BlockUses } from "@/components/landing/block-uses"
+import { BlockViewer } from "@/components/blocks/block-viewer"
 import { BlocksTabs } from "@/components/landing/blocks-tabs"
-import { CopyCommand } from "@/components/landing/copy-command"
 import { SiteFooter } from "@/components/landing/site-footer"
 import { SiteNav } from "@/components/landing/site-nav"
 import { BLOCK_GROUPS, BLOCKS } from "@/lib/blocks"
@@ -20,10 +18,6 @@ export const metadata: Metadata = createPageMetadata({
 
 function padNumber(value: number) {
   return String(value).padStart(2, "0")
-}
-
-function installCommand(uses: string[]) {
-  return `npx shadcn@latest add ${uses.map((slug) => `@drift-ui/${slug}`).join(" ")}`
 }
 
 export default function BlocksPage() {
@@ -90,45 +84,9 @@ export default function BlocksPage() {
                     </p>
                   </header>
 
-                  <div className="grid gap-x-8 gap-y-16 lg:grid-cols-2">
+                  <div className="flex flex-col gap-20">
                     {groupBlocks.map((block) => (
-                      <article
-                        key={block.kind}
-                        id={block.kind}
-                        aria-labelledby={`${block.kind}-title`}
-                        className="flex reveal scroll-mt-24 flex-col gap-5"
-                      >
-                        <BlockStage
-                          kind={block.kind}
-                          className="rounded-[1.75rem] bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent)]"
-                        />
-                        <div className="flex flex-col gap-3 px-1">
-                          <div className="flex items-baseline gap-3">
-                            <span
-                              aria-hidden
-                              className="w-6 shrink-0 font-mono text-xs text-muted-foreground tabular-nums"
-                            >
-                              {padNumber(BLOCKS.indexOf(block) + 1)}
-                            </span>
-                            <h3
-                              id={`${block.kind}-title`}
-                              className="font-display text-2xl font-semibold tracking-[-0.035em]"
-                            >
-                              {block.name}
-                            </h3>
-                          </div>
-                          <p className="max-w-[52ch] pl-9 text-muted-foreground">
-                            {block.description}
-                          </p>
-                          <div className="flex flex-col gap-3 pl-9">
-                            <BlockUses uses={block.uses} />
-                            <CopyCommand
-                              command={installCommand(block.uses)}
-                              className="w-fit"
-                            />
-                          </div>
-                        </div>
-                      </article>
+                      <BlockViewer key={block.kind} block={block} />
                     ))}
                   </div>
                 </section>
