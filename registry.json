@@ -161,6 +161,35 @@
       ]
     },
     {
+      "name": "csv-importer",
+      "type": "registry:ui",
+      "title": "CSV Importer",
+      "description": "Multi-step CSV import workflow with column mapping, data validation, and row correction.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "utils",
+        "badge",
+        "button",
+        "card",
+        "input",
+        "label",
+        "@drift-ui/file-dropzone",
+        "@drift-ui/stepper",
+        "@drift-ui/virtual-list",
+        "@drift-ui/use-controllable-state"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/csv-importer.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/csv-importer.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "date-time-range",
       "type": "registry:ui",
       "title": "Date-Time Range",

@@ -99,6 +99,11 @@ const ENTRY_LAYOUT: {
   },
   { slug: "comment-thread", category: "workflow" },
   {
+    slug: "csv-importer",
+    category: "workflow",
+    stageClassName: "flex-col flex-nowrap items-stretch",
+  },
+  {
     slug: "filter-builder",
     category: "workflow",
     isFlagship: true,

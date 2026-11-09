@@ -547,6 +547,75 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       ],
     },
   ],
+  "csv-importer": [
+    {
+      name: "CsvImporter",
+      description:
+        "Multi-step CSV import wizard with file upload, column mapping, data validation with inline cell fixing, and import confirmation.",
+      rest: "<div>",
+      props: [
+        {
+          name: "fields",
+          type: "CsvField[]",
+          required: true,
+          description:
+            "Target application field definitions with id, label, required flag, description, validate function, and transform function.",
+        },
+        {
+          name: "onComplete",
+          type: "(rows: Record<string, any>[]) => void",
+          required: true,
+          description:
+            "Called when import is confirmed with clean, validated, and transformed row objects.",
+        },
+        {
+          name: "onCancel",
+          type: "() => void",
+          description:
+            "Called when the user resets or cancels the import process.",
+        },
+        {
+          name: "maxRows",
+          type: "number",
+          default: "10000",
+          description:
+            "Maximum number of data rows to parse on the main thread.",
+        },
+        {
+          name: "maxFileSize",
+          type: "number",
+          default: "10485760",
+          description: "Maximum file size in bytes (defaults to 10 MB).",
+        },
+        {
+          name: "sampleRowsCount",
+          type: "number",
+          default: "3",
+          description:
+            "Number of sample row values to preview in the column mapping step.",
+        },
+        {
+          name: "autoMap",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to automatically suggest column mappings matching CSV headers against field ids and labels.",
+        },
+        STATE_PROPS.value("number", "active step index (0 to 3)"),
+        STATE_PROPS.defaultValue("number", "0"),
+        STATE_PROPS.onValueChange(
+          "(step: number) => void",
+          "when the active step index changes"
+        ),
+        {
+          name: "defaultFile",
+          type: "File",
+          description:
+            "Optional initial File object to automatically parse upon mount.",
+        },
+      ],
+    },
+  ],
   "date-time-range": [
     {
       name: "DateTimeRangePicker",

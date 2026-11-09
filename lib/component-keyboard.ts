@@ -25,6 +25,11 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ["Mod+Enter"], action: "Post, or save an edit" },
     { keys: ["Escape"], action: "Cancel a reply, edit or delete" },
   ],
+  "csv-importer": [
+    { keys: ["Enter", "Space"], action: "Upload file or advance step" },
+    { keys: ["Tab"], action: "Move between mapping selectors and table cells" },
+    { keys: ["Escape"], action: "Cancel or reset current step" },
+  ],
   "duration-input": [
     { keys: UP_DOWN, action: "Step the focused unit" },
     { keys: PAGE, action: "Step by ten" },
