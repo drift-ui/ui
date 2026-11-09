@@ -18,11 +18,12 @@ export default function ComponentsLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-background text-foreground">
+    <div className="flex min-h-dvh flex-col bg-background pb-20 text-foreground">
       <MotionProvider>
-        <SiteNav search={<DocsSearch groups={SEARCH_GROUPS} />} />
+        <SiteNav />
         {children}
         <SiteFooter />
+        <DocsSearch groups={SEARCH_GROUPS} />
       </MotionProvider>
     </div>
   )
