@@ -1312,7 +1312,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "MentionTextarea",
       description:
-        "Opens a suggestion list when the caret follows a trigger character. Arrow keys move through it, Enter or Tab inserts the trigger, the option's value and a space, and Escape closes it.",
+        "Opens a suggestion list when the caret follows a trigger character. Arrow keys move through it, Enter or Tab inserts the trigger, the option's value and a space, and Escape closes it. Inserted mentions act as one unit: Backspace or Delete next to one removes it whole and the caret cannot land inside it. Enter and Tab are ignored while an IME composition is active.",
       props: [
         STATE_PROPS.value("string", "text"),
         STATE_PROPS.defaultValue("string", '""'),
@@ -1322,10 +1322,17 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         ),
         {
           name: "triggers",
-          type: "Record<string, MentionOption[]>",
+          type: "Record<string, MentionOption[] | MentionSearch>",
           required: true,
           description:
-            'Maps a trigger character to its options, for example { "@": people, "#": channels }.',
+            'Maps a single trigger character to its options, for example { "@": people, "#": searchChannels }. A static list is filtered on value and label; a MentionSearch is called with the query instead.',
+        },
+        {
+          name: "searchDelay",
+          type: "number",
+          default: "150",
+          description:
+            "Milliseconds to wait after typing stops before calling a MentionSearch.",
         },
       ],
       rest: "<textarea>",
@@ -1353,6 +1360,11 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           description: "Second line under the label.",
         },
       ],
+    },
+    {
+      name: "MentionSearch",
+      description:
+        "(query: string, { signal }: { signal: AbortSignal }) => Promise<MentionOption[]>. Pass the signal to fetch; the request is aborted when the query changes or the list closes. A rejected promise shows the error state. The first 8 results are shown.",
     },
   ],
   "multi-select": [
