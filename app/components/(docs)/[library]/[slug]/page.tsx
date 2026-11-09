@@ -6,14 +6,13 @@ import { CodeFrame } from "@/components/docs/code-frame"
 import { ComponentExamples } from "@/components/docs/component-examples"
 import type { NavGroup } from "@/components/docs/component-nav-list"
 import { ComponentHeader } from "@/components/docs/component-header"
-import { DocSection } from "@/components/docs/doc-section"
-import { DocsBar } from "@/components/docs/docs-bar"
+import { ComponentSwitcher } from "@/components/docs/component-switcher"
 import { InstallPanel } from "@/components/docs/install-panel"
 import { KeyboardStrip } from "@/components/docs/keyboard-strip"
-import { Pager } from "@/components/docs/pager"
 import { PreviewStage } from "@/components/docs/preview-stage"
 import { PreviewTabs } from "@/components/docs/preview-tabs"
 import { SourceFiles } from "@/components/docs/source-files"
+import { Workbench, type WorkbenchPanel } from "@/components/docs/workbench"
 import { JsonLd } from "@/components/seo/json-ld"
 import { COMPONENT_API } from "@/lib/agent-docs/component-api"
 import { COMPONENT_USAGE } from "@/lib/agent-docs/component-usage"
@@ -147,74 +146,82 @@ export default async function ComponentPage({ params }: ComponentPageProps) {
   const api = COMPONENT_API[entry.slug]
   const keyboard = COMPONENT_KEYBOARD[entry.slug]
   const { previous, next } = findNeighbors(entry.slug)
-  const sections = [
-    { id: "installation", label: "Installation" },
-    ...(snippet ? [{ id: "usage", label: "Usage" }] : []),
-    ...(api ? [{ id: "api", label: "API reference" }] : []),
-    ...(examples.length > 0
+  const panels: WorkbenchPanel[] = [
+    {
+      value: "installation",
+      label: "Install",
+      content: (
+        <InstallPanel
+          slug={entry.slug}
+          dependencies={source.dependencies}
+          buildsOn={resolveBuildsOn(entry, library)}
+          installPaths={listInstallPaths(source)}
+        />
+      ),
+    },
+    ...(snippet
       ? [
-          { id: "examples", label: "Examples" },
-          ...examples.map(({ id, title }) => ({
-            id,
-            label: title,
-            isNested: true,
-          })),
+          {
+            value: "usage",
+            label: "Usage",
+            content: <CodeFrame {...snippet} collapsible />,
+          },
         ]
       : []),
-    { id: "source", label: "Source" },
+    ...(api
+      ? [{ value: "api", label: "API", content: <ApiReference parts={api} /> }]
+      : []),
+    ...(examples.length > 0
+      ? [
+          {
+            value: "examples",
+            label: `Examples ${examples.length}`,
+            content: <ComponentExamples examples={examples} />,
+          },
+        ]
+      : []),
+    {
+      value: "source",
+      label: "Source",
+      content: <SourceFiles files={sources} />,
+    },
   ]
 
   return (
-    <main className="flex flex-col">
+    <main className="flex flex-col gap-5 py-6 lg:py-8">
       <JsonLd schema={buildComponentSchema(entry, library)} />
-      <DocsBar groups={NAV_GROUPS} sections={sections} />
-      <div className="flex flex-col gap-16 pt-10 pb-24 lg:pt-12">
-        <div className="grid gap-x-12 gap-y-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] xl:gap-x-16">
-          <div className="lg:col-start-2 lg:row-start-1">
-            <ComponentHeader
-              entry={entry}
-              library={library}
-              sourceUrl={`${siteConfig.repo}/blob/main/${source.files[0]?.path}`}
-            />
-          </div>
-          <div className="flex flex-col gap-5 lg:sticky lg:top-36 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:max-h-[calc(100dvh-10rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain">
+      <ComponentHeader
+        entry={entry}
+        library={library}
+        sourceUrl={`${siteConfig.repo}/blob/main/${source.files[0]?.path}`}
+        switcher={
+          <ComponentSwitcher
+            groups={NAV_GROUPS}
+            position={CATALOG.indexOf(entry) + 1}
+            total={CATALOG.length}
+            categoryLabel={findCategory(entry.category)?.label}
+            previous={previous && { slug: previous.slug, name: previous.name }}
+            next={next && { slug: next.slug, name: next.name }}
+            library={library}
+          />
+        }
+      />
+      <Workbench
+        panels={panels}
+        preview={
+          <>
             <PreviewTabs
               preview={<PreviewStage entry={entry} library={library} />}
               usage={usage}
             />
-            {keyboard && <KeyboardStrip bindings={keyboard} />}
-          </div>
-          <div className="flex min-w-0 flex-col gap-16 lg:col-start-2">
-            <DocSection id="installation" title="Installation">
-              <InstallPanel
-                slug={entry.slug}
-                dependencies={source.dependencies}
-                buildsOn={resolveBuildsOn(entry, library)}
-                installPaths={listInstallPaths(source)}
-              />
-            </DocSection>
-            {snippet && (
-              <DocSection id="usage" title="Usage">
-                <CodeFrame {...snippet} collapsible />
-              </DocSection>
+            {keyboard && (
+              <div className="shrink-0 border-t bg-muted/30 px-4 py-2.5">
+                <KeyboardStrip bindings={keyboard} />
+              </div>
             )}
-            {api && (
-              <DocSection id="api" title="API reference">
-                <ApiReference parts={api} />
-              </DocSection>
-            )}
-          </div>
-        </div>
-        {examples.length > 0 && (
-          <DocSection id="examples" title="Examples" className="border-t pt-16">
-            <ComponentExamples examples={examples} />
-          </DocSection>
-        )}
-        <DocSection id="source" title="Source">
-          <SourceFiles files={sources} />
-        </DocSection>
-        <Pager previous={previous} next={next} library={library} />
-      </div>
+          </>
+        }
+      />
     </main>
   )
 }

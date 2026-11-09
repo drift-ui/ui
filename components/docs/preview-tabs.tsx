@@ -29,8 +29,17 @@ export function PreviewTabs({
   const [resetCount, setResetCount] = useState(0)
 
   return (
-    <TabsPrimitive.Root value={tab} onValueChange={setTab}>
-      <div className="flex items-center justify-between gap-4">
+    <TabsPrimitive.Root
+      value={tab}
+      onValueChange={setTab}
+      className={cn(!compact && "flex flex-col")}
+    >
+      <div
+        className={cn(
+          "flex items-center justify-between gap-4",
+          !compact && "h-12 shrink-0 border-b px-2"
+        )}
+      >
         <TabsRail items={TABS} value={tab} label="Example" />
         {tab === "preview" && (
           <div className="flex items-center gap-1">
@@ -55,13 +64,18 @@ export function PreviewTabs({
       <TabsPrimitive.Content
         value="preview"
         forceMount
-        className="mt-3 outline-none data-[state=inactive]:hidden"
+        className={cn(
+          "outline-none data-[state=inactive]:hidden",
+          compact && "mt-3"
+        )}
       >
         <div
           data-theme-scope
           className={cn(
-            "flex items-center justify-center overflow-hidden rounded-[1.75rem] border bg-background bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent)] px-4 font-sans text-foreground sm:px-10",
-            compact ? "min-h-56 py-10" : "min-h-[26rem] py-10 md:py-16"
+            "flex items-center justify-center bg-background bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent)] px-4 font-sans text-foreground sm:px-10",
+            compact
+              ? "min-h-56 overflow-hidden rounded-[1.75rem] border py-10"
+              : "min-h-[26rem] py-10 md:py-16"
           )}
         >
           <div
@@ -72,7 +86,10 @@ export function PreviewTabs({
           </div>
         </div>
       </TabsPrimitive.Content>
-      <TabsPrimitive.Content value="code" className="mt-3 outline-none">
+      <TabsPrimitive.Content
+        value="code"
+        className={cn("outline-none", compact ? "mt-3" : "p-3")}
+      >
         <CodeFrame {...usage} collapsible />
       </TabsPrimitive.Content>
     </TabsPrimitive.Root>
