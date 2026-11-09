@@ -117,7 +117,7 @@ describe("pickFirstIssues", () => {
 describe("mergedPullsOf", () => {
   it("searches the repo for the author's merged pull requests", () => {
     expect(decodeURIComponent(mergedPullsOf("octocat"))).toBe(
-      "https://github.com/localhostd3veloper/drift-ui/pulls?q=is:pr is:merged author:octocat"
+      "https://github.com/drift-ui/ui/pulls?q=is:pr is:merged author:octocat"
     )
   })
 })

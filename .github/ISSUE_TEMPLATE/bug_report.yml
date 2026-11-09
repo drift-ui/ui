@@ -4,7 +4,7 @@ labels: ["bug"]
 body:
   - type: markdown
     attributes:
-      value: Thanks for reporting. Please check the [open issues](https://github.com/localhostd3veloper/drift-ui/issues) first in case this is already tracked.
+      value: Thanks for reporting. Please check the [open issues](https://github.com/drift-ui/ui/issues) first in case this is already tracked.
   - type: input
     id: component
     attributes:

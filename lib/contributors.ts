@@ -50,7 +50,7 @@ export const MAINTAINERS: Maintainer[] = [
   },
 ]
 
-const REPO_URL = "https://api.github.com/repos/localhostd3veloper/drift-ui"
+const REPO_URL = "https://api.github.com/repos/drift-ui/ui"
 const CONTRIBUTORS_URL = `${REPO_URL}/contributors?per_page=100`
 const FIRST_ISSUES_URL = `${REPO_URL}/issues?state=open&assignee=none&labels=good%20first%20issue&per_page=20`
 const FIRST_ISSUES_SHOWN = 5
@@ -85,7 +85,7 @@ export function githubProfileOf(login: string) {
 }
 
 export function mergedPullsOf(login: string) {
-  return `https://github.com/localhostd3veloper/drift-ui/pulls?q=${encodeURIComponent(`is:pr is:merged author:${login}`)}`
+  return `https://github.com/drift-ui/ui/pulls?q=${encodeURIComponent(`is:pr is:merged author:${login}`)}`
 }
 
 export function readableIssueTitle(title: string) {

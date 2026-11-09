@@ -6,7 +6,7 @@ Instructions for coding agents (Claude Code, Codex, Cursor, Copilot, Gemini and 
 
 drift-ui is a shadcn-compatible component registry: React 19, Tailwind v4, Radix, Next.js 16, Bun. The repo is both the registry source and the docs site that serves it.
 
-Maintainers: [@localhostd3veloper](https://github.com/localhostd3veloper) and [@syedfahadjunaid](https://github.com/syedfahadjunaid). Repo: `localhostd3veloper/drift-ui`.
+Maintainers: [@localhostd3veloper](https://github.com/localhostd3veloper) and [@syedfahadjunaid](https://github.com/syedfahadjunaid). Repo: `drift-ui/ui`.
 
 ## Commands
 

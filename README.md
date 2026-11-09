@@ -46,8 +46,8 @@ Name the namespace when you ask, for example "add @drift-ui/tags-input" or "sear
 ## Develop
 
 ```bash
-git clone https://github.com/localhostd3veloper/drift-ui.git
-cd drift-ui
+git clone https://github.com/drift-ui/ui.git
+cd ui
 bun install
 bun run registry:build
 bun dev
@@ -83,7 +83,7 @@ public/r/*.json                gitignored build output, served as static files
 
 ## Contributing
 
-Bug reports, component requests and pull requests are welcome. Open an [issue](https://github.com/localhostd3veloper/drift-ui/issues/new/choose) to report a bug or request a component. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the steps to add a component, and the commit conventions. Coding agents start from [AGENTS.md](AGENTS.md). Everyone with a merged pull request is listed on the [contributors page](https://drift-ui.dev/contributors).
+Bug reports, component requests and pull requests are welcome. Open an [issue](https://github.com/drift-ui/ui/issues/new/choose) to report a bug or request a component. Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the steps to add a component, and the commit conventions. Coding agents start from [AGENTS.md](AGENTS.md). Everyone with a merged pull request is listed on the [contributors page](https://drift-ui.dev/contributors).
 
 ## License
 

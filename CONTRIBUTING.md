@@ -26,8 +26,8 @@ Work comes in three sizes, and it's fine to start with the smallest:
 You need [Bun](https://bun.sh) 1.2 or newer. [Fork the repo][fork], then clone your fork:
 
 ```bash
-git clone https://github.com/<your-username>/drift-ui.git
-cd drift-ui
+git clone https://github.com/<your-username>/ui.git
+cd ui
 bun install
 bun run registry:build
 bun dev
@@ -167,11 +167,11 @@ Use the [issue templates][issue-templates], and include:
 
 By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).
 
-[bugs]: https://github.com/localhostd3veloper/drift-ui/labels/bug
+[bugs]: https://github.com/drift-ui/ui/labels/bug
 [contributors]: https://drift-ui.dev/contributors
 [discord]: https://discord.gg/tJH3dC8Exz
-[fork]: https://github.com/localhostd3veloper/drift-ui/fork
+[fork]: https://github.com/drift-ui/ui/fork
 [fork-pr-guide]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork
-[good-first-issues]: https://github.com/localhostd3veloper/drift-ui/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
-[issue-templates]: https://github.com/localhostd3veloper/drift-ui/issues/new/choose
-[new-components]: https://github.com/localhostd3veloper/drift-ui/labels/new%20component
+[good-first-issues]: https://github.com/drift-ui/ui/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+[issue-templates]: https://github.com/drift-ui/ui/issues/new/choose
+[new-components]: https://github.com/drift-ui/ui/labels/new%20component
