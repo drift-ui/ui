@@ -150,7 +150,7 @@ function OnboardingDemo() {
             </StepperItem>
           ))}
         </StepperList>
-        <StepperContent step={0} className="grid max-w-md gap-5">
+        <StepperContent step={0} className="grid gap-5">
           <Field label="Workspace name" htmlFor={`${id}-name`}>
             <Input id={`${id}-name`} defaultValue="Ledgerline" />
           </Field>
@@ -162,7 +162,7 @@ function OnboardingDemo() {
             <Input id={`${id}-url`} defaultValue="ledgerline" />
           </Field>
         </StepperContent>
-        <StepperContent step={1} className="grid max-w-md gap-5">
+        <StepperContent step={1} className="grid gap-5">
           <Field
             label="Teams"
             hint="Press Enter or comma after each one. Paste a list to add several."
@@ -174,7 +174,7 @@ function OnboardingDemo() {
             />
           </Field>
         </StepperContent>
-        <StepperContent step={2} className="grid max-w-md gap-5">
+        <StepperContent step={2} className="grid gap-5">
           <Field label="Seats" hint="Billed monthly at $8 per seat.">
             <NumberInput
               aria-label="Seats"
@@ -467,7 +467,7 @@ function ReleaseDemo() {
       description="v2.14.0 to production"
       actions={<Badge variant="secondary">Awaiting window</Badge>}
     >
-      <div className="grid gap-8 @3xl:grid-cols-[1fr_18rem]">
+      <div className="grid gap-8 @2xl:grid-cols-[1fr_16rem]">
         <div className="grid content-start gap-5">
           <Field
             label="Deploy window"
@@ -478,6 +478,7 @@ function ReleaseDemo() {
               id={`${id}-window`}
               presets={RELEASE_PRESETS}
               defaultValue={RELEASE_PRESETS[0].value}
+              className="max-w-none"
             />
           </Field>
           <Button className="w-fit">Schedule</Button>
@@ -1078,6 +1079,15 @@ const DEMOS: Record<BlockKind, React.ComponentType> = {
   "code-review": CodeReviewDemo,
   roles: RolesDemo,
   "audit-log": AuditLogDemo,
+}
+
+export const BLOCK_DEMO_WIDTHS: Partial<Record<BlockKind, string>> = {
+  onboarding: "40rem",
+  "team-invite": "42rem",
+  profile: "56rem",
+  security: "56rem",
+  release: "52rem",
+  "audit-log": "42rem",
 }
 
 export function BlockDemo({ kind }: { kind: BlockKind }) {

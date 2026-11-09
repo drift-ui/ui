@@ -117,7 +117,7 @@ Write `pr-body.md` outside the repo, or delete it before committing. Base it on 
 
 ### 7. Credit
 
-`/contributors` reads GitHub's contributors API and ranks people by merged pull requests, so there is nothing to edit to credit yourself or anyone else. Merging a pull request is what adds its author. Only the two maintainers are listed in code, in `lib/contributors.ts`.
+`/contributors` reads GitHub's contributors API and ranks people by commits on main, so there is nothing to edit to credit yourself or anyone else. Merging a pull request is what adds its author. Only the two maintainers are listed in code, in `lib/contributors.ts`.
 
 ## Do not
 

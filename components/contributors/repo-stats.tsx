@@ -1,4 +1,4 @@
-import { CircleDotIcon, EyeIcon, GitForkIcon, StarIcon } from "lucide-react"
+import { CircleDotIcon, GitForkIcon, StarIcon } from "lucide-react"
 
 import type { RepoStatCounts } from "@/lib/contributors"
 import { siteConfig } from "@/lib/site-config"
@@ -18,13 +18,6 @@ export function RepoStats({ counts }: { counts: RepoStatCounts }) {
       many: "forks",
       href: `${siteConfig.repo}/forks`,
       icon: GitForkIcon,
-    },
-    {
-      value: counts.watchers,
-      one: "watcher",
-      many: "watchers",
-      href: `${siteConfig.repo}/watchers`,
-      icon: EyeIcon,
     },
     {
       value: counts.openIssues,

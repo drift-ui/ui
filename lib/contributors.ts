@@ -15,15 +15,26 @@ export type GitHubContributor = {
 export type RepoStatCounts = {
   stars: number
   forks: number
-  watchers: number
   openIssues: number
 }
 
 type GitHubRepo = {
   stargazers_count: number
   forks_count: number
-  subscribers_count: number
   open_issues_count: number
+}
+
+export type GitHubIssue = {
+  number: number
+  title: string
+  html_url: string
+  pull_request?: unknown
+}
+
+export type FirstIssue = {
+  number: number
+  title: string
+  url: string
 }
 
 export const MAINTAINERS: Maintainer[] = [
@@ -41,6 +52,9 @@ export const MAINTAINERS: Maintainer[] = [
 
 const REPO_URL = "https://api.github.com/repos/localhostd3veloper/drift-ui"
 const CONTRIBUTORS_URL = `${REPO_URL}/contributors?per_page=100`
+const FIRST_ISSUES_URL = `${REPO_URL}/issues?state=open&assignee=none&labels=good%20first%20issue&per_page=20`
+const FIRST_ISSUES_SHOWN = 5
+export const STARS_BEFORE_STATS_SHOW = 25
 const REVALIDATE_SECONDS = 3600
 const REQUEST_TIMEOUT_MS = 5000
 const FIRST_ROWS_SEATS = 5
@@ -68,6 +82,26 @@ export function openSeatsAfter(takenSeats: number) {
 
 export function githubProfileOf(login: string) {
   return `https://github.com/${login}`
+}
+
+export function mergedPullsOf(login: string) {
+  return `https://github.com/localhostd3veloper/drift-ui/pulls?q=${encodeURIComponent(`is:pr is:merged author:${login}`)}`
+}
+
+export function readableIssueTitle(title: string) {
+  const bare = title.replace(/^\w+(\([^)]*\))?!?:\s*/, "")
+  return bare.charAt(0).toUpperCase() + bare.slice(1)
+}
+
+export function pickFirstIssues(issues: GitHubIssue[]): FirstIssue[] {
+  return issues
+    .filter((issue) => !issue.pull_request)
+    .slice(0, FIRST_ISSUES_SHOWN)
+    .map((issue) => ({
+      number: issue.number,
+      title: readableIssueTitle(issue.title),
+      url: issue.html_url,
+    }))
 }
 
 function hasPreviousPageToKeepServing() {
@@ -106,13 +140,16 @@ export async function fetchCommunity() {
   )
 }
 
+export async function fetchFirstIssues() {
+  return pickFirstIssues(await fetchGitHub<GitHubIssue[]>(FIRST_ISSUES_URL, []))
+}
+
 export async function fetchRepoStats(): Promise<RepoStatCounts | null> {
   const repo = await fetchGitHub<GitHubRepo | null>(REPO_URL, null)
   return (
     repo && {
       stars: repo.stargazers_count,
       forks: repo.forks_count,
-      watchers: repo.subscribers_count,
       openIssues: repo.open_issues_count,
     }
   )

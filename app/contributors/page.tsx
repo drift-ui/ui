@@ -6,7 +6,13 @@ import { MaintainerCard } from "@/components/contributors/maintainer-card"
 import { RepoStats } from "@/components/contributors/repo-stats"
 import { SiteFooter } from "@/components/landing/site-footer"
 import { SiteNav } from "@/components/landing/site-nav"
-import { fetchCommunity, fetchRepoStats, MAINTAINERS } from "@/lib/contributors"
+import {
+  fetchCommunity,
+  fetchFirstIssues,
+  fetchRepoStats,
+  MAINTAINERS,
+  STARS_BEFORE_STATS_SHOW,
+} from "@/lib/contributors"
 import { createPageMetadata } from "@/lib/page-metadata"
 
 export const metadata: Metadata = createPageMetadata({
@@ -30,9 +36,10 @@ function SectionTitle({ title, lead }: { title: string; lead: string }) {
 }
 
 export default async function ContributorsPage() {
-  const [community, repoStats] = await Promise.all([
+  const [community, repoStats, firstIssues] = await Promise.all([
     fetchCommunity(),
     fetchRepoStats(),
+    fetchFirstIssues(),
   ])
 
   return (
@@ -49,7 +56,9 @@ export default async function ContributorsPage() {
               The people who build drift-ui. Every merged pull request puts its
               author on this page.
             </p>
-            {repoStats && <RepoStats counts={repoStats} />}
+            {repoStats && repoStats.stars >= STARS_BEFORE_STATS_SHOW && (
+              <RepoStats counts={repoStats} />
+            )}
           </div>
         </header>
 
@@ -77,7 +86,7 @@ export default async function ContributorsPage() {
             title="Get on this page"
             lead="Three steps from an open issue to your name on the wall."
           />
-          <JoinSteps />
+          <JoinSteps issues={firstIssues} />
         </section>
       </main>
       <SiteFooter />

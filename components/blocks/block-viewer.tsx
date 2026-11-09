@@ -3,7 +3,7 @@
 import * as React from "react"
 import { MonitorIcon, SmartphoneIcon, TabletIcon } from "lucide-react"
 
-import { BlockDemo } from "@/components/blocks/block-demo"
+import { BLOCK_DEMO_WIDTHS, BlockDemo } from "@/components/blocks/block-demo"
 import { SegmentedControl } from "@/components/docs/segmented-control"
 import { BlockUses } from "@/components/landing/block-uses"
 import { CopyCommand } from "@/components/landing/copy-command"
@@ -29,7 +29,8 @@ const VIEWPORT_ITEMS = VIEWPORTS.map(({ value, label, Icon }) => ({
 
 export function BlockViewer({ block }: { block: Block }) {
   const [viewport, setViewport] = React.useState<Viewport>("desktop")
-  const width = VIEWPORTS.find(({ value }) => value === viewport)?.width
+  const viewportWidth = VIEWPORTS.find(({ value }) => value === viewport)?.width
+  const width = `min(${viewportWidth}, ${BLOCK_DEMO_WIDTHS[block.kind] ?? "100%"})`
 
   return (
     <article

@@ -67,7 +67,7 @@ test(time-field): cover segment editing
 ```
 
 > [!IMPORTANT]
-> Commit with an email linked to your GitHub account. That's how the [contributors page][contributors] matches your commits to you. It ranks people by merged pull requests and can take a few hours to update after a merge.
+> Commit with an email linked to your GitHub account. That's how the [contributors page][contributors] matches your commits to you. It ranks people by commits on main and can take a few hours to update after a merge.
 
 ## Adding a component
 

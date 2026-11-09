@@ -4,9 +4,13 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   fetchCommunity,
   fetchRepoStats,
+  mergedPullsOf,
   openSeatsAfter,
+  pickFirstIssues,
   rankCommunity,
+  readableIssueTitle,
   type GitHubContributor,
+  type GitHubIssue,
 } from "@/lib/contributors"
 
 function contributorOf(
@@ -72,6 +76,49 @@ describe("openSeatsAfter", () => {
     [10, 3],
   ])("after %i taken seats leaves %i open", (taken, open) => {
     expect(openSeatsAfter(taken)).toBe(open)
+  })
+})
+
+describe("readableIssueTitle", () => {
+  it.each([
+    ["feat: add unit-input component", "Add unit-input component"],
+    ["fix(stepper)!: restore focus", "Restore focus"],
+    ["Add a date picker", "Add a date picker"],
+  ])("turns %j into %j", (title, readable) => {
+    expect(readableIssueTitle(title)).toBe(readable)
+  })
+})
+
+describe("pickFirstIssues", () => {
+  function issueOf(number: number, overrides: Partial<GitHubIssue> = {}) {
+    return {
+      number,
+      title: `feat: issue ${number}`,
+      html_url: `https://github.com/x/y/issues/${number}`,
+      ...overrides,
+    }
+  }
+
+  it("drops pull requests and keeps at most five issues", () => {
+    const picked = pickFirstIssues([
+      issueOf(1, { pull_request: {} }),
+      ...[2, 3, 4, 5, 6, 7].map((number) => issueOf(number)),
+    ])
+
+    expect(picked.map((issue) => issue.number)).toEqual([2, 3, 4, 5, 6])
+    expect(picked[0]).toEqual({
+      number: 2,
+      title: "Issue 2",
+      url: "https://github.com/x/y/issues/2",
+    })
+  })
+})
+
+describe("mergedPullsOf", () => {
+  it("searches the repo for the author's merged pull requests", () => {
+    expect(decodeURIComponent(mergedPullsOf("octocat"))).toBe(
+      "https://github.com/localhostd3veloper/drift-ui/pulls?q=is:pr is:merged author:octocat"
+    )
   })
 })
 
@@ -142,14 +189,12 @@ describe("fetchRepoStats", () => {
     respondWith(200, {
       stargazers_count: 12,
       forks_count: 3,
-      subscribers_count: 2,
       open_issues_count: 7,
     })
 
     await expect(fetchRepoStats()).resolves.toEqual({
       stars: 12,
       forks: 3,
-      watchers: 2,
       openIssues: 7,
     })
   })
