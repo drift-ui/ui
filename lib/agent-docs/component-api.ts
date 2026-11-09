@@ -34,6 +34,110 @@ const STATE_PROPS = {
 }
 
 export const COMPONENT_API: Record<string, ApiPart[]> = {
+  "activity-heatmap": [
+    {
+      name: "ActivityHeatmap",
+      description:
+        "Displays activity intensity over a year in a WAI-ARIA grid with 2D keyboard navigation and accessible cell labels.",
+      props: [
+        {
+          name: "data",
+          type: "ActivityDayInput[]",
+          required: true,
+          description:
+            "Array of daily activity objects with date (YYYY-MM-DD), count, and optional level override.",
+        },
+        {
+          name: "weekStartsOn",
+          type: "0 | 1 | 2 | 3 | 4 | 5 | 6",
+          default: "0",
+          description: "Starting day of the week (0 for Sunday, 1 for Monday).",
+        },
+        {
+          name: "startDate",
+          type: "string",
+          description:
+            "Earliest calendar date in YYYY-MM-DD. Defaults to 52 weeks before endDate.",
+        },
+        {
+          name: "endDate",
+          type: "string",
+          description:
+            "Latest calendar date in YYYY-MM-DD. Defaults to latest date in data or today.",
+        },
+        {
+          name: "selectedDate",
+          type: "string | null",
+          description: "Controlled selected date in YYYY-MM-DD.",
+        },
+        {
+          name: "defaultSelectedDate",
+          type: "string | null",
+          description: "Initial selected date when uncontrolled.",
+        },
+        {
+          name: "onDaySelect",
+          type: "(day: ActivityDay) => void",
+          description: "Callback invoked when a day cell is selected.",
+        },
+        {
+          name: "thresholds",
+          type: "number[]",
+          description:
+            "Four-element array of count thresholds separating intensity levels 1 through 4.",
+        },
+        {
+          name: "unit",
+          type: "string",
+          default: '"contributions"',
+          description:
+            "Noun describing the activity unit for screen readers and summary.",
+        },
+        {
+          name: "showSummary",
+          type: "boolean",
+          default: "true",
+          description: "Whether to display the total activity summary header.",
+        },
+        {
+          name: "summary",
+          type: "ReactNode | ((total: number, start: string, end: string) => ReactNode)",
+          description: "Custom summary content or render function.",
+        },
+        {
+          name: "showLegend",
+          type: "boolean",
+          default: "true",
+          description: "Whether to render the Less/More intensity level key.",
+        },
+        {
+          name: "showMonthLabels",
+          type: "boolean",
+          default: "true",
+          description: "Whether to render month labels above week columns.",
+        },
+        {
+          name: "showWeekdayLabels",
+          type: "boolean",
+          default: "true",
+          description: "Whether to render weekday labels along the left side.",
+        },
+        {
+          name: "levelColors",
+          type: "Record<number, string>",
+          description:
+            "Custom CSS class overrides for intensity levels 0 through 4.",
+        },
+        {
+          name: "aria-label",
+          type: "string",
+          default: '"Activity heatmap"',
+          description: "Accessible label for the grid widget.",
+        },
+      ],
+      rest: "div",
+    },
+  ],
   avatar: [
     {
       name: "Avatar",

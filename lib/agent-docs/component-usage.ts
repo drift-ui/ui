@@ -8,6 +8,26 @@ const SAME_AS_SHADCN =
   "Identical API to the shadcn/ui component of the same name. Skip it if the project already has one."
 
 export const COMPONENT_USAGE: Record<string, ComponentUsage> = {
+  "activity-heatmap": {
+    notes:
+      "ActivityHeatmap displays activity and contributions over a year on a grid of weeks by weekdays. Intensity levels 0 to 4 are mapped from counts using theme tokens (bg-muted/40 through bg-primary). Follows the WAI-ARIA grid pattern with a single tab stop and 2D arrow key navigation across cells. Includes accessible labels, customizable week start day, optional summary header, and a legend.",
+    example: `import { ActivityHeatmap } from "@/components/ui/activity-heatmap"
+
+const DATA = [
+  { date: "2026-10-30", count: 3 },
+  { date: "2026-10-31", count: 7 },
+]
+
+export function ContributionGraph() {
+  return (
+    <ActivityHeatmap
+      data={DATA}
+      weekStartsOn={1}
+      onDaySelect={(day) => console.log(day.date, day.count)}
+    />
+  )
+}`,
+  },
   avatar: {
     notes: SAME_AS_SHADCN,
     example: `import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"

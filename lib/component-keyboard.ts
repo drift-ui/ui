@@ -7,6 +7,11 @@ const HOME_END = ["Home", "End"]
 const PAGE = ["PageUp", "PageDown"]
 
 export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
+  "activity-heatmap": [
+    { keys: ARROWS, action: "Move through the calendar grid" },
+    { keys: HOME_END, action: "First or last week in the row" },
+    { keys: ["Enter", "Space"], action: "Select the focused day" },
+  ],
   "bulk-action-bar": [
     { keys: LEFT_RIGHT, action: "Move between actions" },
     { keys: ["Escape"], action: "Clear the selection" },
