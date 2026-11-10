@@ -37,7 +37,7 @@ jobs:
 
       - uses: codecov/codecov-action@v7
         with:
-          use_oidc: ${{ !github.event.pull_request.head.repo.fork }}
+          use_oidc: true
 
       - name: Build
         run: bun run build
