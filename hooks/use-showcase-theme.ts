@@ -1,5 +1,11 @@
 import { useSyncExternalStore } from "react"
 
+import { SHARE_PARAM, decodeShare } from "@/lib/showcase-share"
+import {
+  DEFAULT_STYLE,
+  findStyle,
+  type ShowcaseStyle,
+} from "@/lib/style-tokens"
 import {
   EMPTY_THEME,
   formatThemeCss,
@@ -9,22 +15,37 @@ import {
 } from "@/lib/theme-css"
 
 const STORAGE_KEY = "drift-ui:showcase-theme"
+const STYLE_STORAGE_KEY = "drift-ui:showcase-style"
+
+type ShowcaseState = { theme: Theme; style: ShowcaseStyle }
+
+const SERVER_STATE: ShowcaseState = { theme: EMPTY_THEME, style: DEFAULT_STYLE }
 
 const listeners = new Set<() => void>()
-let currentTheme: Theme | null = null
+let currentState: ShowcaseState | null = null
 
-function loadStoredTheme() {
+function loadStoredState(): ShowcaseState {
   try {
-    return parseThemeCss(window.localStorage.getItem(STORAGE_KEY) ?? "")
+    const shared = decodeShare(
+      new URLSearchParams(window.location.search).get(SHARE_PARAM) ?? ""
+    )
+    if (shared) return shared
+    return {
+      theme: parseThemeCss(window.localStorage.getItem(STORAGE_KEY) ?? ""),
+      style: findStyle(window.localStorage.getItem(STYLE_STORAGE_KEY)),
+    }
   } catch {
-    return EMPTY_THEME
+    return SERVER_STATE
   }
 }
 
-function persistTheme(theme: Theme) {
+function persistState({ theme, style }: ShowcaseState) {
   try {
     if (isEmptyTheme(theme)) window.localStorage.removeItem(STORAGE_KEY)
     else window.localStorage.setItem(STORAGE_KEY, formatThemeCss(theme))
+    if (style === DEFAULT_STYLE)
+      window.localStorage.removeItem(STYLE_STORAGE_KEY)
+    else window.localStorage.setItem(STYLE_STORAGE_KEY, style.id)
   } catch {}
 }
 
@@ -34,30 +55,43 @@ function subscribe(listener: () => void) {
 }
 
 function getSnapshot() {
-  currentTheme ??= loadStoredTheme()
-  return currentTheme
+  currentState ??= loadStoredState()
+  return currentState
 }
 
 function getServerSnapshot() {
-  return EMPTY_THEME
+  return SERVER_STATE
 }
 
 export function useShowcaseTheme() {
   //#region queries
-  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const { theme, style } = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  )
+  const isDefault = isEmptyTheme(theme) && style === DEFAULT_STYLE
   //#endregion
 
   //#region mutations
-  function setTheme(next: Theme) {
-    currentTheme = next
-    persistTheme(next)
+  function update(next: Partial<ShowcaseState>) {
+    currentState = { ...getSnapshot(), ...next }
+    persistState(currentState)
     listeners.forEach((listener) => listener())
   }
 
+  function setTheme(next: Theme) {
+    update({ theme: next })
+  }
+
+  function setStyle(next: ShowcaseStyle) {
+    update({ style: next })
+  }
+
   function resetTheme() {
-    setTheme(EMPTY_THEME)
+    update({ theme: EMPTY_THEME, style: DEFAULT_STYLE })
   }
   //#endregion
 
-  return { theme, setTheme, resetTheme }
+  return { theme, style, isDefault, setTheme, setStyle, resetTheme }
 }

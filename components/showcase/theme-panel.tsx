@@ -7,6 +7,7 @@ import { Button } from "@/registry/default/ui/button"
 import { ModePicker } from "@/components/showcase/mode-picker"
 import { PresetPicker } from "@/components/showcase/preset-picker"
 import { RadiusPicker } from "@/components/showcase/radius-picker"
+import { StylePicker } from "@/components/showcase/style-picker"
 import { ThemeCssSummary } from "@/components/showcase/theme-css-summary"
 import {
   RADIUS_TOKEN,
@@ -14,7 +15,8 @@ import {
   findActivePreset,
   readRadius,
 } from "@/lib/showcase-presets"
-import { isEmptyTheme, withToken, type Theme } from "@/lib/theme-css"
+import type { ShowcaseStyle } from "@/lib/style-tokens"
+import { withToken, type Theme } from "@/lib/theme-css"
 
 function PanelSection({
   title,
@@ -33,12 +35,18 @@ function PanelSection({
 
 export function ThemePanel({
   theme,
+  style,
+  isDefault,
   onThemeChange,
+  onStyleChange,
   onReset,
   className,
 }: {
   theme: Theme
+  style: ShowcaseStyle
+  isDefault: boolean
   onThemeChange: (theme: Theme) => void
+  onStyleChange: (style: ShowcaseStyle) => void
   onReset: () => void
   className?: string
 }) {
@@ -61,13 +69,16 @@ export function ThemePanel({
         <Button
           variant="ghost"
           size="sm"
-          disabled={isEmptyTheme(theme)}
+          disabled={isDefault}
           onClick={onReset}
         >
           <RotateCcwIcon />
           Reset
         </Button>
       </header>
+      <PanelSection title="Style">
+        <StylePicker value={style} onValueChange={onStyleChange} />
+      </PanelSection>
       <PanelSection title="Preset">
         <PresetPicker
           activePresetId={activePreset?.id}

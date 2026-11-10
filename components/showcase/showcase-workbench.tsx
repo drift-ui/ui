@@ -1,18 +1,64 @@
 "use client"
 
-import { ThemePanel } from "@/components/showcase/theme-panel"
-import { useShowcaseTheme } from "@/hooks/use-showcase-theme"
+import { useEffect } from "react"
 
-export function ShowcaseWorkbench({ children }: { children: React.ReactNode }) {
-  const { theme, setTheme, resetTheme } = useShowcaseTheme()
+import { ThemeScopeControl } from "@/components/docs/theme-scope-control"
+import { ThemeToolbar } from "@/components/showcase/theme-toolbar"
+import { themeScopeCss } from "@/components/theme-scope-style"
+import { useHasHydrated } from "@/hooks/use-has-hydrated"
+import { useShowcaseTheme } from "@/hooks/use-showcase-theme"
+import { SHARE_PARAM, decodeShare, encodeShare } from "@/lib/showcase-share"
+import { DEFAULT_STYLE } from "@/lib/style-tokens"
+import { isEmptyTheme } from "@/lib/theme-css"
+
+function replaceShareParam(code: string | null) {
+  const url = new URL(window.location.href)
+  if (code) url.searchParams.set(SHARE_PARAM, code)
+  else url.searchParams.delete(SHARE_PARAM)
+  window.history.replaceState(window.history.state, "", url)
+}
+
+export function ShowcaseWorkbench({
+  sharedCode,
+  children,
+}: {
+  sharedCode: string | undefined
+  children: React.ReactNode
+}) {
+  const store = useShowcaseTheme()
+  const hasHydrated = useHasHydrated()
+  const shared = hasHydrated ? null : decodeShare(sharedCode ?? "")
+  const { theme, style } = shared ?? store
+  const isDefault = shared
+    ? isEmptyTheme(theme) && style === DEFAULT_STYLE
+    : store.isDefault
+  const { setTheme, setStyle, resetTheme } = store
+  const shareCode = isDefault ? null : encodeShare({ theme, style })
+
+  useEffect(() => {
+    replaceShareParam(shareCode)
+  }, [shareCode])
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-      <ThemePanel
+    <>
+      {shared && <style>{themeScopeCss(shared.theme, shared.style)}</style>}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-30 h-28 bg-linear-to-t from-background via-background/70 to-transparent"
+      />
+      <ThemeToolbar
         theme={theme}
+        style={style}
+        isDefault={isDefault}
         onThemeChange={setTheme}
+        onStyleChange={setStyle}
         onReset={resetTheme}
-        className="lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto"
+        className="fixed bottom-4 left-1/2 z-40 hidden -translate-x-1/2 lg:flex"
+      />
+      <ThemeScopeControl
+        side="top"
+        align="center"
+        className="fixed bottom-4 left-1/2 z-40 h-11 -translate-x-1/2 rounded-full border bg-popover/85 px-5 text-popover-foreground shadow-lg backdrop-blur-md lg:hidden"
       />
       <div
         data-showcase-canvas
@@ -20,6 +66,6 @@ export function ShowcaseWorkbench({ children }: { children: React.ReactNode }) {
       >
         {children}
       </div>
-    </div>
+    </>
   )
 }
