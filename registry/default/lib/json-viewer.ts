@@ -150,7 +150,15 @@ export function parsePath(path: string): string[] {
         try {
           const jsonStr =
             quote === "'"
-              ? `"${bracketContent.slice(1, -1).replace(/"/g, '\\"')}"`
+              ? `"${bracketContent
+                  .slice(1, -1)
+                  .replace(/\\(.)|"/g, (match, escaped?: string) =>
+                    escaped === undefined
+                      ? '\\"'
+                      : escaped === "'"
+                        ? "'"
+                        : match
+                  )}"`
               : bracketContent
           tokens.push(JSON.parse(jsonStr))
         } catch {
