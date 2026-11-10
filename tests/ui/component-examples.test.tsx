@@ -1,5 +1,6 @@
 import { readdirSync } from "node:fs"
 import { render } from "@testing-library/react"
+import axe from "axe-core"
 import { describe, expect, it } from "vitest"
 
 import { BASE_UI_PREVIEWS, PREVIEWS } from "@/components/docs/preview-registry"
@@ -56,12 +57,20 @@ describe("component examples", () => {
     expectNoPrefilledPasswords(render(<AccountSecurityCard />).container)
   })
 
-  it.each(EXAMPLES)("%s renders", (_, { Preview, BasePreview }) => {
+  it.each(EXAMPLES)("%s renders", async (_, { Preview, BasePreview }) => {
     const Example =
       (process.env.UI_PRIMITIVES === "base" && BasePreview) || Preview
     const { container } = render(<Example />)
 
     expect(container).not.toBeEmptyDOMElement()
     expectNoPrefilledPasswords(container)
+
+    const { violations } = await axe.run(container)
+    expect(
+      violations.map(({ id, nodes }) => ({
+        id,
+        targets: nodes.map((node) => node.target.join(" ")),
+      }))
+    ).toEqual([])
   })
 })
