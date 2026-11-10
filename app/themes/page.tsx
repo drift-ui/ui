@@ -27,12 +27,12 @@ export default async function ThemesPage({
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       <MotionProvider>
         <SiteNav />
-        <main className="mx-auto flex w-full max-w-[110rem] flex-1 flex-col gap-8 px-2 pt-10 pb-24 md:px-4 md:pt-14">
-          <header className="flex flex-col gap-3 px-2 md:px-6">
-            <h1 className="rise text-4xl leading-[1.05] font-medium tracking-tight md:text-5xl">
+        <main className="mx-auto flex w-full max-w-[110rem] flex-1 flex-col gap-8 px-2 pt-10 pb-24 md:px-4">
+          <header className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-2 md:px-10">
+            <h1 className="rise font-display text-5xl leading-[0.92] font-semibold tracking-[-0.045em] md:text-7xl">
               Themes
             </h1>
-            <p className="rise text-lg text-muted-foreground [--rise-delay:80ms]">
+            <p className="max-w-[78ch] rise text-muted-foreground [--rise-delay:80ms]">
               Try all {CATALOG.length} components in your style and theme before
               you install.
             </p>
