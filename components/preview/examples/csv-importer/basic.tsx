@@ -10,7 +10,10 @@ export function CsvImporterBasicPreview() {
   return (
     <div className="w-full max-w-xl space-y-4">
       {imported !== null ? (
-        <div className="rounded-lg border bg-muted/30 p-4 text-center text-sm">
+        <div
+          role="status"
+          className="rounded-lg border bg-muted/30 p-4 text-center text-sm"
+        >
           Imported {imported} contacts!
         </div>
       ) : (

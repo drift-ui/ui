@@ -110,6 +110,18 @@ describe("parseCsv", () => {
       totalRows: 0,
       truncated: false,
     })
+    expect(parseCsv("   \n\t  \r\n")).toEqual({
+      headers: [],
+      rows: [],
+      totalRows: 0,
+      truncated: false,
+    })
+  })
+
+  it("throws on unterminated quoted field at EOF", () => {
+    expect(() => parseCsv('name,age\n"Alice,25')).toThrow(
+      "Unterminated quoted field in CSV"
+    )
   })
 
   it("pads short rows and truncates long rows to header length", () => {
@@ -135,6 +147,15 @@ describe("parseCsv", () => {
       ["3", "C"],
     ])
     expect(result.truncated).toBe(true)
+  })
+
+  it("does not mark truncated when rows exactly equal maxRows with trailing newline", () => {
+    const csv = "id,name\n1,A\n2,B\n3,C\n"
+    const result = parseCsv(csv, { maxRows: 3 })
+
+    expect(result.headers).toEqual(["id", "name"])
+    expect(result.rows).toHaveLength(3)
+    expect(result.truncated).toBe(false)
   })
 })
 
@@ -253,6 +274,19 @@ describe("validateRow and buildRowRecords", () => {
     expect(summary.rows[1].errors.name).toBe("Name is required")
     expect(summary.rows[2].isValid).toBe(false)
     expect(summary.rows[2].errors.email).toBe("Must be a valid email")
+  })
+
+  it("handles duplicate headers when mapped by column index", () => {
+    const headers = ["Value", "Value"]
+    const mapping = {
+      name: "col-0",
+      email: "col-1",
+    }
+    const rawRows = [["Alice", "alice@example.com"]]
+
+    const summary = buildRowRecords(rawRows, headers, mapping, fields)
+    expect(summary.rows[0].values.name).toBe("Alice")
+    expect(summary.rows[0].values.email).toBe("alice@example.com")
   })
 })
 

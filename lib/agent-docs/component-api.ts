@@ -563,7 +563,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         },
         {
           name: "onComplete",
-          type: "(rows: Record<string, any>[]) => void",
+          type: "(rows: Record<string, unknown>[]) => void",
           required: true,
           description:
             "Called when import is confirmed with clean, validated, and transformed row objects.",
@@ -601,12 +601,22 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           description:
             "Whether to automatically suggest column mappings matching CSV headers against field ids and labels.",
         },
-        STATE_PROPS.value("number", "active step index (0 to 3)"),
-        STATE_PROPS.defaultValue("number", "0"),
-        STATE_PROPS.onValueChange(
-          "(step: number) => void",
-          "when the active step index changes"
-        ),
+        {
+          name: "step",
+          type: "number",
+          description: "Controlled active step index (0 to 3).",
+        },
+        {
+          name: "defaultStep",
+          type: "number",
+          default: "0",
+          description: "Initial active step index when uncontrolled.",
+        },
+        {
+          name: "onStepChange",
+          type: "(step: number) => void",
+          description: "Called when the active step index changes.",
+        },
         {
           name: "defaultFile",
           type: "File",

@@ -27,7 +27,7 @@ const FIELDS: CsvField[] = [
     required: true,
     description: "Company email address for notifications and SSO",
     validate: (val) =>
-      typeof val === "string" && val.includes("@")
+      typeof val === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
         ? true
         : "Must be a valid email address",
   },

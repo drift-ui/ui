@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react"
 import * as React from "react"
 import { describe, expect, it, vi } from "vitest"
 
@@ -50,7 +56,9 @@ describe("CsvImporter", () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText("Map Columns")).toBeInTheDocument()
+      expect(
+        within(screen.getByRole("tabpanel")).getByText("Map Columns")
+      ).toBeInTheDocument()
     })
 
     expect(screen.getByText(/users.csv/)).toBeInTheDocument()
@@ -64,7 +72,9 @@ describe("CsvImporter", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText("Map Columns")).toBeInTheDocument()
+      expect(
+        within(screen.getByRole("tabpanel")).getByText("Map Columns")
+      ).toBeInTheDocument()
     })
 
     const nameSelect = screen.getByLabelText(
@@ -75,9 +85,9 @@ describe("CsvImporter", () => {
     ) as HTMLSelectElement
     const roleSelect = screen.getByLabelText("Map Role") as HTMLSelectElement
 
-    expect(nameSelect.value).toBe("Full Name")
-    expect(emailSelect.value).toBe("Work Email")
-    expect(roleSelect.value).toBe("Role")
+    expect(nameSelect.value).toBe("col-0")
+    expect(emailSelect.value).toBe("col-1")
+    expect(roleSelect.value).toBe("col-2")
   })
 
   it("prevents proceeding to review when required fields are unmapped", async () => {
@@ -92,7 +102,9 @@ describe("CsvImporter", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText("Map Columns")).toBeInTheDocument()
+      expect(
+        within(screen.getByRole("tabpanel")).getByText("Map Columns")
+      ).toBeInTheDocument()
     })
 
     expect(
@@ -112,7 +124,9 @@ describe("CsvImporter", () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText("Map Columns")).toBeInTheDocument()
+      expect(
+        within(screen.getByRole("tabpanel")).getByText("Map Columns")
+      ).toBeInTheDocument()
     })
 
     const continueToReview = screen.getByRole("button", {
@@ -209,5 +223,99 @@ describe("CsvImporter", () => {
       { name: "Alice Smith", email: "alice@example.com", role: "Admin" },
       { name: "Bob Jones", email: "bob@example.com", role: "Member" },
     ])
+  })
+
+  it("resets when Escape is pressed on the importer container", async () => {
+    const onCancel = vi.fn()
+    const file = makeCsvFile("team.csv", VALID_CSV)
+    render(
+      <CsvImporter
+        fields={FIELDS}
+        defaultFile={file}
+        onComplete={vi.fn()}
+        onCancel={onCancel}
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        within(screen.getByRole("tabpanel")).getByText("Map Columns")
+      ).toBeInTheDocument()
+    })
+
+    const importer = document.querySelector(
+      "[data-slot=csv-importer]"
+    ) as HTMLElement
+    expect(importer).toBeInTheDocument()
+
+    fireEvent.keyDown(importer, { key: "Escape" })
+
+    await waitFor(() => {
+      expect(screen.getByText("Upload CSV File")).toBeInTheDocument()
+    })
+    expect(onCancel).toHaveBeenCalled()
+  })
+
+  it("preserves edited rows when returning to mapping and continuing without mapping changes", async () => {
+    const file = makeCsvFile("bad.csv", CSV_WITH_INVALID)
+    render(
+      <CsvImporter fields={FIELDS} defaultFile={file} onComplete={vi.fn()} />
+    )
+
+    await waitFor(() => {
+      expect(
+        within(screen.getByRole("tabpanel")).getByText("Map Columns")
+      ).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole("button", { name: /continue to review/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText("Review & Fix Data")).toBeInTheDocument()
+    })
+
+    const emailInput = screen.getByLabelText("Work Email row 2")
+    fireEvent.change(emailInput, { target: { value: "fixed@example.com" } })
+
+    // Return to Mapping step
+    fireEvent.click(screen.getByRole("button", { name: "Back" }))
+
+    await waitFor(() => {
+      expect(
+        within(screen.getByRole("tabpanel")).getByText("Map Columns")
+      ).toBeInTheDocument()
+    })
+
+    // Continue to Review step without changing any mapping
+    fireEvent.click(screen.getByRole("button", { name: /continue to review/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText("Review & Fix Data")).toBeInTheDocument()
+    })
+
+    const preservedEmailInput = screen.getByLabelText(
+      "Work Email row 2"
+    ) as HTMLInputElement
+    expect(preservedEmailInput.value).toBe("fixed@example.com")
+  })
+
+  it("rejects defaultFile that exceeds maxFileSize", async () => {
+    const largeFile = new File(["a".repeat(200)], "large.csv", {
+      type: "text/csv",
+    })
+    render(
+      <CsvImporter
+        fields={FIELDS}
+        defaultFile={largeFile}
+        maxFileSize={100}
+        onComplete={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/File exceeds maximum allowed size/i)
+      ).toBeInTheDocument()
+    })
   })
 })

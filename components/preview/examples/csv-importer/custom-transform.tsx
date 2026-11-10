@@ -25,8 +25,12 @@ export function CsvImporterCustomTransformPreview() {
             {
               id: "amount",
               label: "Transaction Amount",
-              transform: (val) =>
-                parseFloat(val.replace(/[^0-9.-]+/g, "")) || 0,
+              validate: (val) =>
+                typeof val === "string" &&
+                /^-?\d+(\.\d{1,2})?$/.test(val.trim())
+                  ? true
+                  : "Must be a valid decimal amount",
+              transform: (val) => parseFloat(val.trim()),
             },
             {
               id: "isActive",

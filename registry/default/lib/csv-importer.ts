@@ -56,6 +56,15 @@ export function parseCsv(
   options?: { maxRows?: number }
 ): CsvParseResult {
   const text = stripBom(csv)
+  if (!text.trim()) {
+    return {
+      headers: [],
+      rows: [],
+      totalRows: 0,
+      truncated: false,
+    }
+  }
+
   const maxRows = options?.maxRows ?? Infinity
   const records: string[][] = []
   let currentRecord: string[] = []
@@ -103,7 +112,7 @@ export function parseCsv(
         currentField = ""
         if (currentRecord.length > 1 || currentRecord[0] !== "") {
           records.push(currentRecord)
-          if (records.length - 1 >= maxRows) {
+          if (records.length - 1 > maxRows) {
             const rawHeaders = records[0]
             const headers = rawHeaders.map((h) => h.trim())
             const rows = records.slice(1, maxRows + 1).map((row) => {
@@ -128,7 +137,7 @@ export function parseCsv(
         currentField = ""
         if (currentRecord.length > 1 || currentRecord[0] !== "") {
           records.push(currentRecord)
-          if (records.length - 1 >= maxRows) {
+          if (records.length - 1 > maxRows) {
             const rawHeaders = records[0]
             const headers = rawHeaders.map((h) => h.trim())
             const rows = records.slice(1, maxRows + 1).map((row) => {
@@ -154,6 +163,10 @@ export function parseCsv(
         continue
       }
     }
+  }
+
+  if (inQuotes) {
+    throw new Error("Unterminated quoted field in CSV")
   }
 
   // Handle final field and record
@@ -287,9 +300,16 @@ export function buildRowRecords(
 ): ValidationSummary {
   const fieldHeaderIndices: Record<string, number> = {}
   for (const field of fields) {
-    const headerName = mapping[field.id]
-    if (headerName) {
-      const idx = headers.indexOf(headerName)
+    const val = mapping[field.id]
+    if (val !== undefined && val !== "") {
+      if (typeof val === "string" && val.startsWith("col-")) {
+        const colIdx = parseInt(val.slice(4), 10)
+        if (!isNaN(colIdx) && colIdx >= 0 && colIdx < headers.length) {
+          fieldHeaderIndices[field.id] = colIdx
+          continue
+        }
+      }
+      const idx = headers.indexOf(val)
       if (idx !== -1) fieldHeaderIndices[field.id] = idx
     }
   }

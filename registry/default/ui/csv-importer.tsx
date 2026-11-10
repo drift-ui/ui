@@ -110,14 +110,19 @@ export function CsvImporter({
   const [rawRows, setRawRows] = React.useState<string[][]>([])
   const [isTruncated, setIsTruncated] = React.useState(false)
 
-  // Mapping state: fieldId -> CSV header name
+  // Mapping state: fieldId -> CSV header name or col-X index
   const [mapping, setMapping] = React.useState<Record<string, string>>({})
+  const [lastBuiltMappingKey, setLastBuiltMappingKey] = React.useState<
+    string | null
+  >(null)
 
   // Row records state for review step
   const [rowRecords, setRowRecords] = React.useState<CsvRowRecord[]>([])
   const [reviewFilter, setReviewFilter] = React.useState<
     "all" | "invalid" | "valid"
   >("all")
+
+  const defaultFileInitializedRef = React.useRef(false)
 
   // Handle file acceptance and CSV parsing
   const handleFilesAccepted = React.useCallback(
@@ -144,6 +149,9 @@ export function CsvImporter({
         setHeaders(result.headers)
         setRawRows(result.rows)
         setIsTruncated(result.truncated)
+        setRowRecords([])
+        setLastBuiltMappingKey(null)
+        setReviewFilter("all")
 
         if (autoMap) {
           const suggested = suggestColumnMapping(result.headers, fields)
@@ -165,40 +173,56 @@ export function CsvImporter({
   )
 
   React.useEffect(() => {
-    if (!defaultFile || file) return
+    if (!defaultFile || defaultFileInitializedRef.current) return
+    defaultFileInitializedRef.current = true
+
     let active = true
 
-    void defaultFile.text().then((text) => {
+    void Promise.resolve().then(() => {
       if (!active) return
-      try {
-        const result = parseCsv(text, { maxRows })
-        if (result.headers.length === 0) {
-          setParseError(
-            "The CSV file is empty or does not contain a header row."
-          )
-          return
-        }
-        setFile(defaultFile)
-        setHeaders(result.headers)
-        setRawRows(result.rows)
-        setIsTruncated(result.truncated)
-        if (autoMap) {
-          setMapping(suggestColumnMapping(result.headers, fields))
-        } else {
-          setMapping({})
-        }
-        setActiveStep(1)
-      } catch (err) {
+
+      if (maxFileSize !== undefined && defaultFile.size > maxFileSize) {
         setParseError(
-          err instanceof Error ? err.message : "Failed to parse CSV file."
+          `File exceeds maximum allowed size of ${formatBytes(maxFileSize)}.`
         )
+        return
       }
+
+      return defaultFile.text().then((text) => {
+        if (!active) return
+        try {
+          const result = parseCsv(text, { maxRows })
+          if (result.headers.length === 0) {
+            setParseError(
+              "The CSV file is empty or does not contain a header row."
+            )
+            return
+          }
+          setFile(defaultFile)
+          setHeaders(result.headers)
+          setRawRows(result.rows)
+          setIsTruncated(result.truncated)
+          setRowRecords([])
+          setLastBuiltMappingKey(null)
+          setReviewFilter("all")
+          if (autoMap) {
+            setMapping(suggestColumnMapping(result.headers, fields))
+          } else {
+            setMapping({})
+          }
+          setActiveStep(1)
+        } catch (err) {
+          setParseError(
+            err instanceof Error ? err.message : "Failed to parse CSV file."
+          )
+        }
+      })
     })
 
     return () => {
       active = false
     }
-  }, [defaultFile, file, maxRows, autoMap, fields, setActiveStep])
+  }, [defaultFile, maxFileSize, maxRows, autoMap, fields, setActiveStep])
 
   // Check required fields mapping
   const unmappedRequiredFields = React.useMemo(() => {
@@ -209,10 +233,22 @@ export function CsvImporter({
 
   // Advance from Mapping to Review
   const handleProceedToReview = React.useCallback(() => {
-    const summary = buildRowRecords(rawRows, headers, mapping, fields)
-    setRowRecords(summary.rows)
+    const currentKey = JSON.stringify(mapping)
+    if (rowRecords.length === 0 || lastBuiltMappingKey !== currentKey) {
+      const summary = buildRowRecords(rawRows, headers, mapping, fields)
+      setRowRecords(summary.rows)
+      setLastBuiltMappingKey(currentKey)
+    }
     setActiveStep(2)
-  }, [fields, headers, mapping, rawRows, setActiveStep])
+  }, [
+    fields,
+    headers,
+    lastBuiltMappingKey,
+    mapping,
+    rawRows,
+    rowRecords.length,
+    setActiveStep,
+  ])
 
   // Cell edit in Review step
   const handleCellChange = React.useCallback(
@@ -274,10 +310,33 @@ export function CsvImporter({
     setRawRows([])
     setMapping({})
     setRowRecords([])
+    setLastBuiltMappingKey(null)
+    setReviewFilter("all")
     setParseError(null)
     setActiveStep(0)
     onCancel?.()
   }, [onCancel, setActiveStep])
+
+  // Keyboard shortcut listener: Escape resets or cancels active step
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Escape") {
+        const target = e.target as HTMLElement
+        if (
+          target &&
+          (target.tagName === "INPUT" || target.tagName === "SELECT")
+        ) {
+          target.blur()
+          return
+        }
+        if (activeStep > 0) {
+          e.preventDefault()
+          handleReset()
+        }
+      }
+    },
+    [activeStep, handleReset]
+  )
 
   // Final Complete Import
   const handleCompleteImport = React.useCallback(() => {
@@ -289,6 +348,7 @@ export function CsvImporter({
     <Card
       data-slot="csv-importer"
       className={cn("w-full overflow-hidden shadow-xs", className)}
+      onKeyDown={handleKeyDown}
       {...props}
     >
       <CardHeader className="border-b pb-4">
@@ -418,10 +478,24 @@ export function CsvImporter({
 
               <div className="space-y-3 divide-y rounded-lg border bg-card p-4">
                 {fields.map((field) => {
-                  const selectedHeader = mapping[field.id] ?? ""
-                  const colIdx = headers.indexOf(selectedHeader)
+                  const mappedVal = mapping[field.id] ?? ""
+                  let colIdx = -1
+                  if (
+                    typeof mappedVal === "string" &&
+                    mappedVal.startsWith("col-")
+                  ) {
+                    colIdx = parseInt(mappedVal.slice(4), 10)
+                  } else if (mappedVal) {
+                    colIdx = headers.indexOf(mappedVal)
+                  }
+
+                  const selectedSelectValue =
+                    colIdx >= 0 && colIdx < headers.length
+                      ? `col-${colIdx}`
+                      : ""
+
                   const sampleValues =
-                    colIdx !== -1
+                    colIdx >= 0 && colIdx < headers.length
                       ? rawRows
                           .slice(0, sampleRowsCount)
                           .map((r) => r[colIdx] ?? "")
@@ -462,25 +536,39 @@ export function CsvImporter({
                         <select
                           id={`map-${field.id}`}
                           aria-label={`Map ${field.label}`}
-                          value={selectedHeader}
+                          value={selectedSelectValue}
                           onChange={(e) => {
                             const val = e.target.value
-                            setMapping((prev) => ({
-                              ...prev,
-                              [field.id]: val,
-                            }))
+                            setMapping((prev) => {
+                              if (prev[field.id] === val) return prev
+                              return {
+                                ...prev,
+                                [field.id]: val,
+                              }
+                            })
+                            setRowRecords([])
+                            setLastBuiltMappingKey(null)
                           }}
                           className={SELECT_CLASS_NAME}
                         >
                           <option value="">-- Do not import --</option>
-                          {headers.map((h) => (
-                            <option key={h} value={h}>
-                              {h}
-                            </option>
-                          ))}
+                          {headers.map((h, idx) => {
+                            const isDuplicate =
+                              headers.filter((header) => header === h).length >
+                              1
+                            const label = isDuplicate
+                              ? `${h} (Column ${idx + 1})`
+                              : h
+                            const colKey = `col-${idx}`
+                            return (
+                              <option key={colKey} value={colKey}>
+                                {label}
+                              </option>
+                            )
+                          })}
                         </select>
 
-                        {selectedHeader && sampleValues.length > 0 && (
+                        {selectedSelectValue && sampleValues.length > 0 && (
                           <p className="truncate text-xs text-muted-foreground">
                             Preview:{" "}
                             <span className="font-mono text-[11px] text-foreground">
