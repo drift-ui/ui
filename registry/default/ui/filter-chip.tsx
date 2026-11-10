@@ -334,7 +334,7 @@ function TypedValueEditor({
           onKeyDown={(event) => {
             if (event.key === "Enter") handleOpenChange(false)
           }}
-          className="h-8"
+          className="h-control-sm"
         />
       </PopoverContent>
     </Popover>
@@ -409,7 +409,7 @@ function FilterChip({
     <div
       data-slot="filter-chip"
       className={cn(
-        "inline-flex h-8 items-stretch divide-x overflow-hidden rounded-md border bg-background text-sm shadow-xs dark:bg-input/30",
+        "inline-flex h-control-sm items-stretch divide-x overflow-hidden rounded-control border bg-background text-sm shadow-control dark:bg-input/30",
         className
       )}
       {...props}

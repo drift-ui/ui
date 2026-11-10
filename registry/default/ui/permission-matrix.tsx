@@ -275,7 +275,7 @@ export function PermissionMatrix({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={searchPlaceholder}
               aria-label={searchPlaceholder}
-              className="h-8 pl-8 text-xs"
+              className="h-control-sm pl-8 text-xs"
             />
             {searchQuery && (
               <button

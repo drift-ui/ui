@@ -449,7 +449,7 @@ function SavedViews<T = unknown>({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 gap-1 px-2 text-xs"
+          className="h-control-sm gap-1 px-2 text-xs"
           onClick={() => onReset?.(activeView)}
         >
           <RotateCcwIcon className="size-3.5" />
@@ -459,7 +459,7 @@ function SavedViews<T = unknown>({
       <Button
         type="button"
         size="sm"
-        className="h-8 gap-1 px-2.5 text-xs shadow-xs aria-disabled:opacity-50 motion-safe:aria-busy:animate-pulse"
+        className="h-control-sm gap-1 px-2.5 text-xs shadow-control aria-disabled:opacity-50 motion-safe:aria-busy:animate-pulse"
         aria-disabled={isActivePending || undefined}
         aria-busy={isActivePending || undefined}
         onClick={handleSave}
@@ -499,7 +499,7 @@ function SavedViews<T = unknown>({
         <Popover open={selectOpen} onOpenChange={setSelectOpen}>
           <PopoverTrigger
             type="button"
-            className="flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="flex h-control items-center gap-2 rounded-control border border-input bg-background px-3 py-1 text-sm shadow-control transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
             aria-label={`${ariaLabel}: ${activeView?.name ?? "Select view"}`}
           >
             <span className="flex items-center gap-1.5 font-medium">
@@ -772,7 +772,7 @@ function SavedViews<T = unknown>({
                   value={newViewName}
                   onChange={(e) => setNewViewName(e.target.value)}
                   placeholder={placeholder}
-                  className="h-8 text-xs"
+                  className="h-control-sm text-xs"
                 />
                 <div className="flex justify-end gap-1.5">
                   <Button

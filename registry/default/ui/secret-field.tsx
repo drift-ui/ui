@@ -43,7 +43,7 @@ function SecretField({
       data-slot="secret-field"
       data-revealed={revealed}
       className={cn(
-        "flex h-9 w-full min-w-0 items-center gap-1 rounded-md border bg-transparent pr-1 pl-3 font-mono text-sm shadow-xs dark:bg-input/30",
+        "flex h-control w-full min-w-0 items-center gap-1 rounded-control border bg-transparent pr-1 pl-3 font-mono text-sm shadow-control dark:bg-input/30",
         className
       )}
       {...props}

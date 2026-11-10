@@ -65,7 +65,7 @@ export interface CsvImporterProps extends Omit<
 }
 
 const SELECT_CLASS_NAME =
-  "h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 [&>option]:bg-popover [&>option]:text-popover-foreground"
+  "h-control w-full rounded-control border border-input bg-background px-3 py-1 text-sm shadow-control transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 [&>option]:bg-popover [&>option]:text-popover-foreground"
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return "0 B"
@@ -758,7 +758,7 @@ export function CsvImporter({
                                     )
                                   }
                                   className={cn(
-                                    "h-8 text-xs",
+                                    "h-control-sm text-xs",
                                     Boolean(error) &&
                                       "border-destructive focus-visible:ring-destructive/30"
                                   )}

@@ -400,7 +400,7 @@ function JsonViewer({
             placeholder="Search keys and values"
             value={query}
             onChange={(event) => search(event.target.value)}
-            className="h-8"
+            className="h-control-sm"
           />
           <button
             type="button"
@@ -408,7 +408,7 @@ function JsonViewer({
             aria-pressed={showPathFilterInput}
             onClick={() => setShowPathFilterInput((prev) => !prev)}
             className={cn(
-              "inline-flex size-8 shrink-0 items-center justify-center rounded-md border text-xs font-medium transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50",
+              "inline-flex size-control-sm shrink-0 items-center justify-center rounded-control border text-xs font-medium transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50",
               (showPathFilterInput || activePathFilter) &&
                 "border-primary bg-accent text-primary"
             )}
@@ -431,7 +431,7 @@ function JsonViewer({
               placeholder="Filter path pattern, e.g. users[*].email"
               value={pathFilterState}
               onChange={(e) => setPathFilterState(e.target.value)}
-              className="h-8 font-mono text-xs"
+              className="h-control-sm font-mono text-xs"
             />
             {activePathFilter && (
               <button

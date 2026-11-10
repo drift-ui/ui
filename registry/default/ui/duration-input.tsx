@@ -249,7 +249,7 @@ function DurationInput({
       data-slot="duration-input"
       data-disabled={disabled ? "" : undefined}
       className={cn(
-        "inline-flex h-9 w-fit items-center rounded-md border border-input bg-transparent px-2 font-mono text-sm tabular-nums shadow-xs transition-[color,box-shadow] dark:bg-input/30",
+        "inline-flex h-control w-fit items-center rounded-control border border-input bg-transparent px-2 font-mono text-sm tabular-nums shadow-control transition-[color,box-shadow] dark:bg-input/30",
         "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className

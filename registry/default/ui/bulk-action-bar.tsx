@@ -107,7 +107,7 @@ function BulkActionBar({
                   size="icon"
                   aria-label="Clear selection"
                   onClick={onClear}
-                  className="size-8"
+                  className="size-control-sm"
                 >
                   <XIcon />
                 </Button>

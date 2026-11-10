@@ -192,7 +192,7 @@ function TransferPanel<T extends TransferItem>({
             }}
             placeholder={`Search ${title.toLowerCase()}...`}
             disabled={disabled}
-            className="h-8 pr-7 pl-8 text-xs md:text-xs"
+            className="h-control-sm pr-7 pl-8 text-xs md:text-xs"
           />
           {query && (
             <button
@@ -355,7 +355,7 @@ export function TransferList<T extends TransferItem = TransferItem>({
           aria-label={`Move all to ${titles[1]}`}
           disabled={disabled || source.enabledIds.length === 0}
           onClick={() => move(source.enabledIds, "toTarget")}
-          className="size-8"
+          className="size-control-sm"
         >
           <ChevronsRightIcon className="size-4 rotate-90 sm:rotate-0" />
         </Button>
@@ -366,7 +366,7 @@ export function TransferList<T extends TransferItem = TransferItem>({
           aria-label={`Move selected to ${titles[1]}`}
           disabled={disabled || source.movableIds.length === 0}
           onClick={() => move(source.movableIds, "toTarget")}
-          className="size-8"
+          className="size-control-sm"
         >
           <ChevronRightIcon className="size-4 rotate-90 sm:rotate-0" />
         </Button>
@@ -377,7 +377,7 @@ export function TransferList<T extends TransferItem = TransferItem>({
           aria-label={`Move selected to ${titles[0]}`}
           disabled={disabled || target.movableIds.length === 0}
           onClick={() => move(target.movableIds, "toSource")}
-          className="size-8"
+          className="size-control-sm"
         >
           <ChevronLeftIcon className="size-4 rotate-90 sm:rotate-0" />
         </Button>
@@ -388,7 +388,7 @@ export function TransferList<T extends TransferItem = TransferItem>({
           aria-label={`Move all to ${titles[0]}`}
           disabled={disabled || target.enabledIds.length === 0}
           onClick={() => move(target.enabledIds, "toSource")}
-          className="size-8"
+          className="size-control-sm"
         >
           <ChevronsLeftIcon className="size-4 rotate-90 sm:rotate-0" />
         </Button>

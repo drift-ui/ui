@@ -121,7 +121,7 @@ function OnboardingChecklist({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-8 text-muted-foreground"
+                className="size-control-sm text-muted-foreground"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-expanded={isOpen}
                 aria-controls={contentId}
@@ -229,7 +229,7 @@ function OnboardingChecklist({
                         role={item.action.disabled ? "link" : undefined}
                         className={cn(
                           buttonVariants({ variant: "outline", size: "sm" }),
-                          "h-8 text-xs",
+                          "h-control-sm text-xs",
                           item.action.disabled &&
                             "pointer-events-none opacity-50"
                         )}
@@ -248,7 +248,7 @@ function OnboardingChecklist({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-8 text-xs"
+                        className="h-control-sm text-xs"
                         disabled={item.action.disabled}
                         onClick={item.action.onClick}
                       >

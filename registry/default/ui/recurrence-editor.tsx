@@ -34,7 +34,7 @@ const UNIT_LABELS: Record<Frequency, [string, string]> = {
 const DEFAULT_COUNT = 10
 const DEFAULT_UNTIL_MONTHS = 3
 const SELECT_CLASS_NAME =
-  "h-9 rounded-md border border-input bg-transparent px-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30 [&>option]:bg-popover [&>option]:text-popover-foreground"
+  "h-control rounded-control border border-input bg-transparent px-2 text-base shadow-control outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30 [&>option]:bg-popover [&>option]:text-popover-foreground"
 
 function subscribeToNothing() {
   return () => {}
@@ -282,7 +282,7 @@ function RecurrenceEditor({
 
       <fieldset className="grid gap-2">
         <legend className="mb-2 font-medium">Ends</legend>
-        <label className="flex h-9 items-center gap-2">
+        <label className="flex h-control items-center gap-2">
           <input
             type="radio"
             name={`${id}-end`}

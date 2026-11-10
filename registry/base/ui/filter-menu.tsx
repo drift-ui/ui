@@ -43,7 +43,7 @@ function FilterMenu({
           <MenuPrimitive.Popup
             data-slot="filter-menu"
             finalFocus={shouldRestoreFocus}
-            className="z-50 max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95"
+            className="z-50 max-h-(--available-height) min-w-36 origin-(--transform-origin) overflow-y-auto rounded-box border bg-popover p-1 text-popover-foreground shadow-md outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95"
           >
             {children}
           </MenuPrimitive.Popup>

@@ -242,7 +242,7 @@ function MultiSelect({
           open()
         }}
         className={cn(
-          "flex min-h-9 w-full min-w-0 cursor-text flex-wrap items-center gap-1.5 rounded-md border border-input bg-transparent px-2 py-1.5 text-base shadow-xs transition-[color,box-shadow] md:text-sm dark:bg-input/30",
+          "flex min-h-control w-full min-w-0 cursor-text flex-wrap items-center gap-1.5 rounded-control border border-input bg-transparent px-2 py-1.5 text-base shadow-control transition-[color,box-shadow] md:text-sm dark:bg-input/30",
           "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
           "has-[input[aria-invalid=true]]:border-destructive has-[input[aria-invalid=true]]:ring-destructive/20",
           "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
@@ -345,7 +345,7 @@ function MultiSelect({
             initialFocus={false}
             finalFocus={false}
             onPointerDown={(event) => event.preventDefault()}
-            className="z-50 w-(--anchor-width) origin-(--transform-origin) rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95"
+            className="z-50 w-(--anchor-width) origin-(--transform-origin) rounded-box border bg-popover p-1 text-popover-foreground shadow-md outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95"
           >
             {itemCount === 0 ? (
               <p className="px-2 py-1.5 text-sm text-muted-foreground">

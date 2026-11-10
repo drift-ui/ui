@@ -307,7 +307,7 @@ function MentionTextarea({
       onBlur?.(event)
     },
     className: cn(
-      "flex field-sizing-content min-h-16 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30",
+      "flex field-sizing-content min-h-16 w-full rounded-box border border-input bg-transparent px-3 py-2 text-base shadow-control transition-[color,box-shadow] outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30",
       "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
       className
     ),
@@ -384,7 +384,7 @@ function MentionTextarea({
           <PopoverPrimitive.Popup
             initialFocus={false}
             finalFocus={false}
-            className="z-50 w-64 origin-(--transform-origin) rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95"
+            className="z-50 w-64 origin-(--transform-origin) rounded-box border bg-popover p-1 text-popover-foreground shadow-md outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95"
           >
             {list}
           </PopoverPrimitive.Popup>

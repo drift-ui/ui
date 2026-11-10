@@ -67,7 +67,7 @@ function HexInput({
       onKeyDown={(event) => {
         if (event.key === "Enter") onCommit(draft)
       }}
-      className="h-8 font-mono text-xs"
+      className="h-control-sm font-mono text-xs"
     />
   )
 }
@@ -157,7 +157,7 @@ function ColorPicker({
               size="icon"
               aria-label="Pick a color from the screen"
               onClick={pickFromScreen}
-              className="size-8"
+              className="size-control-sm"
             >
               <PipetteIcon />
             </Button>

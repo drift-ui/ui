@@ -273,7 +273,7 @@ function PhoneInput({
       data-slot="phone-input"
       data-disabled={disabled ? "" : undefined}
       className={cn(
-        "flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent text-base shadow-xs transition-[color,box-shadow] md:text-sm dark:bg-input/30",
+        "flex h-control w-full min-w-0 rounded-control border border-input bg-transparent text-base shadow-control transition-[color,box-shadow] md:text-sm dark:bg-input/30",
         "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
         "has-[input[aria-invalid=true]]:border-destructive has-[input[aria-invalid=true]]:ring-destructive/20",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",

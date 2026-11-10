@@ -120,7 +120,7 @@ function TimezonePicker({
         disabled={disabled}
         data-slot="timezone-picker"
         className={cn(
-          "flex h-9 w-full min-w-0 items-center gap-2 rounded-md border border-input bg-transparent px-3 text-left text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
+          "flex h-control w-full min-w-0 items-center gap-2 rounded-control border border-input bg-transparent px-3 text-left text-sm shadow-control outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
           className
         )}
         {...props}

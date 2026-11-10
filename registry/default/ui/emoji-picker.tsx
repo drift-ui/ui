@@ -252,7 +252,7 @@ function EmojiPicker({
           if (gridRef.current) gridRef.current.scrollTop = 0
         }}
         onKeyDown={handleSearchKeyDown}
-        className="h-8"
+        className="h-control-sm"
       />
       {!needle && layout.sections.length > 0 && (
         <div aria-hidden className="flex justify-between">

@@ -146,7 +146,7 @@ function SignaturePad({
       <div
         data-slot="signature-pad-surface"
         className={cn(
-          "relative overflow-hidden rounded-md border border-input bg-transparent shadow-xs dark:bg-input/30",
+          "relative overflow-hidden rounded-box border border-input bg-transparent shadow-control dark:bg-input/30",
           disabled && "opacity-50"
         )}
       >

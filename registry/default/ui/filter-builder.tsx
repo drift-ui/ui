@@ -239,7 +239,7 @@ function FilterBuilder({
             data-slot="filter-builder-conjunction"
             aria-label={`Conjunction: ${group.conjunction.toUpperCase()}`}
             onClick={() => toggleConjunction(group.id)}
-            className="h-8 font-mono text-xs font-semibold uppercase"
+            className="h-control-sm font-mono text-xs font-semibold uppercase"
           >
             {group.conjunction}
           </Button>
