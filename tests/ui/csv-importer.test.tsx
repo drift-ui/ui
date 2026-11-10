@@ -318,4 +318,33 @@ describe("CsvImporter", () => {
       ).toBeInTheDocument()
     })
   })
+
+  it("composes caller-provided onKeyDown with Escape reset", async () => {
+    const callerKeyDown = vi.fn()
+    const file = makeCsvFile("team.csv", VALID_CSV)
+    render(
+      <CsvImporter
+        fields={FIELDS}
+        defaultFile={file}
+        onComplete={vi.fn()}
+        onKeyDown={callerKeyDown}
+      />
+    )
+
+    await waitFor(() => {
+      expect(
+        within(screen.getByRole("tabpanel")).getByText("Map Columns")
+      ).toBeInTheDocument()
+    })
+
+    const importer = document.querySelector(
+      "[data-slot=csv-importer]"
+    ) as HTMLElement
+    fireEvent.keyDown(importer, { key: "Escape" })
+
+    expect(callerKeyDown).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(screen.getByText("Upload CSV File")).toBeInTheDocument()
+    })
+  })
 })

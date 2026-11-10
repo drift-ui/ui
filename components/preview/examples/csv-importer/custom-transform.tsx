@@ -25,12 +25,25 @@ export function CsvImporterCustomTransformPreview() {
             {
               id: "amount",
               label: "Transaction Amount",
-              validate: (val) =>
-                typeof val === "string" &&
-                /^-?\d+(\.\d{1,2})?$/.test(val.trim())
-                  ? true
-                  : "Must be a valid decimal amount",
-              transform: (val) => parseFloat(val.trim()),
+              validate: (val) => {
+                const trimmed = typeof val === "string" ? val.trim() : ""
+                if (!trimmed) return true
+                if (!/^-?\d{1,12}(\.\d{1,2})?$/.test(trimmed)) {
+                  return "Must be a valid decimal amount"
+                }
+                const num = Number(trimmed)
+                if (
+                  !Number.isFinite(num) ||
+                  Math.abs(num) > Number.MAX_SAFE_INTEGER
+                ) {
+                  return "Amount exceeds safe range"
+                }
+                return true
+              },
+              transform: (val) => {
+                const trimmed = typeof val === "string" ? val.trim() : ""
+                return trimmed ? parseFloat(trimmed) : 0
+              },
             },
             {
               id: "isActive",

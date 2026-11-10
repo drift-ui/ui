@@ -93,6 +93,7 @@ export function CsvImporter({
   onStepChange,
   defaultFile,
   className,
+  onKeyDown,
   ...props
 }: CsvImporterProps) {
   const { value: activeStep, setValue: setActiveStep } =
@@ -320,6 +321,9 @@ export function CsvImporter({
   // Keyboard shortcut listener: Escape resets or cancels active step
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      onKeyDown?.(e)
+      if (e.defaultPrevented) return
+
       if (e.key === "Escape") {
         const target = e.target as HTMLElement
         if (
@@ -335,7 +339,7 @@ export function CsvImporter({
         }
       }
     },
-    [activeStep, handleReset]
+    [activeStep, handleReset, onKeyDown]
   )
 
   // Final Complete Import
