@@ -233,6 +233,7 @@ export function ActivityHeatmap({
                       key={weekIdx}
                       role="columnheader"
                       aria-colindex={weekIdx + (showWeekdayLabels ? 2 : 1)}
+                      aria-hidden={month ? undefined : true}
                       className="h-4 min-w-[12px] p-0 leading-none font-normal"
                     >
                       {month ?? ""}
@@ -261,7 +262,11 @@ export function ActivityHeatmap({
                       aria-colindex={1}
                       className="w-7 min-w-7 pr-1.5 text-right text-[10px] leading-none font-normal text-muted-foreground"
                     >
-                      {showThisLabel ? weekday : ""}
+                      {showThisLabel ? (
+                        weekday
+                      ) : (
+                        <span className="sr-only">{weekday}</span>
+                      )}
                     </th>
                   )}
                   {rowCells.map((cell, colIdx) => {
@@ -331,6 +336,7 @@ export function ActivityHeatmap({
             {formatDateLabel(layout.endDate, true)}
           </span>
           <div
+            role="group"
             className="flex items-center gap-1.5"
             aria-label="Activity intensity scale"
           >
@@ -338,6 +344,7 @@ export function ActivityHeatmap({
             {[0, 1, 2, 3, 4].map((lvl) => (
               <span
                 key={lvl}
+                role="img"
                 aria-label={`Level ${lvl}`}
                 className={cn(
                   "size-3 rounded-[2px]",
