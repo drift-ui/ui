@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -32,7 +33,11 @@ jobs:
         run: bun run lint
 
       - name: Test
-        run: bun run test
+        run: bun run test --coverage
+
+      - uses: codecov/codecov-action@v7
+        with:
+          use_oidc: ${{ !github.event.pull_request.head.repo.fork }}
 
       - name: Build
         run: bun run build
