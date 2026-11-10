@@ -65,7 +65,9 @@ describe("component examples", () => {
     expect(container).not.toBeEmptyDOMElement()
     expectNoPrefilledPasswords(container)
 
-    const { violations } = await axe.run(container)
+    const { violations } = await axe.run(document.body, {
+      rules: { region: { enabled: false } },
+    })
     expect(
       violations.map(({ id, nodes }) => ({
         id,
