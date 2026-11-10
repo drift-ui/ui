@@ -19,8 +19,8 @@ const RADIUS_SCALE_CSS = `${THEME_SCOPE.join(",\n")} {
 
 export function themeScopeCss(theme: Theme, style: ShowcaseStyle) {
   return [
-    isEmptyTheme(theme) ? "" : scopeThemeCss(theme, THEME_SCOPE),
     RADIUS_SCALE_CSS,
+    isEmptyTheme(theme) ? "" : scopeThemeCss(theme, THEME_SCOPE),
     scopeStyleCss(style, THEME_SCOPE),
   ]
     .filter(Boolean)

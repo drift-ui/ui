@@ -63,6 +63,12 @@ function getServerSnapshot() {
   return SERVER_STATE
 }
 
+export function updateShowcaseTheme(next: Partial<ShowcaseState>) {
+  currentState = { ...getSnapshot(), ...next }
+  persistState(currentState)
+  listeners.forEach((listener) => listener())
+}
+
 export function useShowcaseTheme() {
   //#region queries
   const { theme, style } = useSyncExternalStore(
@@ -74,22 +80,16 @@ export function useShowcaseTheme() {
   //#endregion
 
   //#region mutations
-  function update(next: Partial<ShowcaseState>) {
-    currentState = { ...getSnapshot(), ...next }
-    persistState(currentState)
-    listeners.forEach((listener) => listener())
-  }
-
   function setTheme(next: Theme) {
-    update({ theme: next })
+    updateShowcaseTheme({ theme: next })
   }
 
   function setStyle(next: ShowcaseStyle) {
-    update({ style: next })
+    updateShowcaseTheme({ style: next })
   }
 
   function resetTheme() {
-    update({ theme: EMPTY_THEME, style: DEFAULT_STYLE })
+    updateShowcaseTheme({ theme: EMPTY_THEME, style: DEFAULT_STYLE })
   }
   //#endregion
 

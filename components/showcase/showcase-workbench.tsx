@@ -6,7 +6,10 @@ import { ThemeScopeControl } from "@/components/docs/theme-scope-control"
 import { ThemeToolbar } from "@/components/showcase/theme-toolbar"
 import { themeScopeCss } from "@/components/theme-scope-style"
 import { useHasHydrated } from "@/hooks/use-has-hydrated"
-import { useShowcaseTheme } from "@/hooks/use-showcase-theme"
+import {
+  updateShowcaseTheme,
+  useShowcaseTheme,
+} from "@/hooks/use-showcase-theme"
 import { SHARE_PARAM, decodeShare, encodeShare } from "@/lib/showcase-share"
 import { DEFAULT_STYLE } from "@/lib/style-tokens"
 import { isEmptyTheme } from "@/lib/theme-css"
@@ -34,6 +37,11 @@ export function ShowcaseWorkbench({
     : store.isDefault
   const { setTheme, setStyle, resetTheme } = store
   const shareCode = isDefault ? null : encodeShare({ theme, style })
+
+  useEffect(() => {
+    const routeShare = decodeShare(sharedCode ?? "")
+    if (routeShare) updateShowcaseTheme(routeShare)
+  }, [sharedCode])
 
   useEffect(() => {
     replaceShareParam(shareCode)

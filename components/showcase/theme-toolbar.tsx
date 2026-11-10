@@ -68,7 +68,8 @@ function ToolbarPopover({
   }
 
   function keepHoverOpenOnClick(event: React.MouseEvent) {
-    if (lastPointerType.current === "mouse" && isOpen) event.preventDefault()
+    if (event.detail > 0 && lastPointerType.current === "mouse" && isOpen)
+      event.preventDefault()
   }
 
   function skipFocusOnHover(event: Event) {
