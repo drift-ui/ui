@@ -63,6 +63,7 @@ import { TourPreview } from "@/components/preview/tour-preview"
 import { TraceWaterfallPreview } from "@/components/preview/trace-waterfall-preview"
 import { TransferListPreview } from "@/components/preview/transfer-list-preview"
 import { TreeViewPreview } from "@/components/preview/tree-view-preview"
+import { UnitInputPreview } from "@/components/preview/unit-input-preview"
 import { UptimeBarPreview } from "@/components/preview/uptime-bar-preview"
 import { VirtualListPreview } from "@/components/preview/virtual-list-preview"
 
@@ -119,6 +120,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "trace-waterfall": TraceWaterfallPreview,
   "transfer-list": TransferListPreview,
   "tree-view": TreeViewPreview,
+  "unit-input": UnitInputPreview,
   "uptime-bar": UptimeBarPreview,
   "virtual-list": VirtualListPreview,
 }

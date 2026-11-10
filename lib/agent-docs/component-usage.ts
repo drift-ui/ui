@@ -1101,6 +1101,32 @@ export function ProjectTree() {
   return <TreeView aria-label="Project files" items={items} defaultExpanded={["app"]} />
 }`,
   },
+  "unit-input": {
+    notes:
+      "Number field plus a native unit select for memory limits, storage quotas, upload caps and bandwidth. value and onValueChange take number | null in the base unit (bytes for the presets), so the parent never converts. A unit is { id, label, factor }, where factor is how many base units one of it holds. BYTE_UNITS (B, KB, MB, GB, TB, powers of 1000) and BINARY_BYTE_UNITS (B, KiB, MiB, GiB, TiB, powers of 1024) are exported from the lib file, and units defaults to BYTE_UNITS. Changing the unit converts the number on screen and leaves the stored value alone, so 512 MB becomes 0.512 GB. Typing 2gb or 512 MiB sets the unit as well as the number, matched against unit ids and labels, case-insensitive. Typed units must be a single word, so give multiword labels a short id such as GBps. defaultUnit, or unit with onUnitChange, picks the unit; without one the largest unit that keeps the number at 1 or more is used. min and max are in base units. step is in the current unit, Shift with the arrows, or PageUp and PageDown, steps by ten, Home and End jump to min and max, and Enter or blur applies typed text. Unknown units revert the text. name submits the base value through a hidden input.",
+    example: `import { BYTE_UNITS } from "@/lib/unit-input-utils"
+import { UnitInput } from "@/components/ui/unit-input"
+
+export function MemoryLimitField({
+  value,
+  onChange,
+}: {
+  value: number | null
+  onChange: (bytes: number | null) => void
+}) {
+  return (
+    <UnitInput
+      aria-label="Memory limit"
+      value={value}
+      onValueChange={onChange}
+      units={BYTE_UNITS}
+      defaultUnit="MB"
+      min={128_000_000}
+      max={10_000_000_000}
+    />
+  )
+}`,
+  },
   "uptime-bar": {
     notes:
       "Renders daily service health segments with overall uptime percentage, single tab stop roving keyboard navigation, and popover day details. Days with no data do not count against uptime. Degraded days count as partial uptime via degradedWeight (default 0.5). Arrow keys (ArrowLeft, ArrowRight, Home, End) move focus between segments, and Enter or Space opens the Popover. Theme tokens bg-chart-2 (operational), bg-chart-5 (degraded), bg-destructive (down), and bg-muted (no-data) provide color coding.",

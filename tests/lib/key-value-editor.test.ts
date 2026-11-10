@@ -48,6 +48,12 @@ describe("parseEnv", () => {
     ])
   })
 
+  it("keeps a backslash that does not escape a quote or backslash", () => {
+    expect(parseEnv(String.raw`PATH="C:\tools\bin"`)).toEqual([
+      { key: "PATH", value: String.raw`C:\tools\bin` },
+    ])
+  })
+
   it("treats an unclosed quote as part of the value", () => {
     expect(parseEnv('NAME="Ada')).toEqual([{ key: "NAME", value: '"Ada' }])
   })

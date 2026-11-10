@@ -78,6 +78,7 @@ const ENTRY_LAYOUT: {
   { slug: "tags-input", category: "inputs" },
   { slug: "time-field", category: "inputs", stageClassName: "gap-8" },
   { slug: "timezone-picker", category: "inputs" },
+  { slug: "unit-input", category: "inputs" },
   { slug: "activity-heatmap", category: "structure" },
   { slug: "avatar-group", category: "structure" },
   { slug: "description-list", category: "structure" },

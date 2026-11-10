@@ -170,6 +170,15 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ["Enter"], action: "Select" },
     { keys: ["Space"], action: "Check, in multiple mode" },
   ],
+  "unit-input": [
+    { keys: UP_DOWN, action: "Step the number in the current unit" },
+    {
+      keys: ["Shift+ArrowUp", "Shift+ArrowDown", ...PAGE],
+      action: "Step by ten",
+    },
+    { keys: HOME_END, action: "Jump to min or max" },
+    { keys: ["Enter"], action: "Apply typed text such as 2gb" },
+  ],
   "uptime-bar": [
     { keys: LEFT_RIGHT, action: "Move between segments" },
     { keys: HOME_END, action: "First or last segment" },

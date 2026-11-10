@@ -3404,6 +3404,72 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       ],
     },
   ],
+  "unit-input": [
+    {
+      name: "UnitInput",
+      description:
+        "A spinbutton text field with a unit select. The value stays in the base unit, and changing the unit only changes what is on screen.",
+      props: [
+        STATE_PROPS.value("number | null", "value in the base unit"),
+        STATE_PROPS.defaultValue("number | null", "null"),
+        STATE_PROPS.onValueChange(
+          "(value: number | null) => void",
+          "with the value in the base unit, or null when cleared"
+        ),
+        {
+          name: "units",
+          type: "{ id: string; label: string; factor: number }[]",
+          default: "BYTE_UNITS",
+          description:
+            "Units to pick from. factor is how many base units one of it holds.",
+        },
+        {
+          name: "unit",
+          type: "string",
+          description: "Controlled unit id.",
+        },
+        {
+          name: "defaultUnit",
+          type: "string",
+          description:
+            "Initial unit id when uncontrolled. Defaults to the largest unit that keeps the number at 1 or more.",
+        },
+        {
+          name: "onUnitChange",
+          type: "(unit: string) => void",
+          description:
+            "Called with the unit id when the select or typed text changes it.",
+        },
+        {
+          name: "min",
+          type: "number",
+          description: "Minimum value in the base unit.",
+        },
+        {
+          name: "max",
+          type: "number",
+          description: "Maximum value in the base unit.",
+        },
+        {
+          name: "step",
+          type: "number",
+          default: "1",
+          description: "Arrow key step, in the current unit.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          description: "Disables the field and the unit select.",
+        },
+        {
+          name: "name",
+          type: "string",
+          description: "Submits the base value through a hidden input.",
+        },
+      ],
+      rest: "<input>",
+    },
+  ],
   "uptime-bar": [
     {
       name: "UptimeBar",

@@ -1135,6 +1135,28 @@
       ]
     },
     {
+      "name": "unit-input",
+      "type": "registry:ui",
+      "title": "Unit Input",
+      "description": "A number field with a unit picker that stores the value in a base unit, with byte presets and typed units like 2gb.",
+      "dependencies": [],
+      "registryDependencies": [
+        "utils",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/unit-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/unit-input-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "uptime-bar",
       "type": "registry:ui",
       "title": "Uptime Bar",

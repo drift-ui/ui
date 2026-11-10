@@ -32,7 +32,12 @@ function readQuoted(text: string) {
   for (let index = 1; index < text.length; index++) {
     const character = text[index]
     if (character === quote) return value
-    if (quote === '"' && character === "\\" && index + 1 < text.length) {
+    const escaped = text[index + 1]
+    if (
+      quote === '"' &&
+      character === "\\" &&
+      (escaped === '"' || escaped === "\\")
+    ) {
       value += text[++index]
       continue
     }
