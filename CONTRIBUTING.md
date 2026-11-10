@@ -109,14 +109,14 @@ test(time-field): cover segment editing
 
 ### Component guidelines
 
-| Area          | Rule                                                                                                                                                               |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| State         | Support controlled and uncontrolled use. `use-controllable-state` handles the `value`, `defaultValue` and `onValueChange` trio                                     |
-| Props         | Spread remaining props onto the element a user expects to style, and accept `className`                                                                            |
-| Accessibility | Follow the WAI-ARIA pattern for the widget and test keyboard interaction, not only clicks                                                                          |
-| Color         | Read colors from the theme tokens in `app/globals.css`. Do not hard-code colors                                                                                    |
-| Shape         | Use `h-control`, `h-control-sm`, `rounded-control`, `rounded-box` and `shadow-control` for fields and buttons, and add `@drift-ui/shape` to `registryDependencies` |
-| Primitives    | If shadcn/ui already ships a component, keep its API identical                                                                                                     |
+| Area          | Rule                                                                                                                                                                                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| State         | Support controlled and uncontrolled use. `use-controllable-state` handles the `value`, `defaultValue` and `onValueChange` trio                                                                                                                                                     |
+| Props         | Spread remaining props onto the element a user expects to style, and accept `className`                                                                                                                                                                                            |
+| Accessibility | Follow the WAI-ARIA pattern for the widget and test keyboard interaction, not only clicks                                                                                                                                                                                          |
+| Color         | Read colors from the theme tokens in `app/globals.css`. Do not hard-code colors                                                                                                                                                                                                    |
+| Shape         | Use `h-control`, `h-control-sm`, `rounded-control`, `rounded-box` and `shadow-control` for fields and buttons, and `rounded-card`, `py-card`, `px-card`, `gap-card`, `shadow-card` and `rounded-dialog` for cards and dialogs, and add `@drift-ui/shape` to `registryDependencies` |
+| Primitives    | If shadcn/ui already ships a component, keep its API identical                                                                                                                                                                                                                     |
 
 ### Base UI versions
 
