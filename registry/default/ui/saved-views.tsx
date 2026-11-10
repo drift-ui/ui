@@ -772,7 +772,7 @@ function SavedViews<T = unknown>({
                   value={newViewName}
                   onChange={(e) => setNewViewName(e.target.value)}
                   placeholder={placeholder}
-                  className="h-control-sm text-xs"
+                  className="h-control-sm py-0 text-xs"
                 />
                 <div className="flex justify-end gap-1.5">
                   <Button

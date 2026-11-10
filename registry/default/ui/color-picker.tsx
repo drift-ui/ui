@@ -67,7 +67,7 @@ function HexInput({
       onKeyDown={(event) => {
         if (event.key === "Enter") onCommit(draft)
       }}
-      className="h-control-sm font-mono text-xs"
+      className="h-control-sm py-0 font-mono text-xs"
     />
   )
 }

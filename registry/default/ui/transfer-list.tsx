@@ -192,7 +192,7 @@ function TransferPanel<T extends TransferItem>({
             }}
             placeholder={`Search ${title.toLowerCase()}...`}
             disabled={disabled}
-            className="h-control-sm pr-7 pl-8 text-xs md:text-xs"
+            className="h-control-sm py-0 pr-7 pl-8 text-xs md:text-xs"
           />
           {query && (
             <button

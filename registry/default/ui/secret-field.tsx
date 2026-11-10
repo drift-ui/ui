@@ -12,7 +12,7 @@ import {
 import { cn } from "@/registry/default/lib/utils"
 
 const BUTTON_CLASS_NAME =
-  "inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 [&_svg]:size-3.5"
+  "inline-flex size-7 shrink-0 items-center justify-center rounded-control text-muted-foreground outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 [&_svg]:size-3.5"
 
 function SecretField({
   value,

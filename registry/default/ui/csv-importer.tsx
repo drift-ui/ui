@@ -758,7 +758,7 @@ export function CsvImporter({
                                     )
                                   }
                                   className={cn(
-                                    "h-control-sm text-xs",
+                                    "h-control-sm py-0 text-xs",
                                     Boolean(error) &&
                                       "border-destructive focus-visible:ring-destructive/30"
                                   )}

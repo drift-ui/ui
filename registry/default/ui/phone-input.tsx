@@ -101,7 +101,7 @@ function CountryPicker({
         type="button"
         disabled={disabled}
         data-slot="phone-input-country"
-        className="flex shrink-0 items-center gap-1 rounded-l-md border-r border-input px-2 text-muted-foreground tabular-nums transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground disabled:cursor-not-allowed"
+        className="flex shrink-0 items-center gap-1 rounded-l-control border-r border-input px-2 text-muted-foreground tabular-nums transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground disabled:cursor-not-allowed"
       >
         <span className="sr-only">Country: {current?.name},</span>{" "}
         <span aria-hidden="true">{current?.flag}</span>
@@ -295,7 +295,7 @@ function PhoneInput({
         disabled={disabled}
         value={display}
         onChange={handleChange}
-        className="min-w-0 flex-1 rounded-r-md bg-transparent px-2.5 tabular-nums outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+        className="min-w-0 flex-1 rounded-r-control bg-transparent px-2.5 tabular-nums outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
       />
       {name && (
         <input type="hidden" name={name} disabled={disabled} value={phone} />

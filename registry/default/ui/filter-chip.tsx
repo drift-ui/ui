@@ -334,7 +334,7 @@ function TypedValueEditor({
           onKeyDown={(event) => {
             if (event.key === "Enter") handleOpenChange(false)
           }}
-          className="h-control-sm"
+          className="h-control-sm py-0"
         />
       </PopoverContent>
     </Popover>

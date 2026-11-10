@@ -259,7 +259,7 @@ function LogViewer({
                   }
                 }}
                 placeholder="Search logs..."
-                className="h-control-sm pr-7 pl-8 text-xs"
+                className="h-control-sm py-0 pr-7 pl-8 text-xs"
                 aria-label="Search logs"
               />
               {search && (

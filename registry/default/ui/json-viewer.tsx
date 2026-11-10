@@ -400,7 +400,7 @@ function JsonViewer({
             placeholder="Search keys and values"
             value={query}
             onChange={(event) => search(event.target.value)}
-            className="h-control-sm"
+            className="h-control-sm py-0"
           />
           <button
             type="button"
@@ -431,7 +431,7 @@ function JsonViewer({
               placeholder="Filter path pattern, e.g. users[*].email"
               value={pathFilterState}
               onChange={(e) => setPathFilterState(e.target.value)}
-              className="h-control-sm font-mono text-xs"
+              className="h-control-sm py-0 font-mono text-xs"
             />
             {activePathFilter && (
               <button
