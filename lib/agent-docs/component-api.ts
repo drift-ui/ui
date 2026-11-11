@@ -2265,7 +2265,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       signature:
         "formatPhoneValue(value: string, country: CountryCode): string",
       description:
-        "From @/lib/phone-input. Formats a saved E.164 number the way the field shows it, without the dial code, for read-only screens.",
+        "From @/lib/phone-input-utils. Formats a saved E.164 number the way the field shows it, without the dial code, for read-only screens.",
     },
     {
       name: "resolveCountries",
@@ -2276,14 +2276,14 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "): PhoneCountry[]",
       ].join("\n"),
       description:
-        "From @/lib/phone-input. Returns the list PhoneInput would show, for building your own country menu. PHONE_COUNTRIES from the same file holds every country.",
+        "From @/lib/phone-input-utils. Returns the list PhoneInput would show, for building your own country menu. PHONE_COUNTRIES from the same file holds every country.",
     },
     {
       name: "filterCountries",
       signature:
         "filterCountries(countries: PhoneCountry[], query: string): PhoneCountry[]",
       description:
-        "From @/lib/phone-input. The picker's search: names ignoring case and accents, exact country codes, and dial code prefixes with or without the plus.",
+        "From @/lib/phone-input-utils. The picker's search: names ignoring case and accents, exact country codes, and dial code prefixes with or without the plus.",
     },
     {
       name: "PhoneCountry",
@@ -2611,7 +2611,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       name: "createSavedView, duplicateSavedView, renameSavedView, deleteSavedView, setDefaultSavedView",
       signature:
         "createSavedView(name: string, options?: Partial<SavedView<T>>): SavedView<T>; duplicateSavedView(source: SavedView<T>, views: SavedView<T>[]): SavedView<T>; renameSavedView(views: SavedView<T>[], id: string, name: string): SavedView<T>[]; deleteSavedView(views: SavedView<T>[], id: string, activeId?: string): { views: SavedView<T>[]; nextActiveId: string | null }; setDefaultSavedView(views: SavedView<T>[], id: string): SavedView<T>[]",
-      description: "Pure logic helpers imported from @/lib/saved-views.",
+      description: "Pure logic helpers imported from @/lib/saved-views-utils.",
     },
     {
       name: "isViewDataEqual, isViewDirty",
@@ -2711,7 +2711,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       signature:
         "filterSections(sections: CheatsheetSection[], query: string): CheatsheetSection[]; matchesTrigger(event: KeyboardEvent, trigger: string, isMac: boolean): boolean",
       description:
-        "Import from @/lib/shortcut-cheatsheet to reuse the search or the trigger check outside the dialog.",
+        "Import from @/lib/shortcut-cheatsheet-utils to reuse the search or the trigger check outside the dialog.",
     },
   ],
   "shortcut-recorder": [

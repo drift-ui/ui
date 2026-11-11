@@ -19,7 +19,7 @@ import {
   resolveCountries,
   type PhoneCountry,
   type PhoneCountryOption,
-} from "@/registry/default/lib/phone-input.ts"
+} from "@/registry/default/lib/phone-input-utils"
 import { cn } from "@/registry/default/lib/utils"
 import {
   Popover,

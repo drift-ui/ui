@@ -10,7 +10,7 @@ import {
   toDate,
   unreadIds,
   type InboxNotification,
-} from "@/registry/default/lib/notification-inbox"
+} from "@/registry/default/lib/notification-inbox-utils"
 
 const NOW = new Date(2026, 10, 5, 14, 30)
 

@@ -11,7 +11,7 @@ import {
   getWeekdayLabels,
   parseUTCDate,
   stepHeatmapCoordinate,
-} from "@/registry/default/lib/activity-heatmap"
+} from "@/registry/default/lib/activity-heatmap-utils"
 
 describe("UTC date utilities", () => {
   it("parses and formats dates strictly in UTC", () => {

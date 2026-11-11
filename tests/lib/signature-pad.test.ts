@@ -5,7 +5,7 @@ import {
   nameFontSize,
   signatureImageSrc,
   strokeToPath,
-} from "@/registry/default/lib/signature-pad"
+} from "@/registry/default/lib/signature-pad-utils"
 
 afterEach(() => {
   vi.restoreAllMocks()

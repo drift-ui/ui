@@ -12,7 +12,7 @@ import {
   type PermissionAction,
   type PermissionGroup,
   type PermissionRole,
-} from "@/registry/default/lib/permission-matrix"
+} from "@/registry/default/lib/permission-matrix-utils"
 
 const ROLES: PermissionRole[] = [
   { id: "viewer", name: "Viewer" },

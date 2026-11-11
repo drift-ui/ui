@@ -14,7 +14,7 @@ import {
   toDate,
   toggleReaction,
   type Comment,
-} from "@/registry/default/lib/comment-thread"
+} from "@/registry/default/lib/comment-thread-utils"
 
 const noor = { id: "noor", name: "Noor Haddad" }
 const tomasz = { id: "tomasz", name: "Tomasz Wierzba" }

@@ -11,7 +11,7 @@ import {
   type ActivityDay,
   type ActivityDayInput,
   type HeatmapCell,
-} from "@/registry/default/lib/activity-heatmap.ts"
+} from "@/registry/default/lib/activity-heatmap-utils"
 
 export type { ActivityDay, ActivityDayInput, HeatmapCell }
 

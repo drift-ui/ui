@@ -13,7 +13,7 @@ import {
   type AnsiSegment,
   type LogLevel,
   type LogLine,
-} from "@/registry/default/lib/log-viewer.ts"
+} from "@/registry/default/lib/log-viewer-utils"
 import { cn } from "@/registry/default/lib/utils"
 import { Button } from "@/registry/default/ui/button"
 import { Input } from "@/registry/default/ui/input"
