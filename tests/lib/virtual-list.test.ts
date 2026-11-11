@@ -6,7 +6,7 @@ import {
   rowOffsets,
   scrollTopToReveal,
   visibleRange,
-} from "@/registry/default/lib/virtual-list"
+} from "@/registry/default/lib/virtual-list-utils"
 
 const OFFSETS = rowOffsets(4, (index) => [10, 30, 20, 40][index])
 

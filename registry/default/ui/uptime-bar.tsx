@@ -20,7 +20,7 @@ import {
   STATUS_LABELS,
   type UptimeDay,
   type UptimeStatus,
-} from "@/registry/default/lib/uptime-bar.ts"
+} from "@/registry/default/lib/uptime-bar-utils"
 
 const STATUS_BG: Record<UptimeStatus, string> = {
   operational: "bg-chart-2",

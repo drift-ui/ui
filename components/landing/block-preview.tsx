@@ -29,8 +29,8 @@ import {
   type Span,
 } from "@/registry/default/ui/trace-waterfall"
 import { UptimeBar } from "@/registry/default/ui/uptime-bar"
-import type { Comment } from "@/registry/default/lib/comment-thread"
-import type { UptimeDay } from "@/registry/default/lib/uptime-bar"
+import type { Comment } from "@/registry/default/lib/comment-thread-utils"
+import type { UptimeDay } from "@/registry/default/lib/uptime-bar-utils"
 import { DateRangeSpecimen } from "@/components/landing/specimens/date-range-specimen"
 import { FileDropzoneSpecimen } from "@/components/landing/specimens/file-dropzone-specimen"
 import { NumberInputSpecimen } from "@/components/landing/specimens/number-input-specimen"

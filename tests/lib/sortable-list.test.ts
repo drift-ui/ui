@@ -10,7 +10,7 @@ import {
   getPickupAnnouncement,
   getTargetIndex,
   reorderItem,
-} from "@/registry/default/lib/sortable-list"
+} from "@/registry/default/lib/sortable-list-utils"
 
 describe("sortable-list lib", () => {
   describe("getDefaultItemKey", () => {

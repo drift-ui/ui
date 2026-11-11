@@ -5,7 +5,7 @@ import {
   parseEnv,
   pasteRows,
   type KeyValueRow,
-} from "@/registry/default/lib/key-value-editor"
+} from "@/registry/default/lib/key-value-editor-utils"
 
 function row(key: string, value = ""): KeyValueRow {
   return { id: key || "empty", key, value }

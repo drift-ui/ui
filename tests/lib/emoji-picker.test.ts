@@ -11,7 +11,7 @@ import {
   withSkinTone,
   writePreferences,
   type Emoji,
-} from "@/registry/default/lib/emoji-picker"
+} from "@/registry/default/lib/emoji-picker-utils"
 
 function emoji(hexcode: string, overrides: Partial<Emoji> = {}): Emoji {
   return {

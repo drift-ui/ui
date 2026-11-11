@@ -3,7 +3,7 @@
 import * as React from "react"
 
 import { CommentThread } from "@/registry/default/ui/comment-thread"
-import type { Comment } from "@/registry/default/lib/comment-thread"
+import type { Comment } from "@/registry/default/lib/comment-thread-utils"
 
 const me = { id: "you", name: "Riya Kapoor" }
 const noor = { id: "noor", name: "Noor Haddad" }

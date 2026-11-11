@@ -8,7 +8,7 @@ import { useCopyToClipboard } from "@/registry/default/hooks/use-copy-to-clipboa
 import {
   getVisibleTail,
   maskSecret,
-} from "@/registry/default/lib/secret-field.ts"
+} from "@/registry/default/lib/secret-field-utils"
 import { cn } from "@/registry/default/lib/utils"
 
 const BUTTON_CLASS_NAME =

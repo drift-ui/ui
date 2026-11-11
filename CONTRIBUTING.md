@@ -77,7 +77,7 @@ test(time-field): cover segment editing
 | Step | File                                    | What goes in it                                                     |
 | ---- | --------------------------------------- | ------------------------------------------------------------------- |
 | 1    | `registry/default/ui/<name>.tsx`        | The component source                                                |
-| 2    | `registry/default/lib/<name>.ts`        | Pure logic such as parsing, math or state machines, if there is any |
+| 2    | `registry/default/lib/<name>-utils.ts`  | Pure logic such as parsing, math or state machines, if there is any |
 | 3    | `registry.json`                         | An item with its `dependencies` and `registryDependencies`          |
 | 4    | `components/preview/<name>-preview.tsx` | A short, realistic live demo                                        |
 | 5    | `components/docs/preview-registry.tsx`  | Register the preview                                                |

@@ -16,7 +16,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/activity-heatmap.ts",
+          "path": "registry/default/lib/activity-heatmap-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -156,7 +156,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/comment-thread.ts",
+          "path": "registry/default/lib/comment-thread-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -186,7 +186,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/csv-importer.ts",
+          "path": "registry/default/lib/csv-importer-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -212,7 +212,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/date-time-range.ts",
+          "path": "registry/default/lib/date-time-range-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -266,7 +266,7 @@
           "type": "registry:lib"
         },
         {
-          "path": "registry/default/lib/virtual-list.ts",
+          "path": "registry/default/lib/virtual-list-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -288,7 +288,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/duration-input.ts",
+          "path": "registry/default/lib/duration-input-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -311,7 +311,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/emoji-picker.ts",
+          "path": "registry/default/lib/emoji-picker-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -381,7 +381,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/image-cropper.ts",
+          "path": "registry/default/lib/image-cropper-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -433,7 +433,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/json-viewer.ts",
+          "path": "registry/default/lib/json-viewer-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -457,7 +457,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/key-value-editor.ts",
+          "path": "registry/default/lib/key-value-editor-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -496,7 +496,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/log-viewer.ts",
+          "path": "registry/default/lib/log-viewer-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -518,7 +518,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/masked-input.ts",
+          "path": "registry/default/lib/masked-input-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -565,7 +565,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/multi-select.ts",
+          "path": "registry/default/lib/multi-select-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -589,7 +589,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/notification-inbox.ts",
+          "path": "registry/default/lib/notification-inbox-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -627,7 +627,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/onboarding-checklist.ts",
+          "path": "registry/default/lib/onboarding-checklist-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -665,7 +665,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/permission-matrix.ts",
+          "path": "registry/default/lib/permission-matrix-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -688,7 +688,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/phone-input.ts",
+          "path": "registry/default/lib/phone-input-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -766,7 +766,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/saved-views.ts",
+          "path": "registry/default/lib/saved-views-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -789,7 +789,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/secret-field.ts",
+          "path": "registry/default/lib/secret-field-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -831,7 +831,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/shortcut-cheatsheet.ts",
+          "path": "registry/default/lib/shortcut-cheatsheet-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -876,7 +876,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/signature-pad.ts",
+          "path": "registry/default/lib/signature-pad-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -894,7 +894,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/sortable-list.ts",
+          "path": "registry/default/lib/sortable-list-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -1041,7 +1041,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/timezone-picker.ts",
+          "path": "registry/default/lib/timezone-picker-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -1083,7 +1083,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/trace-waterfall.ts",
+          "path": "registry/default/lib/trace-waterfall-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -1107,7 +1107,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/transfer-list.ts",
+          "path": "registry/default/lib/transfer-list-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -1125,11 +1125,11 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/tree-view.ts",
+          "path": "registry/default/lib/tree-view-utils.ts",
           "type": "registry:lib"
         },
         {
-          "path": "registry/default/lib/virtual-list.ts",
+          "path": "registry/default/lib/virtual-list-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -1174,7 +1174,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/uptime-bar.ts",
+          "path": "registry/default/lib/uptime-bar-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -1228,7 +1228,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/virtual-list.ts",
+          "path": "registry/default/lib/virtual-list-utils.ts",
           "type": "registry:lib"
         }
       ]

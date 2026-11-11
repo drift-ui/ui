@@ -3,7 +3,7 @@
 import * as React from "react"
 
 import { UptimeBar } from "@/registry/default/ui/uptime-bar"
-import type { UptimeDay } from "@/registry/default/lib/uptime-bar"
+import type { UptimeDay } from "@/registry/default/lib/uptime-bar-utils"
 
 function generateThirtyDays(): UptimeDay[] {
   const result: UptimeDay[] = []

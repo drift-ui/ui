@@ -34,7 +34,7 @@ import {
   restoreSavedView,
   setDefaultSavedView,
   type SavedView,
-} from "@/registry/default/lib/saved-views.ts"
+} from "@/registry/default/lib/saved-views-utils"
 
 export type { SavedView }
 

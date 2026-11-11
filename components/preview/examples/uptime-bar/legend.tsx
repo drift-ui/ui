@@ -3,7 +3,7 @@
 import * as React from "react"
 
 import { UptimeBar, UptimeBarLegend } from "@/registry/default/ui/uptime-bar"
-import type { UptimeDay } from "@/registry/default/lib/uptime-bar"
+import type { UptimeDay } from "@/registry/default/lib/uptime-bar-utils"
 
 const SAMPLE_DAYS: UptimeDay[] = [
   { date: "2026-10-25", status: "operational", uptime: 100 },
