@@ -290,4 +290,38 @@ describe("calculateTooltipPosition", () => {
 
     expect(pos.visible).toBe(false)
   })
+
+  it("handles cellRect when right and bottom are omitted and falls back safely", () => {
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 250, width: 12, height: 12 },
+      containerRect,
+    })
+
+    expect(pos.visible).toBe(true)
+    expect(pos.placement).toBe("top")
+    expect(pos.left).toBe(206)
+  })
+
+  it("handles narrow container smaller than tooltip width", () => {
+    const narrowContainer = { top: 100, left: 50, width: 100, height: 300 }
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 70, width: 12, height: 12 },
+      containerRect: narrowContainer,
+      tooltipWidth: 140,
+    })
+
+    expect(pos.visible).toBe(true)
+    // When container is too narrow, left remains rawCenterX
+    expect(pos.left).toBe(26)
+  })
+
+  it("returns visible false when cell is to the right of scroll viewport", () => {
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 550, width: 12, height: 12 },
+      containerRect,
+      scrollRect: { left: 100, right: 500, width: 400 },
+    })
+
+    expect(pos.visible).toBe(false)
+  })
 })

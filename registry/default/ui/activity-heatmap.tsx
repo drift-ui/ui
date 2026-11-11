@@ -72,6 +72,12 @@ export function ActivityHeatmap({
   className,
   ...props
 }: ActivityHeatmapProps) {
+  const {
+    ref: externalRef,
+    onKeyDown: externalOnKeyDown,
+    ...restDivProps
+  } = props as React.ComponentProps<"div"> & { ref?: React.Ref<HTMLDivElement> }
+
   const { value: selectedDate, setValue: setSelectedDate } =
     useControllableState<string | null>({
       value: selectedDateProp,
@@ -100,23 +106,39 @@ export function ActivityHeatmap({
     internalFocusedCoord ?? selectedCoord ?? layout.defaultCoord
 
   const tooltipId = React.useId()
-  const containerRef = React.useRef<HTMLDivElement>(null)
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  React.useImperativeHandle(
+    externalRef,
+    () => containerRef.current as HTMLDivElement
+  )
+
   const scrollContainerRef = React.useRef<HTMLDivElement>(null)
   const tooltipRef = React.useRef<HTMLDivElement>(null)
 
-  const [hoveredCell, setHoveredCell] = React.useState<{
-    cell: HeatmapCell
+  const [hoveredState, setHoveredState] = React.useState<{
+    date: string
     element: HTMLTableCellElement
   } | null>(null)
 
-  const [focusedCell, setFocusedCell] = React.useState<{
-    cell: HeatmapCell
+  const [focusedState, setFocusedState] = React.useState<{
+    date: string
     element: HTMLTableCellElement
   } | null>(null)
 
   const [dismissedDate, setDismissedDate] = React.useState<string | null>(null)
 
-  const activeCell = hoveredCell ?? focusedCell
+  const activeState = hoveredState ?? focusedState
+
+  const activeCell = React.useMemo(() => {
+    if (!activeState) return null
+    const cell =
+      layout.weeks
+        .flat()
+        .find((c) => c.date === activeState.date && c.inRange) ?? null
+    if (!cell) return null
+    return { cell, element: activeState.element }
+  }, [layout, activeState])
+
   const isTooltipActive = Boolean(
     showTooltip && activeCell && dismissedDate !== activeCell.cell.date
   )
@@ -241,7 +263,7 @@ export function ActivityHeatmap({
 
   const handleContainerKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      props.onKeyDown?.(e)
+      externalOnKeyDown?.(e)
       if (e.defaultPrevented) return
 
       if (e.key === "Escape" && activeCell) {
@@ -249,7 +271,7 @@ export function ActivityHeatmap({
         setDismissedDate(activeCell.cell.date)
       }
     },
-    [activeCell, props]
+    [activeCell, externalOnKeyDown]
   )
 
   // Map month labels by week index
@@ -287,7 +309,7 @@ export function ActivityHeatmap({
       data-slot="activity-heatmap"
       className={cn("relative flex flex-col gap-2.5", className)}
       onKeyDown={handleContainerKeyDown}
-      {...props}
+      {...restDivProps}
     >
       {/* Header Summary */}
       {(showSummary || selectedCell) && (
@@ -417,27 +439,32 @@ export function ActivityHeatmap({
                             ? tooltipId
                             : undefined
                         }
-                        title={cell.label}
                         tabIndex={isFocused ? 0 : -1}
                         onClick={() => handleSelect(cell)}
                         onKeyDown={(e) => handleCellKeyDown(e, rowIdx, colIdx)}
                         onMouseEnter={(e) => {
-                          setHoveredCell({ cell, element: e.currentTarget })
+                          setHoveredState({
+                            date: cell.date,
+                            element: e.currentTarget,
+                          })
                           setDismissedDate(null)
                         }}
                         onMouseLeave={() => {
-                          setHoveredCell((prev) =>
-                            prev?.cell.date === cell.date ? null : prev
+                          setHoveredState((prev) =>
+                            prev?.date === cell.date ? null : prev
                           )
                         }}
                         onFocus={(e) => {
-                          setFocusedCell({ cell, element: e.currentTarget })
+                          setFocusedState({
+                            date: cell.date,
+                            element: e.currentTarget,
+                          })
                           setInternalFocusedCoord([rowIdx, colIdx])
                           setDismissedDate(null)
                         }}
                         onBlur={() => {
-                          setFocusedCell((prev) =>
-                            prev?.cell.date === cell.date ? null : prev
+                          setFocusedState((prev) =>
+                            prev?.date === cell.date ? null : prev
                           )
                         }}
                         className={cn(

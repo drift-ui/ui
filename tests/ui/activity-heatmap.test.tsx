@@ -7,6 +7,7 @@ import {
   ActivityHeatmap,
   type ActivityDay,
 } from "@/registry/default/ui/activity-heatmap"
+import { ActivityHeatmapTooltipPreview } from "@/components/preview/examples/activity-heatmap/tooltip"
 
 const SAMPLE_DATA = [
   { date: "2026-10-25", count: 2 },
@@ -37,7 +38,11 @@ describe("ActivityHeatmap", () => {
       name: "7 contributions on October 31",
     })
     expect(oct31Cell).toBeInTheDocument()
-    expect(oct31Cell).toHaveAttribute("title", "7 contributions on October 31")
+    expect(oct31Cell).toHaveAttribute(
+      "aria-label",
+      "7 contributions on October 31"
+    )
+    expect(oct31Cell).not.toHaveAttribute("title")
 
     // October 26 cell (zero count)
     const oct26Cell = screen.getByRole("gridcell", {
@@ -327,5 +332,91 @@ describe("ActivityHeatmap", () => {
 
     await user.hover(oct31)
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+  })
+
+  it("forwards ref and merges container ref correctly", () => {
+    let refNode: HTMLDivElement | null = null
+    const refCallback = (node: HTMLDivElement | null) => {
+      refNode = node
+    }
+
+    const { container } = render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+        ref={refCallback}
+      />
+    )
+
+    expect(refNode).toBe(container.firstChild)
+  })
+
+  it("composes external onKeyDown on container and dismisses tooltip on Escape", async () => {
+    const user = userEvent.setup()
+    const handleKeyDown = vi.fn()
+
+    render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+        onKeyDown={handleKeyDown}
+      />
+    )
+
+    await user.tab()
+    expect(screen.getByRole("tooltip")).toBeInTheDocument()
+
+    await user.keyboard("{Escape}")
+    expect(handleKeyDown).toHaveBeenCalled()
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+  })
+
+  it("updates tooltip content in real-time when data changes while cell is hovered", async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+      />
+    )
+
+    const oct31 = screen.getByRole("gridcell", {
+      name: "7 contributions on October 31",
+    })
+
+    await user.hover(oct31)
+    const tooltip = screen.getByRole("tooltip")
+    expect(tooltip).toHaveTextContent("7 contributions")
+
+    // Update data while cell is still hovered
+    const updatedData = SAMPLE_DATA.map((d) =>
+      d.date === "2026-10-31" ? { ...d, count: 25 } : d
+    )
+    rerender(
+      <ActivityHeatmap
+        data={updatedData}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+      />
+    )
+
+    expect(screen.getByRole("tooltip")).toHaveTextContent("25 contributions")
+  })
+
+  it("renders ActivityHeatmapTooltipPreview and displays custom badge and breakdown on hover", async () => {
+    const user = userEvent.setup()
+    render(<ActivityHeatmapTooltipPreview />)
+
+    const oct31 = screen.getByRole("gridcell", {
+      name: /October 31/i,
+    })
+
+    await user.hover(oct31)
+    const tooltip = screen.getByRole("tooltip")
+    expect(tooltip).toBeInTheDocument()
+    expect(tooltip).toHaveTextContent(/Level/i)
   })
 })
