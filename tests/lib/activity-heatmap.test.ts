@@ -291,15 +291,30 @@ describe("calculateTooltipPosition", () => {
     expect(pos.visible).toBe(false)
   })
 
-  it("handles cellRect when right and bottom are omitted and falls back safely", () => {
+  it("infers cellBottom when bottom is omitted and placement flips to bottom", () => {
     const pos = calculateTooltipPosition({
-      cellRect: { top: 200, left: 250, width: 12, height: 12 },
+      cellRect: { top: 110, left: 250, width: 12, height: 12 },
       containerRect,
+      tooltipWidth: 140,
+      tooltipHeight: 44,
+      margin: 8,
     })
 
     expect(pos.visible).toBe(true)
-    expect(pos.placement).toBe("top")
-    expect(pos.left).toBe(206)
+    expect(pos.placement).toBe("bottom")
+    // cellBottom is inferred as 110 + 12 = 122; top = 122 - 100 + 8 = 30
+    expect(pos.top).toBe(30)
+  })
+
+  it("infers cellRight when right is omitted to check scroll boundary visibility", () => {
+    // cellRight inferred as 40 + 12 = 52 < scrollRect.left + 2 (102) -> hidden
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 40, width: 12, height: 12 },
+      containerRect,
+      scrollRect: { left: 100, right: 500, width: 400 },
+    })
+
+    expect(pos.visible).toBe(false)
   })
 
   it("handles narrow container smaller than tooltip width", () => {
