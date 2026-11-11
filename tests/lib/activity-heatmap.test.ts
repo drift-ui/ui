@@ -4,6 +4,7 @@ import {
   addUTCDays,
   buildHeatmapLayout,
   calculateIntensityLevel,
+  calculateTooltipPosition,
   formatCellAccessibleLabel,
   formatDateLabel,
   formatUTCDate,
@@ -214,5 +215,79 @@ describe("stepHeatmapCoordinate", () => {
     // End jumps to last col
     const [, cEnd] = stepHeatmapCoordinate([2, 10], "End", layout)
     expect(cEnd).toBe(layout.weeks.length - 1)
+  })
+})
+
+describe("calculateTooltipPosition", () => {
+  const containerRect = { top: 100, left: 50, width: 600, height: 300 }
+
+  it("places tooltip centered above cell when ample space is available", () => {
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 250, right: 262, width: 12, height: 12 },
+      containerRect,
+      tooltipWidth: 140,
+      tooltipHeight: 44,
+      margin: 8,
+    })
+
+    expect(pos.visible).toBe(true)
+    expect(pos.placement).toBe("top")
+    // cell centerX relative to container = (250 - 50) + 6 = 206
+    expect(pos.left).toBe(206)
+    // top = (200 - 100) - 8 = 92
+    expect(pos.top).toBe(92)
+  })
+
+  it("flips placement to bottom when cell is near top of container", () => {
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 110, left: 250, right: 262, width: 12, height: 12 },
+      containerRect,
+      tooltipWidth: 140,
+      tooltipHeight: 44,
+      margin: 8,
+    })
+
+    expect(pos.visible).toBe(true)
+    expect(pos.placement).toBe("bottom")
+    // bottom top = (110 + 12 - 100) + 8 = 30
+    expect(pos.top).toBe(30)
+  })
+
+  it("clamps left boundary when cell is near the left edge", () => {
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 60, right: 72, width: 12, height: 12 },
+      containerRect,
+      tooltipWidth: 140,
+      tooltipHeight: 44,
+      margin: 8,
+    })
+
+    expect(pos.visible).toBe(true)
+    // halfWidth (70) + margin (8) = 78
+    expect(pos.left).toBe(78)
+  })
+
+  it("clamps right boundary when cell is near the right edge", () => {
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 640, right: 652, width: 12, height: 12 },
+      containerRect,
+      tooltipWidth: 140,
+      tooltipHeight: 44,
+      margin: 8,
+    })
+
+    expect(pos.visible).toBe(true)
+    // containerWidth (600) - halfWidth (70) - margin (8) = 522
+    expect(pos.left).toBe(522)
+  })
+
+  it("returns visible false when cell is outside scroll viewport", () => {
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 40, right: 52, width: 12, height: 12 },
+      containerRect,
+      scrollRect: { left: 100, right: 500, width: 400 },
+    })
+
+    expect(pos.visible).toBe(false)
   })
 })

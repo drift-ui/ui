@@ -6,6 +6,7 @@ import { useControllableState } from "@/registry/default/hooks/use-controllable-
 import { cn } from "@/registry/default/lib/utils"
 import {
   buildHeatmapLayout,
+  calculateTooltipPosition,
   formatDateLabel,
   stepHeatmapCoordinate,
   type ActivityDay,
@@ -32,6 +33,8 @@ export interface ActivityHeatmapProps extends Omit<
   summary?:
     | React.ReactNode
     | ((total: number, startDate: string, endDate: string) => React.ReactNode)
+  showTooltip?: boolean
+  renderTooltip?: (day: ActivityDay) => React.ReactNode
   showLegend?: boolean
   showMonthLabels?: boolean
   showWeekdayLabels?: boolean
@@ -63,6 +66,8 @@ export function ActivityHeatmap({
   showMonthLabels = true,
   showWeekdayLabels = true,
   levelColors,
+  showTooltip = true,
+  renderTooltip,
   "aria-label": ariaLabel = "Activity heatmap",
   className,
   ...props
@@ -94,6 +99,80 @@ export function ActivityHeatmap({
   const focusedCoord =
     internalFocusedCoord ?? selectedCoord ?? layout.defaultCoord
 
+  const tooltipId = React.useId()
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null)
+  const tooltipRef = React.useRef<HTMLDivElement>(null)
+
+  const [hoveredCell, setHoveredCell] = React.useState<{
+    cell: HeatmapCell
+    element: HTMLTableCellElement
+  } | null>(null)
+
+  const [focusedCell, setFocusedCell] = React.useState<{
+    cell: HeatmapCell
+    element: HTMLTableCellElement
+  } | null>(null)
+
+  const [dismissedDate, setDismissedDate] = React.useState<string | null>(null)
+
+  const activeCell = hoveredCell ?? focusedCell
+  const isTooltipActive = Boolean(
+    showTooltip && activeCell && dismissedDate !== activeCell.cell.date
+  )
+
+  const [tooltipPos, setTooltipPos] = React.useState<{
+    top: number
+    left: number
+    placement: "top" | "bottom"
+  } | null>(null)
+
+  const updateTooltipPosition = React.useCallback(() => {
+    if (!activeCell || !containerRef.current) {
+      setTooltipPos(null)
+      return
+    }
+
+    const cellEl = activeCell.element
+    const containerEl = containerRef.current
+    const scrollEl = scrollContainerRef.current
+
+    const pos = calculateTooltipPosition({
+      cellRect: cellEl.getBoundingClientRect(),
+      containerRect: containerEl.getBoundingClientRect(),
+      scrollRect: scrollEl?.getBoundingClientRect(),
+      tooltipWidth: tooltipRef.current?.offsetWidth || 140,
+      tooltipHeight: tooltipRef.current?.offsetHeight || 44,
+      margin: 8,
+    })
+
+    if (!pos.visible) {
+      setTooltipPos(null)
+      return
+    }
+
+    setTooltipPos({
+      top: pos.top,
+      left: pos.left,
+      placement: pos.placement,
+    })
+  }, [activeCell])
+
+  React.useEffect(() => {
+    if (!isTooltipActive) return
+    const frameId = requestAnimationFrame(() => {
+      updateTooltipPosition()
+    })
+    return () => cancelAnimationFrame(frameId)
+  }, [isTooltipActive, updateTooltipPosition])
+
+  React.useEffect(() => {
+    if (!isTooltipActive) return
+    const handleResize = () => updateTooltipPosition()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [isTooltipActive, updateTooltipPosition])
+
   const cellRefs = React.useRef<Map<string, HTMLTableCellElement>>(new Map())
 
   const handleSelect = React.useCallback(
@@ -117,6 +196,14 @@ export function ActivityHeatmap({
       col: number
     ) => {
       const currentCell = layout.rows[row]?.[col]
+      if (e.key === "Escape") {
+        e.preventDefault()
+        if (activeCell) {
+          setDismissedDate(activeCell.cell.date)
+        }
+        return
+      }
+
       if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
         e.preventDefault()
         if (currentCell && currentCell.inRange) {
@@ -149,7 +236,20 @@ export function ActivityHeatmap({
         cellEl?.focus()
       }
     },
-    [layout, handleSelect]
+    [layout, handleSelect, activeCell]
+  )
+
+  const handleContainerKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      props.onKeyDown?.(e)
+      if (e.defaultPrevented) return
+
+      if (e.key === "Escape" && activeCell) {
+        e.preventDefault()
+        setDismissedDate(activeCell.cell.date)
+      }
+    },
+    [activeCell, props]
   )
 
   // Map month labels by week index
@@ -183,8 +283,10 @@ export function ActivityHeatmap({
 
   return (
     <div
+      ref={containerRef}
       data-slot="activity-heatmap"
-      className={cn("flex flex-col gap-2.5", className)}
+      className={cn("relative flex flex-col gap-2.5", className)}
+      onKeyDown={handleContainerKeyDown}
       {...props}
     >
       {/* Header Summary */}
@@ -208,7 +310,11 @@ export function ActivityHeatmap({
       )}
 
       {/* Heatmap Grid */}
-      <div className="w-full overflow-x-auto pb-1">
+      <div
+        ref={scrollContainerRef}
+        className="w-full overflow-x-auto pb-1"
+        onScroll={updateTooltipPosition}
+      >
         <table
           role="grid"
           aria-label={ariaLabel}
@@ -282,6 +388,7 @@ export function ActivityHeatmap({
                       )
                     }
 
+                    const isCellActive = activeCell?.cell.date === cell.date
                     const isFocused =
                       focusedCoord[0] === rowIdx && focusedCoord[1] === colIdx
                     const isSelected = selectedDate === cell.date
@@ -305,10 +412,34 @@ export function ActivityHeatmap({
                         aria-colindex={colIdx + (showWeekdayLabels ? 2 : 1)}
                         aria-selected={isSelected}
                         aria-label={cell.label}
+                        aria-describedby={
+                          isTooltipActive && isCellActive
+                            ? tooltipId
+                            : undefined
+                        }
                         title={cell.label}
                         tabIndex={isFocused ? 0 : -1}
                         onClick={() => handleSelect(cell)}
                         onKeyDown={(e) => handleCellKeyDown(e, rowIdx, colIdx)}
+                        onMouseEnter={(e) => {
+                          setHoveredCell({ cell, element: e.currentTarget })
+                          setDismissedDate(null)
+                        }}
+                        onMouseLeave={() => {
+                          setHoveredCell((prev) =>
+                            prev?.cell.date === cell.date ? null : prev
+                          )
+                        }}
+                        onFocus={(e) => {
+                          setFocusedCell({ cell, element: e.currentTarget })
+                          setInternalFocusedCoord([rowIdx, colIdx])
+                          setDismissedDate(null)
+                        }}
+                        onBlur={() => {
+                          setFocusedCell((prev) =>
+                            prev?.cell.date === cell.date ? null : prev
+                          )
+                        }}
                         className={cn(
                           "size-3 min-w-[12px] cursor-pointer rounded-[2px] outline-hidden transition-colors",
                           colorClass,
@@ -354,6 +485,49 @@ export function ActivityHeatmap({
             ))}
             <span className="text-[11px]">More</span>
           </div>
+        </div>
+      )}
+
+      {/* Floating Tooltip */}
+      {isTooltipActive && activeCell && (
+        <div
+          ref={tooltipRef}
+          id={tooltipId}
+          role="tooltip"
+          data-slot="activity-heatmap-tooltip"
+          style={{
+            top: tooltipPos?.top ?? 0,
+            left: tooltipPos?.left ?? 0,
+            transform:
+              tooltipPos?.placement === "bottom"
+                ? "translate(-50%, 0)"
+                : "translate(-50%, -100%)",
+            opacity: tooltipPos ? 1 : 0,
+          }}
+          className={cn(
+            "pointer-events-none absolute z-50 animate-in rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md transition-opacity duration-150 fade-in-0 zoom-in-95"
+          )}
+        >
+          {renderTooltip ? (
+            renderTooltip(activeCell.cell)
+          ) : (
+            <div className="flex flex-col gap-0.5 text-center">
+              <span className="font-medium text-popover-foreground">
+                {activeCell.cell.count === 0
+                  ? `No ${unit}`
+                  : `${activeCell.cell.count.toLocaleString()} ${
+                      activeCell.cell.count === 1
+                        ? unit.endsWith("s")
+                          ? unit.slice(0, -1)
+                          : unit
+                        : unit
+                    }`}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {formatDateLabel(activeCell.cell.date, true)}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>

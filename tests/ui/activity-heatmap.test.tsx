@@ -220,4 +220,112 @@ describe("ActivityHeatmap", () => {
     expect(screen.getByText("Less")).toBeInTheDocument()
     expect(screen.getByText("More")).toBeInTheDocument()
   })
+
+  it("renders a floating tooltip on cell hover and removes it on unhover", async () => {
+    const user = userEvent.setup()
+    render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+      />
+    )
+
+    const oct31 = screen.getByRole("gridcell", {
+      name: "7 contributions on October 31",
+    })
+
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+
+    await user.hover(oct31)
+
+    const tooltip = screen.getByRole("tooltip")
+    expect(tooltip).toBeInTheDocument()
+    expect(tooltip).toHaveTextContent("7 contributions")
+    expect(tooltip).toHaveTextContent("October 31, 2026")
+    expect(oct31).toHaveAttribute("aria-describedby", tooltip.id)
+
+    await user.unhover(oct31)
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+    expect(oct31).not.toHaveAttribute("aria-describedby")
+  })
+
+  it("renders tooltip on cell focus and dismisses on Escape", async () => {
+    const user = userEvent.setup()
+    render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+        defaultSelectedDate="2026-10-27"
+      />
+    )
+
+    // Tab into the grid to focus the default-selected cell
+    await user.tab()
+
+    const tooltip = screen.getByRole("tooltip")
+    expect(tooltip).toBeInTheDocument()
+    expect(tooltip).toHaveTextContent("5 contributions")
+
+    await user.keyboard("{Escape}")
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+
+    // Navigating to adjacent cell re-displays the tooltip for the newly focused cell
+    await user.keyboard("{ArrowDown}")
+    const oct28 = screen.getByRole("gridcell", {
+      name: "12 contributions on October 28",
+    })
+    expect(document.activeElement).toBe(oct28)
+    const nextTooltip = screen.getByRole("tooltip")
+    expect(nextTooltip).toBeInTheDocument()
+    expect(nextTooltip).toHaveTextContent("12 contributions")
+  })
+
+  it("supports custom tooltip content via renderTooltip prop", async () => {
+    const user = userEvent.setup()
+    render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+        renderTooltip={(day) => (
+          <div data-testid="custom-tooltip">
+            <strong>{day.count} PRs merged</strong>
+            <span>on {day.date}</span>
+          </div>
+        )}
+      />
+    )
+
+    const oct28 = screen.getByRole("gridcell", {
+      name: "12 contributions on October 28",
+    })
+
+    await user.hover(oct28)
+
+    const custom = screen.getByTestId("custom-tooltip")
+    expect(custom).toBeInTheDocument()
+    expect(custom).toHaveTextContent("12 PRs merged")
+    expect(custom).toHaveTextContent("on 2026-10-28")
+  })
+
+  it("disables floating tooltip when showTooltip is false", async () => {
+    const user = userEvent.setup()
+    render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+        showTooltip={false}
+      />
+    )
+
+    const oct31 = screen.getByRole("gridcell", {
+      name: "7 contributions on October 31",
+    })
+
+    await user.hover(oct31)
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+  })
 })
