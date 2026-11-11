@@ -63,10 +63,14 @@ function getServerSnapshot() {
   return SERVER_STATE
 }
 
-export function updateShowcaseTheme(next: Partial<ShowcaseState>) {
+export function showShowcaseTheme(next: Partial<ShowcaseState>) {
   currentState = { ...getSnapshot(), ...next }
-  persistState(currentState)
   listeners.forEach((listener) => listener())
+}
+
+export function updateShowcaseTheme(next: Partial<ShowcaseState>) {
+  showShowcaseTheme(next)
+  persistState(getSnapshot())
 }
 
 export function useShowcaseTheme() {

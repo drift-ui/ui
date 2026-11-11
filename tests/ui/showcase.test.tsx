@@ -175,6 +175,19 @@ describe("ShowcaseWorkbench", () => {
     expect(screen.getByRole("button", { name: /Preset\s*Ember/ })).toBeVisible()
   })
 
+  it("shows a shared code without replacing the saved theme", () => {
+    const saved = ":root {\n  --primary: oklch(0.6 0.2 300);\n}"
+    window.localStorage.setItem("drift-ui:showcase-theme", saved)
+
+    render(
+      <ShowcaseWorkbench sharedCode={MAIA_EMBER_CODE}>canvas</ShowcaseWorkbench>
+    )
+
+    expect(screen.getByRole("button", { name: /Style\s*Maia/ })).toBeVisible()
+    expect(window.localStorage.getItem("drift-ui:showcase-theme")).toBe(saved)
+    expect(window.localStorage.getItem("drift-ui:showcase-style")).toBeNull()
+  })
+
   it("renders the shared style on the server", () => {
     const html = renderToString(
       <ShowcaseWorkbench sharedCode={MAIA_EMBER_CODE}>canvas</ShowcaseWorkbench>

@@ -6,10 +6,7 @@ import { ThemeScopeControl } from "@/components/docs/theme-scope-control"
 import { ThemeToolbar } from "@/components/showcase/theme-toolbar"
 import { themeScopeCss } from "@/components/theme-scope-style"
 import { useHasHydrated } from "@/hooks/use-has-hydrated"
-import {
-  updateShowcaseTheme,
-  useShowcaseTheme,
-} from "@/hooks/use-showcase-theme"
+import { showShowcaseTheme, useShowcaseTheme } from "@/hooks/use-showcase-theme"
 import { SHARE_PARAM, decodeShare, encodeShare } from "@/lib/showcase-share"
 import { DEFAULT_STYLE } from "@/lib/style-tokens"
 import { isEmptyTheme } from "@/lib/theme-css"
@@ -40,7 +37,7 @@ export function ShowcaseWorkbench({
 
   useEffect(() => {
     const routeShare = decodeShare(sharedCode ?? "")
-    if (routeShare) updateShowcaseTheme(routeShare)
+    if (routeShare) showShowcaseTheme(routeShare)
   }, [sharedCode])
 
   useEffect(() => {
