@@ -324,4 +324,34 @@ describe("calculateTooltipPosition", () => {
 
     expect(pos.visible).toBe(false)
   })
+
+  it("clamps and centers tooltip when container width exactly matches tooltipWidth + 2 * margin", () => {
+    const exactContainer = { top: 100, left: 50, width: 156, height: 300 }
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 52, width: 12, height: 12 },
+      containerRect: exactContainer,
+      tooltipWidth: 140,
+      margin: 8,
+    })
+
+    expect(pos.visible).toBe(true)
+    // halfWidth (70) + margin (8) = 78
+    expect(pos.left).toBe(78)
+  })
+
+  it("clamps vertical position when tall tooltip is placed below a cell", () => {
+    const shortContainer = { top: 100, left: 50, width: 600, height: 150 }
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 160, left: 250, width: 12, height: 12 },
+      containerRect: shortContainer,
+      tooltipWidth: 140,
+      tooltipHeight: 80,
+      margin: 8,
+    })
+
+    expect(pos.visible).toBe(true)
+    expect(pos.placement).toBe("bottom")
+    // containerHeight (150) - tooltipHeight (80) - margin (8) = 62
+    expect(pos.top).toBe(62)
+  })
 })

@@ -533,21 +533,45 @@ export function calculateTooltipPosition({
   const rawCenterX = cellRect.left - containerRect.left + cellRect.width / 2
 
   let clampedLeft = rawCenterX
-  if (containerRect.width > tooltipWidth + margin * 2) {
+  if (containerRect.width >= tooltipWidth + margin * 2) {
     clampedLeft = Math.max(
       halfWidth + margin,
       Math.min(containerRect.width - halfWidth - margin, rawCenterX)
     )
   }
 
+  const containerHeight =
+    containerRect.height > 0 ? containerRect.height : Infinity
   const spaceAbove = cellRect.top - containerRect.top
-  const placement: "top" | "bottom" =
-    spaceAbove < tooltipHeight + 12 ? "bottom" : "top"
+  const spaceBelow = containerRect.top + containerHeight - cellBottom
 
-  const top =
+  const placement: "top" | "bottom" =
+    spaceAbove >= tooltipHeight + margin
+      ? "top"
+      : spaceBelow >= tooltipHeight + margin
+        ? "bottom"
+        : spaceAbove >= spaceBelow
+          ? "top"
+          : "bottom"
+
+  let top =
     placement === "top"
       ? cellRect.top - containerRect.top - margin
       : cellBottom - containerRect.top + margin
+
+  if (Number.isFinite(containerHeight)) {
+    if (
+      placement === "bottom" &&
+      containerHeight >= tooltipHeight + margin * 2
+    ) {
+      top = Math.min(top, containerHeight - tooltipHeight - margin)
+    } else if (
+      placement === "top" &&
+      containerHeight >= tooltipHeight + margin * 2
+    ) {
+      top = Math.max(tooltipHeight + margin, top)
+    }
+  }
 
   return {
     top,
