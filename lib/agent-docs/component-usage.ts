@@ -1063,18 +1063,19 @@ export function TimezoneSetting() {
   },
   toast: {
     notes:
-      'Radix: registry/default/ui/sonner.tsx installs as components/ui/sonner.tsx and wraps sonner, so every shadcn Sonner call and Toaster prop works. Base UI installs components/ui/toast.tsx with shadcn\'s toast API (toast.add({ title, type })). Render Toaster once near the root. Import toast from the component file instead of from sonner to get the additions. toast.undo delays a destructive action until the toast goes away (onCommit) unless Undo or its shortcut ("Mod+Z") runs onUndo, and it commits on pagehide. toast.progress shows a determinate bar; update it by id and finish with a success toast on the same id. Toasts that reuse an id (Radix) or key (Base UI) merge into one with a ×N badge and a restarted timer. Durations grow with text length. Error toasts are announced assertively. persist: true sends the toast to onToastPersist listeners when it closes, ready for NotificationInbox.',
+      'Radix: registry/default/ui/sonner.tsx installs as components/ui/sonner.tsx and wraps sonner, so every shadcn Sonner call and Toaster prop works. Base UI installs components/ui/toast.tsx with shadcn\'s toast API (toast.add({ title, type })). Render Toaster once near the root. Import toast from the component file instead of from sonner to get the additions. toast.undo delays a destructive action until the toast goes away (onCommit) unless Undo or its shortcut ("Mod+Z") runs onUndo, and it commits on pagehide, so send the request in onCommit with fetch keepalive: true or navigator.sendBeacon so it survives the tab closing. toast.progress shows a determinate bar; update it by id and finish with a success toast on the same id. Toasts that reuse an id (Radix) or key (Base UI) merge into one with a ×N badge and a restarted timer. Durations grow with text length. Error toasts are announced assertively. persist: true sends the toast to onToastPersist listeners when it closes, ready for NotificationInbox.',
     example: `"use client"
 
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/sonner"
 
-export function DeleteFiles({ ids, deleteFiles, setHidden }: { ids: string[]; deleteFiles: (ids: string[]) => void; setHidden: (hidden: boolean) => void }) {
+export function DeleteFiles({ ids, setHidden }: { ids: string[]; setHidden: (hidden: boolean) => void }) {
   function remove() {
     setHidden(true)
     toast.undo(\`Deleted \${ids.length} files\`, {
       shortcut: "Mod+Z",
-      onCommit: () => deleteFiles(ids),
+      onCommit: () =>
+        fetch("/api/files/delete", { method: "POST", body: JSON.stringify(ids), keepalive: true }),
       onUndo: () => setHidden(false),
     })
   }

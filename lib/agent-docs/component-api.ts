@@ -3255,7 +3255,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           type: "() => void",
           required: true,
           description:
-            "Runs once when the toast times out, is swiped away or closed, or the page unloads.",
+            "Runs once when the toast times out, is swiped away or closed, or the page unloads. Because it can run during pagehide, send its request with fetch(url, { keepalive: true }) or navigator.sendBeacon, which the browser finishes after the tab closes.",
         },
         {
           name: "onUndo",

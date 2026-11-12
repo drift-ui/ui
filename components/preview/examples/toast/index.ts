@@ -19,7 +19,7 @@ export const examples: ComponentExample[] = [
     id: "undo",
     title: "Undo instead of confirm",
     description:
-      "Archive or delete a conversation and it leaves the list at once. The real action waits in onCommit, which runs when the toast times out, is swiped away or closed, or the page unloads. Undo, or ⌘Z on a Mac and Ctrl+Z elsewhere, restores it, and onCommit never runs. Hover or focus the toasts to pause the countdown.",
+      "Archive or delete a conversation and it leaves the list at once. The real action waits in onCommit, which runs when the toast times out, is swiped away or closed, or the page unloads. Send that request with fetch keepalive: true or navigator.sendBeacon so it still arrives when the tab is closing. Undo, or ⌘Z on a Mac and Ctrl+Z elsewhere, restores it, and onCommit never runs. Hover or focus the toasts to pause the countdown.",
     Preview: ToastUndoPreview,
     BasePreview: BaseUiToastUndoPreview,
   },
