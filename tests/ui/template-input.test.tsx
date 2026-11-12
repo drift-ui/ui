@@ -152,6 +152,27 @@ describe("TemplateInput", () => {
     )
   })
 
+  it("scrolls the highlights with the textarea", () => {
+    const onScroll = vi.fn()
+    const { container } = render(
+      <TemplateInput
+        aria-label="Subject"
+        variables={VARIABLES}
+        onScroll={onScroll}
+      />
+    )
+    const highlights = container.querySelector<HTMLElement>(
+      "[data-slot=template-input-highlights]"
+    )!
+    highlights.scrollTo = vi.fn()
+
+    textarea().scrollTop = 40
+    fireEvent.scroll(textarea())
+
+    expect(highlights.scrollTo).toHaveBeenCalledWith(0, 40)
+    expect(onScroll).toHaveBeenCalledOnce()
+  })
+
   it("follows a controlled value", () => {
     const { rerender } = render(
       <TemplateInput aria-label="Subject" variables={VARIABLES} value="a" />

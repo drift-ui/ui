@@ -129,10 +129,6 @@ function TemplateInput({
         event.preventDefault()
         selectOption(options[activeIndex])
         return
-      case "Escape":
-        event.preventDefault()
-        setDismissedStart(active.start)
-        return
     }
   }
 
