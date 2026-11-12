@@ -1,5 +1,5 @@
 import * as React from "react"
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -542,7 +542,7 @@ describe("ActivityHeatmap", () => {
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
   })
 
-  it("hides the tooltip when its cell scrolls out of the grid viewport", async () => {
+  it("hides the focus tooltip when its cell scrolls out of the grid viewport", () => {
     const { container } = render(
       <ActivityHeatmap
         data={SAMPLE_DATA}
@@ -574,13 +574,35 @@ describe("ActivityHeatmap", () => {
       rect(cellLeft, 80)
     )
 
-    fireEvent.mouseEnter(oct31)
+    fireEvent.focus(oct31)
     const tooltip = screen.getByRole("tooltip")
-    await waitFor(() => expect(tooltip.style.opacity).toBe("1"))
+    expect(tooltip.style.opacity).toBe("1")
 
     cellLeft = 600
     fireEvent.scroll(scroller)
     expect(tooltip.style.opacity).toBe("0")
+  })
+
+  it("follows the cursor while hovering cells", () => {
+    render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+      />
+    )
+    const grid = screen.getByRole("grid")
+    const oct31 = screen.getByRole("gridcell", {
+      name: "7 contributions on October 31",
+    })
+
+    fireEvent.mouseEnter(oct31, { clientX: 100, clientY: 80 })
+    const tooltip = screen.getByRole("tooltip")
+    expect(tooltip.style.left).toBe("100px")
+
+    fireEvent.mouseMove(grid, { clientX: 140, clientY: 80 })
+    expect(tooltip.style.left).toBe("140px")
+    expect(tooltip).toHaveTextContent("7 contributions")
   })
 
   it("shows the singular label and hides the breakdown on quiet days in the tooltip example", () => {

@@ -143,40 +143,33 @@ export function ActivityHeatmap({
     showTooltip && activeCell && dismissedDate !== activeCell.cell.date
   )
 
-  const [tooltipPos, setTooltipPos] = React.useState<{
-    top: number
-    left: number
-    placement: "top" | "bottom"
-  } | null>(null)
+  const pointerRef = React.useRef<{ x: number; y: number } | null>(null)
 
   const updateTooltipPosition = React.useCallback(() => {
-    if (!activeCell || !containerRef.current) {
-      setTooltipPos(null)
-      return
-    }
-
-    const cellEl = activeCell.element
+    const tooltipEl = tooltipRef.current
     const containerEl = containerRef.current
-    const scrollEl = scrollContainerRef.current
+    if (!activeCell || !tooltipEl || !containerEl) return
 
+    const pointer = pointerRef.current
     const pos = calculateTooltipPosition({
-      cellRect: cellEl.getBoundingClientRect(),
+      cellRect: pointer
+        ? { left: pointer.x, top: pointer.y, width: 0, height: 16 }
+        : activeCell.element.getBoundingClientRect(),
       containerRect: containerEl.getBoundingClientRect(),
-      scrollRect: scrollEl?.getBoundingClientRect(),
-      tooltipWidth: tooltipRef.current?.offsetWidth || 140,
-      tooltipHeight: tooltipRef.current?.offsetHeight || 44,
+      scrollRect: scrollContainerRef.current?.getBoundingClientRect(),
+      tooltipWidth: tooltipEl.offsetWidth || 140,
+      tooltipHeight: tooltipEl.offsetHeight || 44,
       margin: 8,
     })
 
-    if (!pos.visible) {
-      setTooltipPos(null)
-      return
-    }
-
-    setTooltipPos({
-      top: pos.top,
-      left: pos.left,
-      placement: pos.placement,
+    Object.assign(tooltipEl.style, {
+      top: `${pos.top}px`,
+      left: `${pos.left}px`,
+      transform:
+        pos.placement === "bottom"
+          ? "translate(-50%, 0)"
+          : "translate(-50%, -100%)",
+      opacity: pos.visible ? "1" : "0",
     })
   }, [activeCell])
 
@@ -339,7 +332,14 @@ export function ActivityHeatmap({
           aria-rowcount={7}
           aria-colcount={layout.weeks.length + (showWeekdayLabels ? 1 : 0)}
           className="border-separate border-spacing-[3px] text-left select-none"
-          onMouseLeave={() => setHoveredState(null)}
+          onMouseMove={(e) => {
+            pointerRef.current = { x: e.clientX, y: e.clientY }
+            updateTooltipPosition()
+          }}
+          onMouseLeave={() => {
+            pointerRef.current = null
+            setHoveredState(null)
+          }}
         >
           {showMonthLabels && (
             <thead>
@@ -444,6 +444,7 @@ export function ActivityHeatmap({
                         onClick={() => handleSelect(cell)}
                         onKeyDown={(e) => handleCellKeyDown(e, rowIdx, colIdx)}
                         onMouseEnter={(e) => {
+                          pointerRef.current = { x: e.clientX, y: e.clientY }
                           setHoveredState({
                             date: cell.date,
                             element: e.currentTarget,
@@ -518,17 +519,8 @@ export function ActivityHeatmap({
           id={tooltipId}
           role="tooltip"
           data-slot="activity-heatmap-tooltip"
-          style={{
-            top: tooltipPos?.top ?? 0,
-            left: tooltipPos?.left ?? 0,
-            transform:
-              tooltipPos?.placement === "bottom"
-                ? "translate(-50%, 0)"
-                : "translate(-50%, -100%)",
-            opacity: tooltipPos ? 1 : 0,
-          }}
           className={cn(
-            "pointer-events-none absolute z-50 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md"
+            "pointer-events-none absolute z-50 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground opacity-0 shadow-md"
           )}
         >
           {renderTooltip ? (
