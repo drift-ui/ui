@@ -1075,6 +1075,132 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "Parses a DSL string, URL search parameters, or JSON into Filter[] or FilterGroup.",
     },
   ],
+  "histogram-range": [
+    {
+      name: "HistogramRange",
+      description:
+        "A dual-thumb range slider sitting below a distribution histogram bar chart. Highlights values in the selected range and mutes values outside.",
+      props: [
+        {
+          name: "data",
+          type: "number[]",
+          description:
+            "Raw numeric dataset to distribute across histogram bins.",
+        },
+        {
+          name: "min",
+          type: "number",
+          description:
+            "Lower bound of the range. Defaults to min value in data, or 0.",
+        },
+        {
+          name: "max",
+          type: "number",
+          description:
+            "Upper bound of the range. Defaults to max value in data, or 100.",
+        },
+        {
+          name: "step",
+          type: "number",
+          default: "1",
+          description: "Step increment of the slider thumbs.",
+        },
+        {
+          name: "minStepsBetweenThumbs",
+          type: "number",
+          default: "0",
+          description:
+            "Minimum number of steps required between the two thumbs.",
+        },
+        STATE_PROPS.value("[number, number]", "selected range"),
+        STATE_PROPS.defaultValue("[number, number]", "[min, max]"),
+        STATE_PROPS.onValueChange(
+          "(value: [number, number]) => void",
+          "when the range changes during dragging or keyboard input"
+        ),
+        {
+          name: "onValueCommit",
+          type: "(value: [number, number]) => void",
+          description:
+            "Called when pointer drag or keyboard interaction finishes.",
+        },
+        {
+          name: "bins",
+          type: "number",
+          default: "24",
+          description: "Number of discrete histogram buckets.",
+        },
+        {
+          name: "formatValue",
+          type: "(value: number) => string",
+          description: "Formats values for display and thumb aria-valuetext.",
+        },
+        {
+          name: "minThumbLabel",
+          type: "string",
+          default: '"Minimum"',
+          description: "Accessible aria-label for the lower thumb.",
+        },
+        {
+          name: "maxThumbLabel",
+          type: "string",
+          default: '"Maximum"',
+          description: "Accessible aria-label for the upper thumb.",
+        },
+        {
+          name: "showValues",
+          type: "boolean",
+          default: "false",
+          description:
+            "Whether to render current range values above the chart.",
+        },
+        {
+          name: "showCount",
+          type: "boolean",
+          default: "false",
+          description: "Whether to render active item count above the chart.",
+        },
+        {
+          name: "renderCount",
+          type: "(selectedCount: number, totalCount: number) => React.ReactNode",
+          description:
+            "Custom renderer for result count summary and live region.",
+        },
+        {
+          name: "barHeight",
+          type: "number | string",
+          default: "64",
+          description: "Height of the histogram chart area.",
+        },
+        {
+          name: "barColor",
+          type: "string",
+          description:
+            "Tailwind class for active bars inside the range (defaults to bg-primary).",
+        },
+        {
+          name: "mutedBarColor",
+          type: "string",
+          description:
+            "Tailwind class for inactive bars outside the range (defaults to bg-muted-foreground/20).",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Whether the slider thumbs are disabled.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "buildHistogramBuckets",
+      signature:
+        "buildHistogramBuckets(options: BuildHistogramBucketsOptions): BuildHistogramBucketsResult",
+      description:
+        "Pure logic helper in @/registry/default/lib/histogram-range that buckets numeric data, normalizes bar heights, and calculates inRange statuses.",
+    },
+  ],
   "image-cropper": [
     {
       name: "ImageCropper",
