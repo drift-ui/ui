@@ -362,9 +362,13 @@ export function ActivityHeatmap({
                       role="columnheader"
                       aria-colindex={weekIdx + (showWeekdayLabels ? 2 : 1)}
                       aria-hidden={month ? undefined : true}
-                      className="h-4 min-w-[12px] p-0 leading-none font-normal"
+                      className="relative h-4 min-w-[12px] p-0 leading-none font-normal"
                     >
-                      {month ?? ""}
+                      {month && (
+                        <span className="absolute top-0 left-0 whitespace-nowrap">
+                          {month}
+                        </span>
+                      )}
                     </th>
                   )
                 })}
@@ -532,7 +536,7 @@ export function ActivityHeatmap({
             opacity: tooltipPos ? 1 : 0,
           }}
           className={cn(
-            "pointer-events-none absolute z-50 animate-in rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md transition-opacity duration-150 fade-in-0 zoom-in-95"
+            "pointer-events-none absolute z-50 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs text-popover-foreground shadow-md"
           )}
         >
           {renderTooltip ? (
