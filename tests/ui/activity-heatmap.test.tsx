@@ -452,7 +452,7 @@ describe("ActivityHeatmap", () => {
     expect(screen.getByRole("tooltip")).toHaveTextContent(/^1 activity/)
   })
 
-  it("keeps the tooltip on the active cell when another cell loses hover or focus", () => {
+  it("follows the pointer between cells and keeps focus tooltips on blur of another cell", () => {
     render(
       <ActivityHeatmap
         data={SAMPLE_DATA}
@@ -469,11 +469,11 @@ describe("ActivityHeatmap", () => {
     })
 
     fireEvent.mouseEnter(oct28)
+    expect(screen.getByRole("tooltip")).toHaveTextContent("12 contributions")
     fireEvent.mouseEnter(oct31)
-    fireEvent.mouseLeave(oct28)
     expect(screen.getByRole("tooltip")).toHaveTextContent("7 contributions")
 
-    fireEvent.mouseLeave(oct31)
+    fireEvent.mouseLeave(screen.getByRole("grid"))
     fireEvent.focus(oct28)
     fireEvent.blur(oct31)
     expect(screen.getByRole("tooltip")).toHaveTextContent("12 contributions")

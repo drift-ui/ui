@@ -180,12 +180,8 @@ export function ActivityHeatmap({
     })
   }, [activeCell])
 
-  React.useEffect(() => {
-    if (!isTooltipActive) return
-    const frameId = requestAnimationFrame(() => {
-      updateTooltipPosition()
-    })
-    return () => cancelAnimationFrame(frameId)
+  React.useLayoutEffect(() => {
+    if (isTooltipActive) updateTooltipPosition()
   }, [isTooltipActive, updateTooltipPosition])
 
   React.useEffect(() => {
@@ -343,6 +339,7 @@ export function ActivityHeatmap({
           aria-rowcount={7}
           aria-colcount={layout.weeks.length + (showWeekdayLabels ? 1 : 0)}
           className="border-separate border-spacing-[3px] text-left select-none"
+          onMouseLeave={() => setHoveredState(null)}
         >
           {showMonthLabels && (
             <thead>
@@ -452,11 +449,6 @@ export function ActivityHeatmap({
                             element: e.currentTarget,
                           })
                           setDismissedDate(null)
-                        }}
-                        onMouseLeave={() => {
-                          setHoveredState((prev) =>
-                            prev?.date === cell.date ? null : prev
-                          )
                         }}
                         onFocus={(e) => {
                           setFocusedState({
