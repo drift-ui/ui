@@ -10,7 +10,7 @@ const SAME_AS_SHADCN =
 export const COMPONENT_USAGE: Record<string, ComponentUsage> = {
   "activity-heatmap": {
     notes:
-      "ActivityHeatmap displays activity and contributions over a year on a grid of weeks by weekdays. Intensity levels 0 to 4 are mapped from counts using theme tokens (bg-muted/40 through bg-primary). Follows the WAI-ARIA grid pattern with a single tab stop and 2D arrow key navigation across cells. Includes accessible labels, customizable week start day, optional summary header, and a legend.",
+      "ActivityHeatmap displays activity and contributions over a year on a grid of weeks by weekdays. Intensity levels 0 to 4 are mapped from counts using theme tokens (bg-muted/40 through bg-primary). Follows the WAI-ARIA grid pattern with a single tab stop and 2D arrow key navigation across cells. Includes accessible labels, customizable week start day, optional summary header, floating tooltips on hover and focus (with custom renderTooltip support), and a legend.",
     example: `import { ActivityHeatmap } from "@/components/ui/activity-heatmap"
 
 const DATA = [

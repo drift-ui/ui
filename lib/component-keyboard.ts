@@ -11,6 +11,7 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ARROWS, action: "Move through the calendar grid" },
     { keys: HOME_END, action: "First or last week in the row" },
     { keys: ["Enter", "Space"], action: "Select the focused day" },
+    { keys: ["Escape"], action: "Dismiss the hover or focus tooltip" },
   ],
   "bulk-action-bar": [
     { keys: LEFT_RIGHT, action: "Move between actions" },

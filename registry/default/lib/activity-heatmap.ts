@@ -481,3 +481,102 @@ export function stepHeatmapCoordinate(
   // Fallback: stay on current
   return current
 }
+
+export interface TooltipPositionOptions {
+  cellRect: {
+    top: number
+    left: number
+    right?: number
+    bottom?: number
+    width: number
+    height: number
+  }
+  containerRect: { top: number; left: number; width: number; height: number }
+  scrollRect?: { left: number; right: number; width: number }
+  tooltipWidth?: number
+  tooltipHeight?: number
+  margin?: number
+}
+
+export interface TooltipPositionResult {
+  top: number
+  left: number
+  placement: "top" | "bottom"
+  visible: boolean
+}
+
+/**
+ * Calculates absolute coordinates and placement for a floating tooltip relative to
+ * the heatmap root container, clamping horizontally and flipping vertically near edges.
+ */
+export function calculateTooltipPosition({
+  cellRect,
+  containerRect,
+  scrollRect,
+  tooltipWidth = 140,
+  tooltipHeight = 44,
+  margin = 8,
+}: TooltipPositionOptions): TooltipPositionResult {
+  const cellRight = cellRect.right ?? cellRect.left + cellRect.width
+  const cellBottom = cellRect.bottom ?? cellRect.top + cellRect.height
+
+  if (scrollRect && scrollRect.width > 0) {
+    if (
+      cellRight < scrollRect.left + 2 ||
+      cellRect.left > scrollRect.right - 2
+    ) {
+      return { top: 0, left: 0, placement: "top", visible: false }
+    }
+  }
+
+  const halfWidth = tooltipWidth / 2
+  const rawCenterX = cellRect.left - containerRect.left + cellRect.width / 2
+
+  let clampedLeft = rawCenterX
+  if (containerRect.width >= tooltipWidth + margin * 2) {
+    clampedLeft = Math.max(
+      halfWidth + margin,
+      Math.min(containerRect.width - halfWidth - margin, rawCenterX)
+    )
+  }
+
+  const containerHeight =
+    containerRect.height > 0 ? containerRect.height : Infinity
+  const spaceAbove = cellRect.top - containerRect.top
+  const spaceBelow = containerRect.top + containerHeight - cellBottom
+
+  const placement: "top" | "bottom" =
+    spaceAbove >= tooltipHeight + margin
+      ? "top"
+      : spaceBelow >= tooltipHeight + margin
+        ? "bottom"
+        : spaceAbove >= spaceBelow
+          ? "top"
+          : "bottom"
+
+  let top =
+    placement === "top"
+      ? cellRect.top - containerRect.top - margin
+      : cellBottom - containerRect.top + margin
+
+  if (Number.isFinite(containerHeight)) {
+    if (
+      placement === "bottom" &&
+      containerHeight >= tooltipHeight + margin * 2
+    ) {
+      top = Math.min(top, containerHeight - tooltipHeight - margin)
+    } else if (
+      placement === "top" &&
+      containerHeight >= tooltipHeight + margin * 2
+    ) {
+      top = Math.max(tooltipHeight + margin, top)
+    }
+  }
+
+  return {
+    top,
+    left: clampedLeft,
+    placement,
+    visible: true,
+  }
+}

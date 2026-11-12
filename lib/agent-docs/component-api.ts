@@ -129,6 +129,19 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
             "Custom CSS class overrides for intensity levels 0 through 4.",
         },
         {
+          name: "showTooltip",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to render a floating tooltip on hover and focus.",
+        },
+        {
+          name: "renderTooltip",
+          type: "(day: ActivityDay) => ReactNode",
+          description:
+            "Custom tooltip content render function receiving the active day.",
+        },
+        {
           name: "aria-label",
           type: "string",
           default: '"Activity heatmap"',
