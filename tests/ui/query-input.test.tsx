@@ -149,6 +149,34 @@ describe("QueryInput", () => {
     )
   })
 
+  it("keeps the list open on a click in the field and closes it outside", async () => {
+    const user = userEvent.setup()
+    render(
+      <>
+        <button type="button">Elsewhere</button>
+        <QueryInput aria-label="Search" fields={FIELDS} />
+      </>
+    )
+
+    await user.type(input(), "la")
+    await user.click(input())
+    expect(input()).toHaveAttribute("aria-expanded", "true")
+
+    await user.click(screen.getByRole("button", { name: "Elsewhere" }))
+    expect(input()).toHaveAttribute("aria-expanded", "false")
+  })
+
+  it("passes scroll events on", () => {
+    const onScroll = vi.fn()
+    render(
+      <QueryInput aria-label="Search" fields={FIELDS} onScroll={onScroll} />
+    )
+
+    fireEvent.scroll(input())
+
+    expect(onScroll).toHaveBeenCalledTimes(1)
+  })
+
   it("leaves Enter to the IME while it is composing", async () => {
     const user = userEvent.setup()
     render(<QueryInput aria-label="Search" fields={FIELDS} />)

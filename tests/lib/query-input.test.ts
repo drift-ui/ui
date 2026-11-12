@@ -232,6 +232,7 @@ describe("query-input", () => {
     ])
     expect(suggestQuery("author", 3, FIELDS)).toEqual([])
     expect(suggestQuery("is:op", 5, FIELDS)).toEqual([])
+    expect(suggestQuery('"a:b', 4, FIELDS)).toEqual([])
     expect(suggestQuery("author:m", 8, FIELDS)).toEqual([])
     expect(suggestQuery("created:", 8, FIELDS)).toEqual([])
   })
