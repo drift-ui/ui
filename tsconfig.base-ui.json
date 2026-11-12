@@ -23,6 +23,7 @@
     "registry/default/ui/mention-textarea.tsx",
     "registry/default/ui/multi-select.tsx",
     "registry/default/ui/popover.tsx",
+    "registry/default/ui/query-input.tsx",
     "registry/default/ui/stepper.tsx",
     "registry/default/ui/template-input.tsx",
     "registry/default/ui/tour.tsx"

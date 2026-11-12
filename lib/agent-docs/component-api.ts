@@ -2369,6 +2369,54 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "Radix only. Positions the panel against another element. In Base UI, pass anchor to PopoverContent.",
     },
   ],
+  "query-input": [
+    {
+      name: "QueryInput",
+      description:
+        "A combobox input that parses key:value terms into filters. Typing at the end of a term suggests keys, then values. Arrow keys move through the list, ArrowDown on an empty term opens it, Enter or Tab inserts the highlighted suggestion, and Escape closes. Key suggestions start with nothing highlighted, so Enter on a plain word still submits; value suggestions start on the first option.",
+      props: [
+        {
+          name: "fields",
+          type: "FilterField[]",
+          required: true,
+          description:
+            "The keys that can be filtered on. Field ids are the keys, and select options are suggested as values.",
+        },
+        STATE_PROPS.value("string", "query"),
+        STATE_PROPS.defaultValue("string", '""'),
+        STATE_PROPS.onValueChange(
+          "(value: string) => void",
+          "when the query text changes"
+        ),
+        {
+          name: "onFiltersChange",
+          type: "(filters: Filter[], text: string) => void",
+          description:
+            "Called on every edit with the parsed filters and the leftover free text.",
+        },
+        {
+          name: "className",
+          type: "string",
+          description:
+            "Applied to the bordered wrapper, which also sets the font for the text and its highlights.",
+        },
+      ],
+      rest: "<input>",
+    },
+    {
+      name: "parseQuery",
+      signature:
+        "parseQuery(query: string, fields: FilterField[]): { filters: Filter[]; text: string }",
+      description:
+        "Reads a query into filters and free text. Exported from the lib file.",
+    },
+    {
+      name: "formatQuery",
+      signature: "formatQuery(filters: Filter[], text?: string): string",
+      description:
+        "Writes filters and free text back as a query. parseQuery reads it back to the same filters, as long as the free text has no key:value terms for known fields.",
+    },
+  ],
   rating: [
     {
       name: "Rating",
