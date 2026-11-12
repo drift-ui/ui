@@ -4,10 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { Toaster, onToastPersist, toast } from "@/registry/default/ui/sonner"
 
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 describe.skipIf(process.env.UI_PRIMITIVES === "base")("Toast on Radix", () => {
   afterEach(() => {
     act(() => {
@@ -37,7 +33,7 @@ describe.skipIf(process.env.UI_PRIMITIVES === "base")("Toast on Radix", () => {
 
     act(() => {
       toast.undo("Archived", {
-        duration: 100,
+        duration: 10_000,
         shortcut: "Mod+Z",
         onCommit,
         onUndo,
@@ -51,7 +47,7 @@ describe.skipIf(process.env.UI_PRIMITIVES === "base")("Toast on Radix", () => {
     await user.keyboard("{Enter}")
 
     expect(onUndo).toHaveBeenCalledTimes(1)
-    await wait(200)
+    window.dispatchEvent(new Event("pagehide"))
     expect(onCommit).not.toHaveBeenCalled()
   })
 
@@ -109,6 +105,10 @@ describe.skipIf(process.env.UI_PRIMITIVES === "base")("Toast on Radix", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not sync")
     expect(screen.getByText("Saved").closest('[role="alert"]')).toBeNull()
+    expect(screen.getByText("Saved").closest("[aria-live]")).toHaveAttribute(
+      "aria-live",
+      "polite"
+    )
   })
 
   it("undoes the newest undo toast with its shortcut", async () => {

@@ -39,7 +39,7 @@ type ToastOptions = ExternalToast & {
   persist?: boolean
 }
 
-type UndoToastOptions = Omit<ExternalToast, "id" | "action"> & {
+type UndoToastOptions = Omit<ExternalToast, "id" | "action" | "onAutoClose"> & {
   onCommit: () => void
   onUndo?: () => void
   undoLabel?: React.ReactNode
@@ -49,8 +49,6 @@ type UndoToastOptions = Omit<ExternalToast, "id" | "action"> & {
 type ProgressToastOptions = Omit<ExternalToast, "duration"> & {
   value: number
 }
-
-type PromiseOptions = NonNullable<Parameters<typeof sonnerToast.promise>[1]>
 
 const DEFAULT_DURATION = 4000
 const TOASTER_SELECTOR = "[data-sonner-toaster]"
@@ -147,10 +145,12 @@ function UndoCountdown({
     const ring = ringRef.current
     if (!ring) return
 
-    const animation = ring.animate?.(
-      [{ strokeDashoffset: 0 }, { strokeDashoffset: 1 }],
-      { duration, fill: "forwards" }
-    )
+    const animation = Number.isFinite(duration)
+      ? ring.animate?.([{ strokeDashoffset: 0 }, { strokeDashoffset: 1 }], {
+          duration,
+          fill: "forwards",
+        })
+      : undefined
     if (animation) animation.currentTime = duration - timer.remaining()
 
     const stop = trackPause(
@@ -316,25 +316,52 @@ function progress(
   })
 }
 
-function alertResult(result: unknown) {
-  if (typeof result === "string" || React.isValidElement(result)) {
-    return <Alert>{result}</Alert>
-  }
-  if (typeof result === "object" && result !== null && "message" in result) {
-    return {
-      ...result,
-      message: <Alert>{result.message as React.ReactNode}</Alert>,
-    }
-  }
-  return result
+type PromiseResult = {
+  message: React.ReactNode
+  description?: unknown
+  duration?: number
 }
 
-function alertError(error: PromiseOptions["error"]) {
+function isPromiseResult(result: unknown): result is PromiseResult {
   return (
-    typeof error === "function"
-      ? async (reason: unknown) => alertResult(await error(reason))
-      : alertResult(error)
-  ) as PromiseOptions["error"]
+    typeof result === "object" &&
+    result !== null &&
+    !Array.isArray(result) &&
+    !React.isValidElement(result) &&
+    "message" in result
+  )
+}
+
+function settledToast(result: unknown, assertive: boolean) {
+  if (result === null || result === undefined || typeof result === "boolean") {
+    return result
+  }
+  const { message, ...options }: PromiseResult = isPromiseResult(result)
+    ? result
+    : { message: result as React.ReactNode }
+
+  return {
+    ...options,
+    message: assertive ? <Alert>{message}</Alert> : message,
+    duration:
+      options.duration ??
+      readableDuration(
+        toastText(
+          message,
+          resolveNode(options.description as ExternalToast["description"])
+        ),
+        toasterDuration
+      ),
+  }
+}
+
+function settle<Option>(option: Option, assertive: boolean) {
+  if (option === undefined) return option
+  return (
+    typeof option === "function"
+      ? async (value: unknown) => settledToast(await option(value), assertive)
+      : settledToast(option, assertive)
+  ) as Option
 }
 
 const toast = Object.assign(enhance(sonnerToast, "default"), {
@@ -348,7 +375,11 @@ const toast = Object.assign(enhance(sonnerToast, "default"), {
   promise: ((promise, data) =>
     sonnerToast.promise(
       promise,
-      data && { ...data, error: alertError(data.error) }
+      data && {
+        ...data,
+        success: settle(data.success, false),
+        error: settle(data.error, true),
+      }
     )) as typeof sonnerToast.promise,
   undo,
   progress,

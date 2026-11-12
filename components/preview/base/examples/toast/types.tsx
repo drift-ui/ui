@@ -33,7 +33,11 @@ export function ToastTypesPreview() {
             type: "info",
             title: "New version available",
             description: "Reload to get dark mode and faster search.",
-            actionProps: { children: "Reload" },
+            actionProps: {
+              children: "Reload",
+              onClick: () =>
+                toast.add({ type: "success", title: "Updated to 2.4.0" }),
+            },
           })
         }
       >
@@ -47,7 +51,15 @@ export function ToastTypesPreview() {
             type: "warning",
             title: "Storage almost full",
             description: "9.2 of 10 GB used. Uploads stop at 10 GB.",
-            actionProps: { children: "Upgrade" },
+            actionProps: {
+              children: "Upgrade",
+              onClick: () =>
+                toast.add({
+                  type: "info",
+                  title: "Opening billing",
+                  description: "Plans start at 50 GB.",
+                }),
+            },
           })
         }
       >
@@ -61,7 +73,15 @@ export function ToastTypesPreview() {
             type: "error",
             title: "Card declined",
             description: "Your bank declined the charge. Try another card.",
-            actionProps: { children: "Retry" },
+            actionProps: {
+              children: "Retry",
+              onClick: () =>
+                toast.add({
+                  type: "success",
+                  title: "Payment received",
+                  description: "Charged to the card ending 4242.",
+                }),
+            },
           })
         }
       >

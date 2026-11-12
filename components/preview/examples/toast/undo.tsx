@@ -33,13 +33,17 @@ const THREADS: Thread[] = [
 export function ToastUndoPreview() {
   const [threads, setThreads] = React.useState(THREADS)
   const [log, setLog] = React.useState<string[]>([])
+  const generation = React.useRef(0)
 
   function remove(thread: Thread, verb: "Archived" | "Deleted") {
+    const current = generation.current
+    const isCurrent = () => current === generation.current
     setThreads((current) => current.filter((item) => item.id !== thread.id))
     toast.undo(`${verb} conversation`, {
       description: thread.subject,
       shortcut: "Mod+Z",
       onUndo: () =>
+        isCurrent() &&
         setThreads((current) =>
           THREADS.filter(
             (item) =>
@@ -48,6 +52,7 @@ export function ToastUndoPreview() {
           )
         ),
       onCommit: () =>
+        isCurrent() &&
         setLog((current) =>
           [`${verb} ${thread.from} for good`, ...current].slice(0, 3)
         ),
@@ -63,7 +68,11 @@ export function ToastUndoPreview() {
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => setThreads(THREADS)}
+              onClick={() => {
+                generation.current += 1
+                setThreads(THREADS)
+                setLog([])
+              }}
             >
               <RotateCcwIcon />
               Reset

@@ -33,6 +33,12 @@ const FILES: ProjectFile[] = [
   { name: "invoice-0412.pdf", size: "310 KB", edited: "Mon", kind: "doc" },
 ]
 
+const SHARE_LINK = "https://acme.app/s/marketing-q3"
+
+function copyShareLink() {
+  return Promise.resolve().then(() => navigator.clipboard.writeText(SHARE_LINK))
+}
+
 const UPLOAD: ProjectFile = {
   name: "launch-teaser.mp4",
   size: "18.4 MB",
@@ -69,7 +75,13 @@ export function ToastPreview() {
   const attempts = React.useRef(0)
   const uploadTimer = React.useRef<ReturnType<typeof setInterval>>(undefined)
 
-  React.useEffect(() => () => clearInterval(uploadTimer.current), [])
+  React.useEffect(
+    () => () => {
+      clearInterval(uploadTimer.current)
+      toast.close("upload")
+    },
+    []
+  )
 
   function remove(file: ProjectFile) {
     setFiles((current) => current.filter((item) => item.name !== file.name))
@@ -145,18 +157,33 @@ export function ToastPreview() {
             variant="outline"
             size="sm"
             onClick={() =>
-              toast.add({
-                key: "share-link",
-                type: "success",
-                title: "Link copied",
-                description: "Anyone in Acme with the link can view.",
-              })
+              copyShareLink().then(
+                () =>
+                  toast.add({
+                    key: "share-link",
+                    type: "success",
+                    title: "Link copied",
+                    description: "Anyone in Acme with the link can view.",
+                  }),
+                () =>
+                  toast.add({
+                    type: "error",
+                    title: "Could not copy the link",
+                    description: SHARE_LINK,
+                  })
+              )
             }
           >
             <LinkIcon />
             Share
           </Button>
-          <Button size="sm" disabled={isUploading} onClick={upload}>
+          <Button
+            size="sm"
+            disabled={
+              isUploading || files.some((file) => file.name === UPLOAD.name)
+            }
+            onClick={upload}
+          >
             <UploadIcon />
             Upload
           </Button>

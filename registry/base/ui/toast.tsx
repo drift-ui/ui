@@ -70,6 +70,11 @@ const VIEWPORT_SELECTOR = '[data-slot="toast-viewport"]'
 let toasterTimeout = DEFAULT_TIMEOUT
 let toastSequence = 0
 
+const persisted = new Map<
+  string,
+  Pick<ManagerAddOptions, "title" | "description">
+>()
+
 const manager = ToastPrimitive.createToastManager()
 
 function ToastKbd({ shortcut }: { shortcut: string }) {
@@ -94,6 +99,12 @@ function defaultTimeout(options: ManagerAddOptions) {
 function add({ key, persist, ...options }: ToastAddOptions) {
   const id = key ?? options.id ?? `toast-${++toastSequence}`
   const count = countToast(id, options.type)
+  if (persist) {
+    persisted.set(id, {
+      title: options.title,
+      description: options.description,
+    })
+  }
 
   return manager.add({
     ...options,
@@ -104,12 +115,10 @@ function add({ key, persist, ...options }: ToastAddOptions) {
     data: { ...options.data, count },
     onClose: () => {
       forgetToast(id)
-      if (persist) {
-        persistToast(
-          id,
-          toastText(options.title),
-          toastText(options.description)
-        )
+      const latest = persisted.get(id)
+      if (latest) {
+        persisted.delete(id)
+        persistToast(id, toastText(latest.title), toastText(latest.description))
       }
       options.onClose?.()
     },
@@ -168,25 +177,52 @@ function progress({ value, ...options }: ProgressToastOptions) {
   })
 }
 
+type PromiseUpdate = Parameters<ToastManager["update"]>[1]
+
+function settledToast(
+  option: string | Exclude<PromiseUpdate, (...args: never[]) => unknown>,
+  priority?: "high"
+) {
+  const resolved = typeof option === "string" ? { description: option } : option
+
+  return {
+    ...resolved,
+    ...(priority ? { priority } : {}),
+    timeout: resolved.timeout ?? defaultTimeout(resolved),
+  }
+}
+
 const promise: ToastManager["promise"] = (value, options) =>
   manager.promise(value, {
     ...options,
-    error: (reason: unknown) => {
-      const resolved =
+    success: (result) =>
+      settledToast(
+        typeof options.success === "function"
+          ? options.success(result)
+          : options.success
+      ),
+    error: (reason: unknown) =>
+      settledToast(
         typeof options.error === "function"
           ? options.error(reason)
-          : options.error
-
-      return {
-        ...(typeof resolved === "string"
-          ? { description: resolved }
-          : resolved),
-        priority: "high",
-      }
-    },
+          : options.error,
+        "high"
+      ),
   })
 
-const toast = { ...manager, add, promise, undo, progress }
+const update: ToastManager["update"] = (id, updates) => {
+  const entry = persisted.get(id)
+  if (entry && typeof updates === "object") {
+    persisted.set(id, {
+      title: "title" in updates ? updates.title : entry.title,
+      description:
+        "description" in updates ? updates.description : entry.description,
+    })
+  }
+  manager.update(id, updates)
+}
+
+const toast = { ...manager, add, update, promise, undo, progress }
 
 function ToastProvider({ ...props }: ToastPrimitive.Provider.Props) {
   return <ToastPrimitive.Provider {...props} />
@@ -357,10 +393,12 @@ function UndoCountdown({ timer, duration }: Omit<UndoData, "label">) {
     const ring = ringRef.current
     if (!ring) return
 
-    const animation = ring.animate?.(
-      [{ strokeDashoffset: 0 }, { strokeDashoffset: 1 }],
-      { duration, fill: "forwards" }
-    )
+    const animation = Number.isFinite(duration)
+      ? ring.animate?.([{ strokeDashoffset: 0 }, { strokeDashoffset: 1 }], {
+          duration,
+          fill: "forwards",
+        })
+      : undefined
     if (animation) animation.currentTime = duration - timer.remaining()
 
     const stop = trackPause(

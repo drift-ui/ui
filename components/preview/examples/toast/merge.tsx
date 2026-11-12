@@ -8,6 +8,12 @@ import { toast } from "@/registry/default/ui/sonner"
 
 const INVITE_LINK = "https://acme.app/join/7f3k-q2pd"
 
+function copyInviteLink() {
+  return Promise.resolve().then(() =>
+    navigator.clipboard.writeText(INVITE_LINK)
+  )
+}
+
 export function ToastMergePreview() {
   return (
     <div className="flex w-full max-w-md flex-col gap-3 rounded-box border p-4 text-sm">
@@ -23,10 +29,17 @@ export function ToastMergePreview() {
         <Button
           variant="outline"
           onClick={() =>
-            toast.success("Invite link copied", {
-              id: "invite-link",
-              description: "Anyone with the link can join as a viewer.",
-            })
+            copyInviteLink().then(
+              () =>
+                toast.success("Invite link copied", {
+                  id: "invite-link",
+                  description: "Anyone with the link can join as a viewer.",
+                }),
+              () =>
+                toast.error("Could not copy the link", {
+                  description: INVITE_LINK,
+                })
+            )
           }
         >
           <CopyIcon />

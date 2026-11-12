@@ -36,18 +36,18 @@ describe("toastText", () => {
 
 describe("countToast", () => {
   it("counts repeats of a key until it is forgotten", () => {
-    expect(countToast("copied")).toBe(1)
-    expect(countToast("copied")).toBe(2)
-    expect(countToast("copied")).toBe(3)
+    expect(countToast("lib-count")).toBe(1)
+    expect(countToast("lib-count")).toBe(2)
+    expect(countToast("lib-count")).toBe(3)
 
-    forgetToast("copied")
-    expect(countToast("copied")).toBe(1)
+    forgetToast("lib-count")
+    expect(countToast("lib-count")).toBe(1)
   })
 
   it("starts over when the same key changes kind", () => {
-    expect(countToast("save", "loading")).toBe(1)
-    expect(countToast("save", "success")).toBe(1)
-    expect(countToast("save", "success")).toBe(2)
+    expect(countToast("lib-kind", "loading")).toBe(1)
+    expect(countToast("lib-kind", "success")).toBe(1)
+    expect(countToast("lib-kind", "success")).toBe(2)
   })
 })
 
@@ -104,6 +104,18 @@ describe("createUndoTimer", () => {
     expect(onCommit).toHaveBeenCalledTimes(1)
   })
 
+  it("waits for a close or pagehide when the duration is infinite", () => {
+    const onCommit = vi.fn()
+    const timer = createUndoTimer({ duration: Infinity, onCommit })
+
+    vi.advanceTimersByTime(60_000)
+    expect(onCommit).not.toHaveBeenCalled()
+    expect(timer.remaining()).toBe(Infinity)
+
+    window.dispatchEvent(new Event("pagehide"))
+    expect(onCommit).toHaveBeenCalledTimes(1)
+  })
+
   it("keeps the remaining time while paused", () => {
     const onCommit = vi.fn()
     const timer = createUndoTimer({ duration: 5000, onCommit })
@@ -124,6 +136,21 @@ describe("createUndoTimer", () => {
 })
 
 describe("trackPause", () => {
+  it("starts paused when focus is already inside the region", () => {
+    const region = document.createElement("div")
+    const button = document.createElement("button")
+    region.append(button)
+    document.body.append(region)
+    button.focus()
+    const onPausedChange = vi.fn()
+
+    const stop = trackPause(region, onPausedChange)
+    expect(onPausedChange).toHaveBeenLastCalledWith(true)
+
+    stop()
+    region.remove()
+  })
+
   it("pauses while the region is hovered or holds focus", () => {
     const region = document.createElement("div")
     const button = document.createElement("button")

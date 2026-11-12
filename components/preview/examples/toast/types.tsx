@@ -29,7 +29,10 @@ export function ToastTypesPreview() {
         onClick={() =>
           toast.info("New version available", {
             description: "Reload to get dark mode and faster search.",
-            action: { label: "Reload", onClick: () => {} },
+            action: {
+              label: "Reload",
+              onClick: () => toast.success("Updated to 2.4.0"),
+            },
           })
         }
       >
@@ -41,7 +44,13 @@ export function ToastTypesPreview() {
         onClick={() =>
           toast.warning("Storage almost full", {
             description: "9.2 of 10 GB used. Uploads stop at 10 GB.",
-            action: { label: "Upgrade", onClick: () => {} },
+            action: {
+              label: "Upgrade",
+              onClick: () =>
+                toast.info("Opening billing", {
+                  description: "Plans start at 50 GB.",
+                }),
+            },
           })
         }
       >
@@ -53,7 +62,13 @@ export function ToastTypesPreview() {
         onClick={() =>
           toast.error("Card declined", {
             description: "Your bank declined the charge. Try another card.",
-            action: { label: "Retry", onClick: () => {} },
+            action: {
+              label: "Retry",
+              onClick: () =>
+                toast.success("Payment received", {
+                  description: "Charged to the card ending 4242.",
+                }),
+            },
           })
         }
       >

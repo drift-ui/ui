@@ -32,10 +32,16 @@ describe("toBaseUiItem", () => {
     const item = toBaseUiItem({
       files: [{ path: "registry/default/ui/sonner.tsx", type: "registry:ui" }],
       dependencies: ["sonner", "next-themes", "lucide-react"],
+      registryDependencies: ["@drift-ui/shape"],
     })
 
     expect(item.files[0].path).toBe("registry/base/ui/toast.tsx")
     expect(item.dependencies).toEqual(["@base-ui/react", "lucide-react"])
+    expect(item.registryDependencies).toEqual([
+      "utils",
+      "button",
+      "@drift-ui/shape",
+    ])
   })
 
   it("keeps shared files as they are", () => {

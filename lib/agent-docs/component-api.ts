@@ -3222,7 +3222,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           name: "id",
           type: "string | number",
           description:
-            "Radix. A toast with an id that is already showing merges into it: the newest content wins, a count badge appears and the timer restarts.",
+            "Radix. A toast of the same type with an id that is already showing merges into it: the newest content wins, a count badge appears and the timer restarts. Reusing the id with another type, such as loading then success, updates the toast without a count.",
         },
         {
           name: "key",
@@ -3236,10 +3236,16 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
             "Radix. Time on screen in ms. When unset it grows with the length of the title and description.",
         },
         {
+          name: "timeout",
+          type: "number",
+          description:
+            "Base UI. Time on screen in ms, 0 to stay until closed. When unset it grows with the length of the title and description.",
+        },
+        {
           name: "persist",
           type: "boolean",
           description:
-            "Hands the toast to onToastPersist listeners when it closes, ready for the notification inbox.",
+            "Hands the toast to onToastPersist listeners when it closes, ready for the notification inbox. Only text titles and descriptions are passed on, so a toast whose title is a React element is not persisted.",
         },
       ],
     },

@@ -4,10 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { Toaster, onToastPersist, toast } from "@/registry/base/ui/toast"
 
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 describe.skipIf(process.env.UI_PRIMITIVES !== "base")(
   "Toast on Base UI",
   () => {
@@ -40,7 +36,7 @@ describe.skipIf(process.env.UI_PRIMITIVES !== "base")(
       act(() => {
         toast.undo({
           title: "Archived",
-          timeout: 100,
+          timeout: 10_000,
           shortcut: "Mod+Z",
           onCommit,
           onUndo,
@@ -54,7 +50,7 @@ describe.skipIf(process.env.UI_PRIMITIVES !== "base")(
       await user.keyboard("{Enter}")
 
       expect(onUndo).toHaveBeenCalledTimes(1)
-      await wait(200)
+      window.dispatchEvent(new Event("pagehide"))
       expect(onCommit).not.toHaveBeenCalled()
     })
 
@@ -194,6 +190,31 @@ describe.skipIf(process.env.UI_PRIMITIVES !== "base")(
         title: "Build passed",
         body: "412 tests",
       })
+      stop()
+    })
+
+    it("persists the latest content after an update", async () => {
+      const received = vi.fn()
+      const stop = onToastPersist(received)
+      render(<Toaster />)
+
+      act(() => {
+        toast.add({ key: "deploy", title: "Deploying", persist: true })
+      })
+      await screen.findByText("Deploying")
+      act(() => {
+        toast.update("deploy", { title: "Deployed a1f9c2e" })
+      })
+      await screen.findByText("Deployed a1f9c2e")
+      act(() => {
+        toast.close("deploy")
+      })
+
+      await waitFor(() =>
+        expect(received).toHaveBeenCalledWith(
+          expect.objectContaining({ id: "deploy", title: "Deployed a1f9c2e" })
+        )
+      )
       stop()
     })
   }

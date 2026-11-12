@@ -161,7 +161,7 @@ export function createUndoTimer({
   }
 
   function resume() {
-    if (settled || timeout !== undefined) return
+    if (settled || timeout !== undefined || remaining === Infinity) return
     startedAt = Date.now()
     timeout = setTimeout(commit, remaining)
   }
@@ -183,8 +183,8 @@ export function trackPause(
   region: Element,
   onPausedChange: (paused: boolean) => void
 ) {
-  let hovered = false
-  let focused = false
+  let hovered = region.matches(":hover")
+  let focused = region.contains(document.activeElement)
 
   const update = () => onPausedChange(hovered || focused || document.hidden)
   const onPointerEnter = () => {

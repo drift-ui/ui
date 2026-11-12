@@ -1106,7 +1106,7 @@
       "title": "Toast",
       "description": "Toasts that keep shadcn's API and add undo with a working shortcut, progress, merging of repeated toasts, reading-time durations and a handoff to the notification inbox.",
       "dependencies": ["sonner", "next-themes", "lucide-react"],
-      "registryDependencies": ["utils", "button", "@drift-ui/shape"],
+      "registryDependencies": ["@drift-ui/shape"],
       "files": [
         {
           "path": "registry/default/ui/sonner.tsx",

@@ -1082,6 +1082,25 @@ export function DeleteFiles({ ids, setHidden }: { ids: string[]; setHidden: (hid
 
   return <Button variant="destructive" onClick={remove}>Delete</Button>
 }`,
+    baseExample: `"use client"
+
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/toast"
+
+export function DeleteFiles({ ids, setHidden }: { ids: string[]; setHidden: (hidden: boolean) => void }) {
+  function remove() {
+    setHidden(true)
+    toast.undo({
+      title: \`Deleted \${ids.length} files\`,
+      shortcut: "Mod+Z",
+      onCommit: () =>
+        fetch("/api/files/delete", { method: "POST", body: JSON.stringify(ids), keepalive: true }),
+      onUndo: () => setHidden(false),
+    })
+  }
+
+  return <Button variant="destructive" onClick={remove}>Delete</Button>
+}`,
   },
   tour: {
     notes:

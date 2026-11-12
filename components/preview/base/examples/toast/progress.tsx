@@ -12,14 +12,22 @@ const FILES = [
   { name: "invoice-0412.pdf", size: "310 KB" },
 ]
 
+const UPLOAD_ID = "upload-example"
+
 export function ToastProgressPreview() {
   const timer = React.useRef<ReturnType<typeof setInterval>>(undefined)
   const [isUploading, setIsUploading] = React.useState(false)
 
-  React.useEffect(() => () => clearInterval(timer.current), [])
+  React.useEffect(
+    () => () => {
+      clearInterval(timer.current)
+      toast.close(UPLOAD_ID)
+    },
+    []
+  )
 
   function upload() {
-    const id = "upload"
+    const id = UPLOAD_ID
     let value = 0
     setIsUploading(true)
 
