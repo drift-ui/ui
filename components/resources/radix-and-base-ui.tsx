@@ -15,6 +15,8 @@ const REWRITES = `{ source: "/r/:style(base-[^/]+)/:name", destination: "/r/base
 { source: "/r/:style/:name", destination: "/r/:name" },`
 
 const TO_BASE_UI_ITEM = `export function toBaseUiItem(item) {
+  if (!item.files) return item
+
   const files = item.files.map((file) => ({
     ...file,
     path: baseUiSourcePath(file.path),
@@ -225,10 +227,11 @@ export function RadixAndBaseUi() {
 
       <DocSection id="testing" title="Testing both">
         <p>
-          <code>bun run test</code> runs the UI tests twice. Vitest has a{" "}
-          <code>radix</code> project and a <code>base</code> project, and the
-          second one points each import of a file that has a Base UI copy at
-          that copy:
+          <code>bun run test</code> runs the UI tests twice, except{" "}
+          <code>showcase.test.tsx</code>, which tests the site’s theme showcase
+          and not a registry file. Vitest has a <code>radix</code> project and a{" "}
+          <code>base</code> project, and the second one points each import of a
+          file that has a Base UI copy at that copy:
         </p>
         <CodeSample title="vitest.config.ts" code={VITEST_PROJECTS} />
         <p>

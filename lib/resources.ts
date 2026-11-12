@@ -61,7 +61,7 @@ export const RESOURCES: Resource[] = [
       "The shadcn CLI fills your project’s style into the registry URL, and any base- style gets the Base UI build.",
       "Only 13 files have a Base UI copy. The Base UI registry is generated from registry.json, so there’s one manifest to edit.",
       "drift’s own props stay the same on both libraries, so StepperNext still takes asChild on Base UI.",
-      "Every UI test runs twice, and a test fails if the Base UI build mentions radix-ui.",
+      "The component tests run once per library, and a test fails if the Base UI build mentions radix-ui.",
     ],
     image: {
       src: "/images/resources/radix-and-base-ui.png",
