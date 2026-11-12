@@ -54,6 +54,27 @@ describe("template-input", () => {
     ).toEqual({ text: "{{order_id}}!", caret: 12 })
   })
 
+  it("replaces the rest of the token when the caret is inside a name", () => {
+    expect(
+      insertVariable(
+        "{{fir_name}} hi",
+        { query: "fir", start: 0 },
+        5,
+        VARIABLES[0]
+      )
+    ).toEqual({ text: "{{first_name}} hi", caret: 14 })
+    expect(
+      insertVariable("{{ or }}", { query: "or", start: 0 }, 5, VARIABLES[1])
+    ).toEqual({ text: "{{order_id}}", caret: 12 })
+  })
+
+  it("accepts the same name characters as complete variables", () => {
+    expect(findActiveVariable("{{user:em", 9)).toEqual({
+      query: "user:em",
+      start: 0,
+    })
+  })
+
   it("finds complete variables with their ranges", () => {
     expect(
       findTemplateVariables("{{a}} and {{ b.c }} but not {{d e}}")

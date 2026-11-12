@@ -13,7 +13,8 @@ export type TemplateVariable = {
 
 const OPEN = "{{"
 const CLOSE = "}}"
-const PARTIAL_NAME = /^\s*([\w.-]*)$/
+const PARTIAL_NAME = /^\s*([^{}\s]*)$/
+const TOKEN_REST = /^[^{}\s]*(\s*\}\})?/
 const VARIABLE = /\{\{\s*([^{}\s]+)\s*\}\}/g
 
 export function findActiveVariable(
@@ -38,9 +39,7 @@ export function insertVariable(
   const after = text.slice(caret)
   return {
     text:
-      text.slice(0, active.start) +
-      inserted +
-      (after.startsWith(CLOSE) ? after.slice(CLOSE.length) : after),
+      text.slice(0, active.start) + inserted + after.replace(TOKEN_REST, ""),
     caret: active.start + inserted.length,
   }
 }

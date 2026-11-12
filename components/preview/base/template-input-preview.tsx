@@ -12,7 +12,7 @@ export function TemplateInputPreview() {
     <TemplateInput
       aria-label="Message"
       variables={VARIABLES}
-      defaultValue="Hi {{first_name}}, order {{order_id}} shipped and should arrive by {{delivery_day}}."
+      defaultValue="Hi {{first_name}}, order {{order_id}} shipped and should arrive by {{delivery_date}}."
       className="max-w-md"
     />
   )

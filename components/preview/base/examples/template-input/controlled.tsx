@@ -22,7 +22,8 @@ export function TemplateInputControlledPreview() {
   )
   const rendered = template.replace(
     /\{\{\s*([^{}\s]+)\s*\}\}/g,
-    (match, name: string) => SAMPLE[name] ?? match
+    (match, name: string) =>
+      Object.hasOwn(SAMPLE, name) ? SAMPLE[name] : match
   )
 
   return (
