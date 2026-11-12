@@ -16,7 +16,7 @@ export type QuerySuggestion = {
 }
 
 const TERM = /^(-?)([\w.-]+):(.*)$/
-const NEEDS_QUOTES = /[\s",\\]/
+const NEEDS_QUOTES = /[\s",\\]|^\*|\*$/
 const MAX_SUGGESTIONS = 8
 
 const EMPTY_OPERATOR: Record<FilterField["type"], FilterOperator> = {
@@ -25,6 +25,8 @@ const EMPTY_OPERATOR: Record<FilterField["type"], FilterOperator> = {
   number: "eq",
   date: "before",
 }
+
+const LISTS = new Set<FilterOperator>(["is-any-of", "is-none-of"])
 
 const NEGATED = new Set<FilterOperator>([
   "is-not",
@@ -109,6 +111,7 @@ export function parseQueryTerm(
   }
 
   if (ordered) {
+    if (/^[<>]=/.test(raw)) return null
     const comparator = /^[<>=]/.test(raw) ? raw[0] : ""
     const [value] = readValues(raw.slice(comparator.length), false)
     if (field.type === "number") {
@@ -122,23 +125,27 @@ export function parseQueryTerm(
     return { fieldId, operator: "between", value: [from, to] }
   }
 
-  const values = readValues(raw, true).filter(Boolean)
+  if (
+    field.type === "text" &&
+    raw.length >= 2 &&
+    raw.startsWith("*") &&
+    raw.endsWith("*")
+  ) {
+    return {
+      fieldId,
+      operator: negated ? "not-contains" : "contains",
+      value: readValues(raw.slice(1, -1), false)[0],
+    }
+  }
+  const values = readValues(raw, true)
   if (values.length > 1) {
     return {
       fieldId,
       operator: negated ? "is-none-of" : "is-any-of",
-      value: values,
+      value: values.filter(Boolean),
     }
   }
-  const [value = ""] = values
-  if (field.type === "text" && /^\*.+\*$/.test(value)) {
-    return {
-      fieldId,
-      operator: negated ? "not-contains" : "contains",
-      value: value.slice(1, -1),
-    }
-  }
-  return { fieldId, operator: negated ? "is-not" : "is", value }
+  return { fieldId, operator: negated ? "is-not" : "is", value: values[0] }
 }
 
 export function parseQuery(query: string, fields: FilterField[]) {
@@ -165,7 +172,9 @@ function formatFilter({ fieldId, operator, value }: Filter) {
   if (operator === "between") {
     formatted = values.join("..")
   } else if (operator === "contains" || operator === "not-contains") {
-    formatted = quote(`*${values[0] ?? ""}*`)
+    formatted = `*${quote(values[0] ?? "")}*`
+  } else if (LISTS.has(operator)) {
+    formatted = values.map(quote).join(",") + (values.length < 2 ? "," : "")
   } else {
     formatted = (COMPARATOR[operator] ?? "") + values.map(quote).join(",")
   }
@@ -206,7 +215,11 @@ export function suggestQuery(
     const minus = text.startsWith("-") ? "-" : ""
     const typed = text.slice(minus.length)
     return fields
-      .filter((field) => matches(typed, [field.id, field.label], "start"))
+      .filter(
+        (field) =>
+          !(minus && (field.type === "number" || field.type === "date")) &&
+          matches(typed, [field.id, field.label], "start")
+      )
       .slice(0, MAX_SUGGESTIONS)
       .map((field) => ({
         kind: "key",

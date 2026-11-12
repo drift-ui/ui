@@ -3,8 +3,17 @@
 import * as React from "react"
 
 import { matchesFilters, type FilterField } from "@/registry/default/lib/filter"
-import { parseQuery } from "@/registry/default/lib/query-input-utils"
+import {
+  parseQuery,
+  tokenizeQuery,
+} from "@/registry/default/lib/query-input-utils"
 import { QueryInput } from "@/registry/base/ui/query-input"
+
+const AUTHORS = [
+  { value: "noor", label: "Noor Haddad" },
+  { value: "kofi", label: "Kofi Mensah" },
+  { value: "ilse", label: "Ilse Marchetti" },
+]
 
 const FIELDS: FilterField[] = [
   {
@@ -20,11 +29,7 @@ const FIELDS: FilterField[] = [
     id: "author",
     label: "Author",
     type: "select",
-    options: [
-      { value: "noor", label: "Noor Haddad" },
-      { value: "kofi", label: "Kofi Mensah" },
-      { value: "ilse", label: "Ilse Marchetti" },
-    ],
+    options: AUTHORS,
   },
   {
     id: "label",
@@ -76,7 +81,9 @@ export function QueryInputPreview() {
   const [result, setResult] = React.useState(() =>
     parseQuery(INITIAL_QUERY, FIELDS)
   )
-  const words = result.text.toLowerCase().split(" ").filter(Boolean)
+  const words = tokenizeQuery(result.text).map(({ text }) =>
+    text.replace(/^"|"$/g, "").toLowerCase()
+  )
   const issues = ISSUES.filter(
     (issue) =>
       matchesFilters(issue, result.filters) &&
@@ -96,7 +103,9 @@ export function QueryInputPreview() {
         {issues.map((issue) => (
           <li key={issue.title} className="flex justify-between gap-4">
             {issue.title}
-            <span className="text-muted-foreground">{issue.author}</span>
+            <span className="text-muted-foreground">
+              {AUTHORS.find((author) => author.value === issue.author)?.label}
+            </span>
           </li>
         ))}
         {issues.length === 0 && (

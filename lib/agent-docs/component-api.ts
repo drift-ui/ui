@@ -2414,7 +2414,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       name: "formatQuery",
       signature: "formatQuery(filters: Filter[], text?: string): string",
       description:
-        "Writes filters and free text back as a query that parseQuery reads to the same filters.",
+        "Writes filters and free text back as a query. parseQuery reads it back to the same filters, as long as the free text has no key:value terms for known fields.",
     },
   ],
   rating: [

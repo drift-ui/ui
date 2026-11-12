@@ -9,7 +9,7 @@ export const examples: ComponentExample[] = [
     id: "parsed-output",
     title: "What it parses",
     description:
-      "Comma lists become is-any-of, *text* becomes contains, > and < compare numbers and dates, and a..b is a date range. Anything that is not a known key stays in the free text.",
+      "On text and select fields, a comma list becomes is-any-of. On text fields, *text* becomes contains. On number and date fields, > and < compare, and a..b is a date range. Anything that is not a known key stays in the free text.",
     Preview: QueryInputParsedOutputPreview,
     BasePreview: BaseUiQueryInputParsedOutputPreview,
   },

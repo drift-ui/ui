@@ -133,7 +133,7 @@ describe("query-input", () => {
     )
 
     expect(query).toBe(
-      'author:"*ana lee*" -label:bug,"needs review" age:>7 created:2024-01-01..2024-01-31 author: login page'
+      'author:*"ana lee"* -label:bug,"needs review" age:>7 created:2024-01-01..2024-01-31 author: login page'
     )
     expect(parseQuery(query, FIELDS)).toEqual({
       filters: [
@@ -159,6 +159,37 @@ describe("query-input", () => {
         { id: "query-4", fieldId: "author", operator: "is", value: "" },
       ],
       text: "login page",
+    })
+  })
+
+  it("keeps operators that have no single-term spelling through a round trip", () => {
+    const filters = [
+      {
+        id: "1",
+        fieldId: "label",
+        operator: "is-any-of" as const,
+        value: ["bug"],
+      },
+      { id: "2", fieldId: "label", operator: "is-none-of" as const, value: [] },
+      { id: "3", fieldId: "author", operator: "is" as const, value: "*bot*" },
+      { id: "4", fieldId: "author", operator: "contains" as const, value: "" },
+    ]
+    const query = formatQuery(filters)
+
+    expect(query).toBe('label:bug, -label:, author:"*bot*" author:**')
+    expect(filtersOf(query)).toEqual(
+      filters.map(({ fieldId, operator, value }) => ({
+        fieldId,
+        operator,
+        value,
+      }))
+    )
+  })
+
+  it("leaves >= and <= as free text instead of guessing", () => {
+    expect(parseQuery("age:>=5 created:<=2024-01-01", FIELDS)).toEqual({
+      filters: [],
+      text: "age:>=5 created:<=2024-01-01",
     })
   })
 
@@ -196,6 +227,9 @@ describe("query-input", () => {
   })
 
   it("has no suggestions mid-token, for unknown keys or for fields without options", () => {
+    expect(suggestQuery("-a", 2, FIELDS).map((item) => item.insert)).toEqual([
+      "-author:",
+    ])
     expect(suggestQuery("author", 3, FIELDS)).toEqual([])
     expect(suggestQuery("is:op", 5, FIELDS)).toEqual([])
     expect(suggestQuery("author:m", 8, FIELDS)).toEqual([])
