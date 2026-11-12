@@ -1,5 +1,5 @@
 import * as React from "react"
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -418,5 +418,187 @@ describe("ActivityHeatmap", () => {
     const tooltip = screen.getByRole("tooltip")
     expect(tooltip).toBeInTheDocument()
     expect(tooltip).toHaveTextContent(/Level/i)
+  })
+  it("pluralizes the default tooltip text by count and unit", async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+      />
+    )
+
+    await user.hover(
+      screen.getByRole("gridcell", { name: "No contributions on October 26" })
+    )
+    expect(screen.getByRole("tooltip")).toHaveTextContent("No contributions")
+
+    await user.hover(
+      screen.getByRole("gridcell", { name: "1 contribution on October 30" })
+    )
+    expect(screen.getByRole("tooltip")).toHaveTextContent(
+      /^1 contribution(?!s)/
+    )
+
+    rerender(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+        unit="activity"
+      />
+    )
+    expect(screen.getByRole("tooltip")).toHaveTextContent(/^1 activity/)
+  })
+
+  it("keeps the tooltip on the active cell when another cell loses hover or focus", () => {
+    render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+      />
+    )
+
+    const oct28 = screen.getByRole("gridcell", {
+      name: "12 contributions on October 28",
+    })
+    const oct31 = screen.getByRole("gridcell", {
+      name: "7 contributions on October 31",
+    })
+
+    fireEvent.mouseEnter(oct28)
+    fireEvent.mouseEnter(oct31)
+    fireEvent.mouseLeave(oct28)
+    expect(screen.getByRole("tooltip")).toHaveTextContent("7 contributions")
+
+    fireEvent.mouseLeave(oct31)
+    fireEvent.focus(oct28)
+    fireEvent.blur(oct31)
+    expect(screen.getByRole("tooltip")).toHaveTextContent("12 contributions")
+  })
+
+  it("removes the tooltip when the hovered day leaves the date range", async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+      />
+    )
+
+    await user.hover(
+      screen.getByRole("gridcell", { name: "7 contributions on October 31" })
+    )
+    expect(screen.getByRole("tooltip")).toBeInTheDocument()
+
+    rerender(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-30"
+      />
+    )
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+  })
+
+  it("dismisses the tooltip on Escape from the container, unless onKeyDown prevents it", () => {
+    const { container, rerender } = render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+        onKeyDown={(e) => e.preventDefault()}
+      />
+    )
+    const root = container.firstChild as HTMLElement
+    const oct31 = screen.getByRole("gridcell", {
+      name: "7 contributions on October 31",
+    })
+
+    fireEvent.keyDown(oct31, { key: "Escape" })
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+
+    fireEvent.mouseEnter(oct31)
+    fireEvent.keyDown(root, { key: "Escape" })
+    expect(screen.getByRole("tooltip")).toBeInTheDocument()
+
+    rerender(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+      />
+    )
+    fireEvent.keyDown(root, { key: "a" })
+    expect(screen.getByRole("tooltip")).toBeInTheDocument()
+    fireEvent.keyDown(root, { key: "Escape" })
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+
+    fireEvent.mouseLeave(oct31)
+    fireEvent.keyDown(root, { key: "Escape" })
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument()
+  })
+
+  it("hides the tooltip when its cell scrolls out of the grid viewport", async () => {
+    const { container } = render(
+      <ActivityHeatmap
+        data={SAMPLE_DATA}
+        startDate="2026-10-25"
+        endDate="2026-10-31"
+      />
+    )
+    const scroller = container.querySelector(".overflow-x-auto") as HTMLElement
+    const oct31 = screen.getByRole("gridcell", {
+      name: "7 contributions on October 31",
+    })
+
+    fireEvent.scroll(scroller)
+
+    const rect = (left: number, top = 0, width = 12, height = 12) =>
+      ({
+        left,
+        top,
+        width,
+        height,
+        right: left + width,
+        bottom: top + height,
+      }) as DOMRect
+    let cellLeft = 100
+    vi.spyOn(scroller, "getBoundingClientRect").mockReturnValue(
+      rect(0, 0, 400, 120)
+    )
+    vi.spyOn(oct31, "getBoundingClientRect").mockImplementation(() =>
+      rect(cellLeft, 80)
+    )
+
+    fireEvent.mouseEnter(oct31)
+    const tooltip = screen.getByRole("tooltip")
+    await waitFor(() => expect(tooltip.style.opacity).toBe("1"))
+
+    cellLeft = 600
+    fireEvent.scroll(scroller)
+    expect(tooltip.style.opacity).toBe("0")
+  })
+
+  it("shows the singular label and hides the breakdown on quiet days in the tooltip example", () => {
+    render(<ActivityHeatmapTooltipPreview />)
+    const cells = screen.getAllByRole("gridcell")
+    const quiet = cells.find((c) =>
+      c.getAttribute("aria-label")?.startsWith("No contributions")
+    )
+    const single = cells.find((c) =>
+      c.getAttribute("aria-label")?.startsWith("1 contribution ")
+    )
+
+    fireEvent.mouseEnter(quiet!)
+    expect(screen.getByRole("tooltip")).toHaveTextContent("0 activities")
+    expect(screen.getByRole("tooltip")).not.toHaveTextContent("commits")
+
+    fireEvent.mouseLeave(quiet!)
+    fireEvent.mouseEnter(single!)
+    expect(screen.getByRole("tooltip")).toHaveTextContent("1 activity")
   })
 })

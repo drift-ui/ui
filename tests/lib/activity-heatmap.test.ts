@@ -369,4 +369,29 @@ describe("calculateTooltipPosition", () => {
     // containerHeight (150) - tooltipHeight (80) - margin (8) = 62
     expect(pos.top).toBe(62)
   })
+  it("stays visible when the cell is inside the scroll viewport", () => {
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 200, left: 250, width: 12, height: 12 },
+      containerRect,
+      scrollRect: { left: 100, right: 500, width: 400 },
+    })
+
+    expect(pos.visible).toBe(true)
+    expect(pos.placement).toBe("top")
+  })
+
+  it("keeps the roomier top side when the tooltip fits neither side", () => {
+    const tinyContainer = { top: 100, left: 50, width: 600, height: 50 }
+    const pos = calculateTooltipPosition({
+      cellRect: { top: 125, left: 250, width: 12, height: 12 },
+      containerRect: tinyContainer,
+      tooltipWidth: 140,
+      tooltipHeight: 44,
+      margin: 8,
+    })
+
+    expect(pos.visible).toBe(true)
+    expect(pos.placement).toBe("top")
+    expect(pos.top).toBe(17)
+  })
 })
