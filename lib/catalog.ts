@@ -77,6 +77,7 @@ const ENTRY_LAYOUT: {
   { slug: "shortcut-recorder", category: "inputs", stageClassName: "gap-8" },
   { slug: "signature-pad", category: "inputs" },
   { slug: "tags-input", category: "inputs" },
+  { slug: "template-input", category: "inputs" },
   { slug: "time-field", category: "inputs", stageClassName: "gap-8" },
   { slug: "timezone-picker", category: "inputs" },
   { slug: "unit-input", category: "inputs" },

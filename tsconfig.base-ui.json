@@ -25,6 +25,7 @@
     "registry/default/ui/popover.tsx",
     "registry/default/ui/query-input.tsx",
     "registry/default/ui/stepper.tsx",
+    "registry/default/ui/template-input.tsx",
     "registry/default/ui/tour.tsx"
   ]
 }

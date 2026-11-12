@@ -6,6 +6,7 @@ import { CollegeGuide } from "@/components/resources/college-guide"
 import { FirstPrReview } from "@/components/resources/first-pr-review"
 import { OneComponentSixteenFiles } from "@/components/resources/one-component-sixteen-files"
 import { OpenSourceGuide } from "@/components/resources/open-source-guide"
+import { RadixAndBaseUi } from "@/components/resources/radix-and-base-ui"
 import { MAINTAINERS, type Maintainer } from "@/lib/contributors"
 
 export const RESOURCE_TAGS = [
@@ -47,6 +48,39 @@ export type Resource = {
 const [GAUTAM_ANAND] = MAINTAINERS
 
 export const RESOURCES: Resource[] = [
+  {
+    slug: "radix-and-base-ui",
+    title: "One registry for Radix and Base UI",
+    description:
+      "The same shadcn add command installs a Radix or a Base UI build of every drift-ui component. How the registry picks one, and how we test both.",
+    publishedAt: "2026-11-12",
+    readMinutes: 5,
+    author: GAUTAM_ANAND,
+    tags: ["Contributing", "drift-ui"],
+    tldr: [
+      "The shadcn CLI fills your project’s style into the registry URL, and any base- style gets the Base UI build.",
+      "Only 13 files have a Base UI copy. The Base UI registry is generated from registry.json, so there’s one manifest to edit.",
+      "drift’s own props stay the same on both libraries, so StepperNext still takes asChild on Base UI.",
+      "The component tests run once per library, and a test fails if the Base UI build mentions radix-ui.",
+    ],
+    image: {
+      src: "/images/resources/radix-and-base-ui.png",
+      alt: "One shadcn add command resolving to the Base UI build for a base-nova project and the Radix build for radix-nova and new-york, with a blue card labelled Same command, beside the headline One command. Two libraries.",
+    },
+    sections: [],
+    Content: RadixAndBaseUi,
+    outline: [
+      { id: "one-command", label: "One command, two builds" },
+      { id: "which-files", label: "Which files get a copy" },
+      { id: "derived", label: "A generated registry" },
+      { id: "shared-files", label: "Sharing a file" },
+      { id: "one-api", label: "One API on both" },
+      { id: "testing", label: "Testing both" },
+      { id: "docs-pages", label: "Two pages per component" },
+      { id: "gaps", label: "What’s still different" },
+      { id: "your-pr", label: "If your component imports Radix" },
+    ],
+  },
   {
     slug: "what-goes-into-one-component",
     title: "What goes into one drift-ui component",

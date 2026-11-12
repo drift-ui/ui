@@ -995,6 +995,20 @@ export function EnvironmentsField() {
   )
 }`,
   },
+  "template-input": {
+    notes:
+      "Textarea for text with {{placeholders}}, such as email subjects, notification templates and webhook payloads. Typing {{ opens a list of variables filtered on value and label; ArrowUp and ArrowDown move, Enter or Tab inserts {{value}}, Escape closes. {{ works after any character, as in id-{{name. variables: { value, label, description? }[] (the MentionOption type). The value stays a plain string with value/defaultValue/onValueChange. Variables are highlighted in a layer drawn behind the textarea, so native undo, selection and caret behaviour are untouched. A {{name}} that is not in variables gets a wavy underline and is named in the textarea's accessible description; findUnknownVariables(text, variables) from the lib returns those names for form validation. className goes on the bordered wrapper and other props go on the textarea, so aria-label, placeholder, rows and aria-invalid work.",
+    example: `import { TemplateInput } from "@/components/ui/template-input"
+
+const variables = [
+  { value: "first_name", label: "First name" },
+  { value: "order_id", label: "Order number" },
+]
+
+export function SubjectField() {
+  return <TemplateInput aria-label="Subject" variables={variables} defaultValue="Hi {{first_name}}, order {{order_id}} shipped" />
+}`,
+  },
   theme: {
     notes:
       "Neutral oklch tokens for light and dark mode, written into the project's global CSS. Optional: components read whatever tokens the project already has.",

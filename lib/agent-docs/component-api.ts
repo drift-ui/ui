@@ -3064,6 +3064,42 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<input>",
     },
   ],
+  "template-input": [
+    {
+      name: "TemplateInput",
+      description:
+        "A textarea that suggests variables after {{. Arrow keys move through the list, Enter or Tab inserts {{value}}, and Escape closes it. Known variables are highlighted and unknown ones get a wavy underline.",
+      props: [
+        STATE_PROPS.value("string", "template"),
+        STATE_PROPS.defaultValue("string", '""'),
+        STATE_PROPS.onValueChange(
+          "(value: string) => void",
+          "when the template changes"
+        ),
+        {
+          name: "variables",
+          type: "MentionOption[]",
+          required: true,
+          description:
+            "The variables that can be inserted, each { value, label, description? }. Typing after {{ filters on value and label.",
+        },
+        {
+          name: "className",
+          type: "string",
+          description:
+            "Applied to the bordered wrapper, which also sets the font for the text and its highlights.",
+        },
+      ],
+      rest: "<textarea>",
+    },
+    {
+      name: "findUnknownVariables",
+      signature:
+        "findUnknownVariables(text: string, variables: MentionOption[]): string[]",
+      description:
+        "Names used as {{name}} in the text that are not in variables, without duplicates. Exported from the lib file.",
+    },
+  ],
   "time-field": [
     {
       name: "TimeField",

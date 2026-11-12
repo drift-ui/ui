@@ -955,6 +955,33 @@
       ]
     },
     {
+      "name": "template-input",
+      "type": "registry:ui",
+      "title": "Template Input",
+      "description": "A textarea for templates with {{variables}}: typing {{ suggests variables, inserted ones are highlighted and unknown ones are flagged.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": [
+        "utils",
+        "popover",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/template-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/template-input-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/mention.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "theme",
       "type": "registry:theme",
       "title": "Theme",
