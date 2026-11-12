@@ -361,7 +361,7 @@ export function IssueFilters({ issues }: { issues: { status: string; title: stri
   },
   "histogram-range": {
     notes:
-      "A dual-thumb range slider sitting below a distribution histogram bar chart, designed for filtering datasets where distribution matters such as price, file size, or duration. Values inside the active range are highlighted with theme tokens (bg-primary or --chart-*) while values outside are muted. Bucketing logic in @/registry/default/lib/histogram-range ensures values equal to max land strictly in the last bucket. Accessible thumb labeling (minThumbLabel, maxThumbLabel), aria-valuetext generated via formatValue, and decorative bars (aria-hidden) with screen-reader result announcements via an aria-live region. Supports controlled and uncontrolled states via use-controllable-state.",
+      "A dual-thumb range slider sitting below a distribution histogram bar chart, designed for filtering datasets where distribution matters such as price, file size, or duration. Values inside the active range default to bg-primary (customizable via barColor, e.g., bg-chart-1) while values outside default to bg-muted-foreground/20 (customizable via mutedBarColor). Bucketing logic in @/lib/histogram-range ensures values equal to max land strictly in the last bucket. Accessible thumb labeling (minThumbLabel, maxThumbLabel), aria-valuetext generated via formatValue, and decorative bars (aria-hidden) with screen-reader result announcements via an aria-live region. Supports controlled and uncontrolled states via use-controllable-state.",
     example: `"use client"
 
 import { useState } from "react"

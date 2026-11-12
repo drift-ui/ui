@@ -36,7 +36,12 @@ describe("isBucketInRange", () => {
   it("handles point/degenerate ranges where min equals max", () => {
     expect(isBucketInRange(10, 20, 15, 15)).toBe(true)
     expect(isBucketInRange(10, 20, 10, 10)).toBe(true)
-    expect(isBucketInRange(10, 20, 20, 20)).toBe(true)
+    // Non-last bucket [10, 20): upper boundary 20 is not included
+    expect(isBucketInRange(10, 20, 20, 20, false)).toBe(false)
+    // Next bucket [20, 30): lower boundary 20 is included
+    expect(isBucketInRange(20, 30, 20, 20, false)).toBe(true)
+    // Last bucket [80, 100]: upper boundary 100 IS included
+    expect(isBucketInRange(80, 100, 100, 100, true)).toBe(true)
     expect(isBucketInRange(10, 20, 25, 25)).toBe(false)
   })
 })
@@ -81,7 +86,10 @@ describe("buildHistogramBuckets", () => {
   })
 
   it("calculates proportional heights with minimum height for non-empty bars", () => {
-    const data = [10, 10, 10, 10, 10, 50]
+    // 50 items in bucket 1 (max bucket = 50 items -> 100%)
+    // 1 item in bucket 5 (1 / 50 = 2% -> rounds below 8% floor -> receives 8%)
+    // 10 items in bucket 8 (10 / 50 = 20%)
+    const data = [...new Array(50).fill(15), 55, ...new Array(10).fill(85)]
     const result = buildHistogramBuckets({
       data,
       min: 0,
@@ -89,12 +97,13 @@ describe("buildHistogramBuckets", () => {
       bins: 10,
     })
 
-    const bucketWithFive = result.buckets[1] // [10, 20) contains 5 items (max)
-    const bucketWithOne = result.buckets[5] // [50, 60) contains 1 item
+    const bucketMax = result.buckets[1] // [10, 20) contains 50 items
+    const bucketSparse = result.buckets[5] // [50, 60) contains 1 item (2% -> 8% minimum)
+    const bucketMedium = result.buckets[8] // [80, 90) contains 10 items (20%)
 
-    expect(bucketWithFive.heightPercent).toBe(100)
-    // 1 / 5 = 20%
-    expect(bucketWithOne.heightPercent).toBe(20)
+    expect(bucketMax.heightPercent).toBe(100)
+    expect(bucketSparse.heightPercent).toBe(8)
+    expect(bucketMedium.heightPercent).toBe(20)
 
     // Empty bucket
     expect(result.buckets[0].heightPercent).toBe(0)
@@ -160,6 +169,16 @@ describe("buildHistogramBuckets", () => {
 
     expect(result.min).toBe(50)
     expect(result.max).toBe(51)
+    expect(result.buckets).toHaveLength(5)
+  })
+
+  it("handles very large datasets without call stack overflow", () => {
+    const largeData = new Array(70000).fill(42)
+    const result = buildHistogramBuckets({
+      data: largeData,
+      bins: 5,
+    })
+    expect(result.totalCount).toBe(70000)
     expect(result.buckets).toHaveLength(5)
   })
 })

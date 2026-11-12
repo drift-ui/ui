@@ -1198,7 +1198,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       signature:
         "buildHistogramBuckets(options: BuildHistogramBucketsOptions): BuildHistogramBucketsResult",
       description:
-        "Pure logic helper in @/registry/default/lib/histogram-range that buckets numeric data, normalizes bar heights, and calculates inRange statuses.",
+        "Pure logic helper in @/lib/histogram-range that buckets numeric data, normalizes bar heights, and calculates inRange statuses.",
     },
   ],
   "image-cropper": [

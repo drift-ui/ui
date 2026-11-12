@@ -32,10 +32,14 @@ export function isBucketInRange(
   bucketStart: number,
   bucketEnd: number,
   rangeMin: number,
-  rangeMax: number
+  rangeMax: number,
+  isLastBucket = false
 ): boolean {
   if (rangeMin === rangeMax) {
-    return rangeMin >= bucketStart && rangeMin <= bucketEnd
+    if (isLastBucket) {
+      return rangeMin >= bucketStart && rangeMin <= bucketEnd
+    }
+    return rangeMin >= bucketStart && rangeMin < bucketEnd
   }
   return bucketEnd > rangeMin && bucketStart < rangeMax
 }
@@ -79,15 +83,23 @@ export function buildHistogramBuckets({
     }
   }
 
-  // Determine min and max
+  // Determine min and max iteratively to prevent call stack overflow on large datasets
   let min = minProp
   let max = maxProp
 
-  if (min === undefined) {
-    min = validNumbers.length > 0 ? Math.min(...validNumbers) : 0
-  }
-  if (max === undefined) {
-    max = validNumbers.length > 0 ? Math.max(...validNumbers) : 100
+  if (min === undefined || max === undefined) {
+    let computedMin = Infinity
+    let computedMax = -Infinity
+    for (const val of validNumbers) {
+      if (val < computedMin) computedMin = val
+      if (val > computedMax) computedMax = val
+    }
+    if (min === undefined) {
+      min = computedMin !== Infinity ? computedMin : 0
+    }
+    if (max === undefined) {
+      max = computedMax !== -Infinity ? computedMax : 100
+    }
   }
 
   // Safety fallback if min >= max
@@ -119,7 +131,12 @@ export function buildHistogramBuckets({
     }
   }
 
-  const maxBucketCount = Math.max(0, ...counts)
+  let maxBucketCount = 0
+  for (const count of counts) {
+    if (count > maxBucketCount) {
+      maxBucketCount = count
+    }
+  }
 
   const buckets: HistogramBucket[] = []
   for (let i = 0; i < bins; i++) {
@@ -132,7 +149,13 @@ export function buildHistogramBuckets({
       heightPercent = Math.max(8, Math.round((count / maxBucketCount) * 100))
     }
 
-    const inRange = isBucketInRange(bucketStart, bucketEnd, range[0], range[1])
+    const inRange = isBucketInRange(
+      bucketStart,
+      bucketEnd,
+      range[0],
+      range[1],
+      i === bins - 1
+    )
 
     buckets.push({
       index: i,

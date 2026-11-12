@@ -60,19 +60,18 @@ function HistogramRange({
   className,
   ...props
 }: HistogramRangeProps) {
-  const effectiveMin =
-    minProp ??
-    (data.length > 0
-      ? Math.min(...data.filter((item) => Number.isFinite(item)))
-      : 0)
-  let effectiveMax =
-    maxProp ??
-    (data.length > 0
-      ? Math.max(...data.filter((item) => Number.isFinite(item)))
-      : 100)
-  if (effectiveMin >= effectiveMax) {
-    effectiveMax = effectiveMin + 1
+  let derivedMin = Infinity
+  let derivedMax = -Infinity
+  for (const item of data) {
+    if (typeof item === "number" && Number.isFinite(item)) {
+      if (item < derivedMin) derivedMin = item
+      if (item > derivedMax) derivedMax = item
+    }
   }
+
+  const effectiveMin = minProp ?? (derivedMin !== Infinity ? derivedMin : 0)
+  const rawMax = maxProp ?? (derivedMax !== -Infinity ? derivedMax : 100)
+  const effectiveMax = effectiveMin >= rawMax ? effectiveMin + 1 : rawMax
 
   const defaultRange: [number, number] = defaultValue ?? [
     effectiveMin,
@@ -87,7 +86,13 @@ function HistogramRange({
     onChange: onValueChange,
   })
 
-  const clampedRange = clampRange(currentRange, effectiveMin, effectiveMax)
+  const rawRange = clampRange(currentRange, effectiveMin, effectiveMax)
+  const rangeStart = rawRange[0]
+  const rangeEnd = rawRange[1]
+  const clampedRange = React.useMemo<[number, number]>(
+    () => [rangeStart, rangeEnd],
+    [rangeStart, rangeEnd]
+  )
 
   const { buckets, selectedCount, totalCount } = React.useMemo(
     () =>

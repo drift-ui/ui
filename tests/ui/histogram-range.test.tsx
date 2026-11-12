@@ -89,6 +89,48 @@ describe("HistogramRange", () => {
     )
   })
 
+  it("renders count without values header when showCount is true and showValues is false", () => {
+    const data = [10, 20, 30]
+    render(
+      <HistogramRange
+        data={data}
+        min={0}
+        max={50}
+        defaultValue={[10, 30]}
+        showCount
+      />
+    )
+
+    expect(
+      document.querySelector("[data-slot=histogram-range-values]")
+    ).toBeNull()
+    expect(
+      document.querySelector("[data-slot=histogram-range-count]")
+    ).toHaveTextContent("3 of 3 results")
+  })
+
+  it("applies custom barColor and mutedBarColor classes", () => {
+    const data = [10, 30]
+    render(
+      <HistogramRange
+        data={data}
+        min={0}
+        max={40}
+        bins={2}
+        defaultValue={[0, 20]}
+        barColor="bg-chart-1"
+        mutedBarColor="bg-chart-2"
+      />
+    )
+
+    const bars = document.querySelectorAll("[data-slot=histogram-bar]")
+    expect(bars).toHaveLength(2)
+    // bin 0 [0, 20) is in range
+    expect(bars[0]).toHaveClass("bg-chart-1")
+    // bin 1 [20, 40] is out of range
+    expect(bars[1]).toHaveClass("bg-chart-2")
+  })
+
   it("updates bars inRange attribute based on selected range", () => {
     // 4 bins across [0, 40]: [0-10), [10-20), [20-30), [30-40]
     const data = [5, 15, 25, 35]
@@ -115,6 +157,31 @@ describe("HistogramRange", () => {
     expect(bars[3]).toHaveAttribute("data-in-range", "false")
   })
 
+  it("handles non-finite datasets gracefully by falling back to default 0-100 bounds", () => {
+    const nonFiniteData = [NaN, Infinity, -Infinity]
+    render(<HistogramRange data={nonFiniteData} showValues showCount />)
+
+    expect(screen.getByText("0 – 100")).toBeInTheDocument()
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "0 of 0 results in selected range"
+    )
+  })
+
+  it("derives bounds from finite numbers when mixed with non-finite values", () => {
+    const mixedData = [NaN, 25, Infinity, 75, -Infinity]
+    render(<HistogramRange data={mixedData} showValues />)
+
+    expect(screen.getByText("25 – 75")).toBeInTheDocument()
+  })
+
+  it("handles disabled state", () => {
+    render(<HistogramRange data={[10, 20]} defaultValue={[0, 50]} disabled />)
+
+    const root = document.querySelector("[data-slot=histogram-range-slider]")
+    expect(root).toHaveClass("pointer-events-none")
+    expect(root).toHaveClass("opacity-50")
+  })
+
   it("supports controlled value and calls onValueChange", async () => {
     const user = userEvent.setup()
     const handleValueChange = vi.fn()
@@ -138,5 +205,29 @@ describe("HistogramRange", () => {
     await user.keyboard("{ArrowRight}")
 
     expect(handleValueChange).toHaveBeenCalled()
+  })
+
+  it("calls onValueCommit when slider thumb interaction finishes", async () => {
+    const user = userEvent.setup()
+    const handleValueCommit = vi.fn()
+    const data = [10, 20, 30, 40, 50]
+
+    render(
+      <HistogramRange
+        data={data}
+        min={0}
+        max={100}
+        step={5}
+        defaultValue={[20, 80]}
+        onValueCommit={handleValueCommit}
+        minThumbLabel="Min"
+      />
+    )
+
+    const minThumb = screen.getByRole("slider", { name: "Min" })
+    minThumb.focus()
+    await user.keyboard("{ArrowRight}")
+
+    expect(handleValueCommit).toHaveBeenCalled()
   })
 })
