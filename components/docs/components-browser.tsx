@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { ArrowRightIcon } from "lucide-react"
 
-import { Button } from "@/registry/default/ui/button"
+import { cn } from "@/registry/default/lib/utils"
+import { buttonVariants } from "@/registry/default/ui/button"
 import { EmptyResults } from "@/components/docs/empty-results"
 import { FlagshipSticker } from "@/components/docs/flagship-sticker"
 import { KeyboardStrip } from "@/components/docs/keyboard-strip"
@@ -309,12 +310,13 @@ function SpecimenStage({
           <KeyboardStrip bindings={keyboard.slice(0, STAGE_KEY_LIMIT)} />
         )}
         <div className="flex flex-wrap items-center gap-3">
-          <Button asChild className="h-10 px-4">
-            <Link href={`/components/${card.slug}`}>
-              Open {card.name}
-              <ArrowRightIcon />
-            </Link>
-          </Button>
+          <Link
+            href={`/components/${card.slug}`}
+            className={cn(buttonVariants(), "h-10 px-4")}
+          >
+            Open {card.name}
+            <ArrowRightIcon />
+          </Link>
           <CopyCommand
             command={`npx shadcn@latest add @drift-ui/${card.slug}`}
           />
