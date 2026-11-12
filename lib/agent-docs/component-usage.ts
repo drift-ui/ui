@@ -1061,6 +1061,27 @@ export function TimezoneSetting() {
   return <TimezonePicker aria-label="Time zone" value={timeZone} onValueChange={setTimeZone} />
 }`,
   },
+  toast: {
+    notes:
+      'Radix: registry/default/ui/sonner.tsx installs as components/ui/sonner.tsx and wraps sonner, so every shadcn Sonner call and Toaster prop works. Base UI installs components/ui/toast.tsx with shadcn\'s toast API (toast.add({ title, type })). Render Toaster once near the root. Import toast from the component file instead of from sonner to get the additions. toast.undo delays a destructive action until the toast goes away (onCommit) unless Undo or its shortcut ("Mod+Z") runs onUndo, and it commits on pagehide. toast.progress shows a determinate bar; update it by id and finish with a success toast on the same id. Toasts that reuse an id (Radix) or key (Base UI) merge into one with a ×N badge and a restarted timer. Durations grow with text length. Error toasts are announced assertively. persist: true sends the toast to onToastPersist listeners when it closes, ready for NotificationInbox.',
+    example: `"use client"
+
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/sonner"
+
+export function DeleteFiles({ ids, deleteFiles, setHidden }: { ids: string[]; deleteFiles: (ids: string[]) => void; setHidden: (hidden: boolean) => void }) {
+  function remove() {
+    setHidden(true)
+    toast.undo(\`Deleted \${ids.length} files\`, {
+      shortcut: "Mod+Z",
+      onCommit: () => deleteFiles(ids),
+      onUndo: () => setHidden(false),
+    })
+  }
+
+  return <Button variant="destructive" onClick={remove}>Delete</Button>
+}`,
+  },
   tour: {
     notes:
       "Wrap the page in Tour with steps: TourStep[] ({ target, title, description?, side? }) and mark elements with TourTarget name matching step.target. open/onOpenChange and step/onStepChange are optional controlled props; onComplete fires after the last step. Focus is trapped in the tour card and returns to the opener on close.",

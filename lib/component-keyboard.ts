@@ -143,6 +143,16 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: UP_DOWN, action: "Move through zones" },
     { keys: ["Enter"], action: "Pick the zone" },
   ],
+  toast: [
+    { keys: ["Alt+T"], action: "Focus the toasts (Radix)" },
+    { keys: ["F6"], action: "Focus the toasts (Base UI)" },
+    { keys: ["Mod+Z"], action: "Undo the newest undo toast" },
+    { keys: ["Tab"], action: "Move to Undo, actions and close" },
+    {
+      keys: ["Escape"],
+      action: "Collapse the stack (Radix) or close the toast (Base UI)",
+    },
+  ],
   tour: [
     { keys: LEFT_RIGHT, action: "Previous or next step" },
     { keys: ["Escape"], action: "End the tour" },

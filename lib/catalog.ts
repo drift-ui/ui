@@ -126,6 +126,11 @@ const ENTRY_LAYOUT: {
   { slug: "saved-views", category: "workflow", isFlagship: true },
   { slug: "shortcut-cheatsheet", category: "workflow" },
   {
+    slug: "toast",
+    category: "workflow",
+    stageClassName: "flex-col flex-nowrap items-stretch",
+  },
+  {
     slug: "tour",
     category: "workflow",
     stageClassName: "flex-col flex-nowrap items-stretch",
