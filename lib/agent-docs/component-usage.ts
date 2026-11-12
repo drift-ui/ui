@@ -741,6 +741,22 @@ export function ExportPopover() {
   )
 }`,
   },
+  "query-input": {
+    notes:
+      'Single-line search that reads key:value terms into Filter objects, the same type filter-builder uses. fields: FilterField[] ({ id, label, type: text | select | number | date, options? }); keys match field ids case-insensitively. Syntax: key:value is is, -key:value is is-not, key:a,b is is-any-of (is-none-of with -), key:*text* on a text field is contains, key:>7 and key:<7 compare numbers (gt, lt; key:7 is eq), dates take >, < and from..to (a bare date is a one-day between). Quote values with spaces: label:"needs review". A term with an unknown key, or a negated number or date, stays in the free text; a trailing key: gives a filter with an empty value, which matchesFilter treats as matching everything. onFiltersChange(filters, text) fires on every edit; value/defaultValue/onValueChange hold the raw string. Typing at the end of a term suggests keys, then select options, in a combobox: ArrowUp and ArrowDown move (ArrowDown on an empty term lists every key), Enter or Tab inserts, Escape closes. Matched terms are highlighted behind the input. The lib exports parseQuery(query, fields) and formatQuery(filters, text) to convert both ways. className goes on the bordered wrapper and other props on the input.',
+    example: `import type { FilterField } from "@/lib/filter"
+import { QueryInput } from "@/components/ui/query-input"
+
+const fields: FilterField[] = [
+  { id: "is", label: "State", type: "select", options: [{ value: "open", label: "Open" }, { value: "closed", label: "Closed" }] },
+  { id: "author", label: "Author", type: "text" },
+  { id: "age", label: "Age in days", type: "number" },
+]
+
+export function IssueSearch({ onSearch }: { onSearch: (filters: unknown[], text: string) => void }) {
+  return <QueryInput aria-label="Search issues" fields={fields} defaultValue="is:open author:me" onFiltersChange={onSearch} />
+}`,
+  },
   rating: {
     notes:
       'Radio group of icons for a score. Controlled with value/onValueChange or uncontrolled with defaultValue (0 means no rating). max sets the icon count (default 5), step={0.5} allows half scores, icon swaps the default lucide Star for any SVG icon. Arrow keys change the score, Home and End jump to the ends. readOnly renders a role=img labelled like "3.5 out of 5". The fill color is the root\'s text color (text-primary), so className="text-chart-4" recolors it. Pass aria-label.',

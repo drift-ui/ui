@@ -70,6 +70,7 @@ const ENTRY_LAYOUT: {
   { slug: "number-input", category: "inputs" },
   { slug: "password-input", category: "inputs" },
   { slug: "phone-input", category: "inputs" },
+  { slug: "query-input", category: "inputs" },
   { slug: "rating", category: "inputs" },
   { slug: "recurrence-editor", category: "inputs", isFlagship: true },
   { slug: "secret-field", category: "inputs" },

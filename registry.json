@@ -708,6 +708,33 @@
       ]
     },
     {
+      "name": "query-input",
+      "type": "registry:ui",
+      "title": "Query Input",
+      "description": "A search bar that reads key:value filters as you type, suggests keys and values, and returns Filter objects plus the leftover text.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": [
+        "utils",
+        "popover",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/query-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/query-input-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/filter.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "rating",
       "type": "registry:ui",
       "title": "Rating",

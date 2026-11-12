@@ -9,6 +9,7 @@ import { LabelPreview as BaseUiLabelPreview } from "@/components/preview/base/la
 import { MentionTextareaPreview as BaseUiMentionTextareaPreview } from "@/components/preview/base/mention-textarea-preview"
 import { MultiSelectPreview as BaseUiMultiSelectPreview } from "@/components/preview/base/multi-select-preview"
 import { PopoverPreview as BaseUiPopoverPreview } from "@/components/preview/base/popover-preview"
+import { QueryInputPreview as BaseUiQueryInputPreview } from "@/components/preview/base/query-input-preview"
 import { StepperPreview as BaseUiStepperPreview } from "@/components/preview/base/stepper-preview"
 import { TourPreview as BaseUiTourPreview } from "@/components/preview/base/tour-preview"
 import { ActivityHeatmapPreview } from "@/components/preview/activity-heatmap-preview"
@@ -45,6 +46,7 @@ import { OnboardingChecklistPreview } from "@/components/preview/onboarding-chec
 import { PasswordInputPreview } from "@/components/preview/password-input-preview"
 import { PermissionMatrixPreview } from "@/components/preview/permission-matrix-preview"
 import { PopoverPreview } from "@/components/preview/popover-preview"
+import { QueryInputPreview } from "@/components/preview/query-input-preview"
 import { PhoneInputPreview } from "@/components/preview/phone-input-preview"
 import { RatingPreview } from "@/components/preview/rating-preview"
 import { RecurrenceEditorPreview } from "@/components/preview/recurrence-editor-preview"
@@ -103,6 +105,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "permission-matrix": PermissionMatrixPreview,
   popover: PopoverPreview,
   "phone-input": PhoneInputPreview,
+  "query-input": QueryInputPreview,
   rating: RatingPreview,
   "recurrence-editor": RecurrenceEditorPreview,
   "saved-views": SavedViewsPreview,
@@ -135,6 +138,7 @@ export const BASE_UI_PREVIEWS: Record<string, ComponentType> = {
   "mention-textarea": BaseUiMentionTextareaPreview,
   "multi-select": BaseUiMultiSelectPreview,
   popover: BaseUiPopoverPreview,
+  "query-input": BaseUiQueryInputPreview,
   stepper: BaseUiStepperPreview,
   tour: BaseUiTourPreview,
 }
