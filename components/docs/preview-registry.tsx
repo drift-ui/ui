@@ -10,6 +10,7 @@ import { MentionTextareaPreview as BaseUiMentionTextareaPreview } from "@/compon
 import { MultiSelectPreview as BaseUiMultiSelectPreview } from "@/components/preview/base/multi-select-preview"
 import { PopoverPreview as BaseUiPopoverPreview } from "@/components/preview/base/popover-preview"
 import { StepperPreview as BaseUiStepperPreview } from "@/components/preview/base/stepper-preview"
+import { TemplateInputPreview as BaseUiTemplateInputPreview } from "@/components/preview/base/template-input-preview"
 import { TourPreview as BaseUiTourPreview } from "@/components/preview/base/tour-preview"
 import { ActivityHeatmapPreview } from "@/components/preview/activity-heatmap-preview"
 import { AvatarGroupPreview } from "@/components/preview/avatar-group-preview"
@@ -56,6 +57,7 @@ import { SignaturePadPreview } from "@/components/preview/signature-pad-preview"
 import { SortableListPreview } from "@/components/preview/sortable-list-preview"
 import { StepperPreview } from "@/components/preview/stepper-preview"
 import { TagsInputPreview } from "@/components/preview/tags-input-preview"
+import { TemplateInputPreview } from "@/components/preview/template-input-preview"
 import { TimeFieldPreview } from "@/components/preview/time-field-preview"
 import { TimelinePreview } from "@/components/preview/timeline-preview"
 import { TimezonePickerPreview } from "@/components/preview/timezone-picker-preview"
@@ -113,6 +115,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "sortable-list": SortableListPreview,
   stepper: StepperPreview,
   "tags-input": TagsInputPreview,
+  "template-input": TemplateInputPreview,
   "time-field": TimeFieldPreview,
   timeline: TimelinePreview,
   "timezone-picker": TimezonePickerPreview,
@@ -136,5 +139,6 @@ export const BASE_UI_PREVIEWS: Record<string, ComponentType> = {
   "multi-select": BaseUiMultiSelectPreview,
   popover: BaseUiPopoverPreview,
   stepper: BaseUiStepperPreview,
+  "template-input": BaseUiTemplateInputPreview,
   tour: BaseUiTourPreview,
 }
