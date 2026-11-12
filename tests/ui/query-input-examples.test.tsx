@@ -27,6 +27,9 @@ describe("QueryInput examples", () => {
       expect(
         screen.getByText("Remember me checkbox on the login page")
       ).toBeInTheDocument()
+      expect(
+        screen.queryByText("Login page loops after SSO")
+      ).not.toBeInTheDocument()
 
       await user.type(input, " nothing")
       expect(screen.getByText("No matching issues")).toBeInTheDocument()
