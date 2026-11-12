@@ -54,7 +54,7 @@ function QueryInput({
     null
   )
   const [browsing, setBrowsing] = React.useState(false)
-  const [highlightedIndex, setHighlightedIndex] = React.useState(0)
+  const [highlightedIndex, setHighlightedIndex] = React.useState(-1)
 
   const suggestions = suggestQuery(query, caret, fields)
   const tokenStart = suggestions[0]?.start ?? null
@@ -63,16 +63,13 @@ function QueryInput({
     suggestions.length > 0 &&
     tokenStart !== dismissedStart &&
     (typed !== "" || browsing)
-  const activeIndex = Math.min(
-    highlightedIndex,
-    Math.max(0, suggestions.length - 1)
-  )
+  const activeIndex = Math.min(highlightedIndex, suggestions.length - 1)
   const activeKey = tokenStart === null ? "" : `${tokenStart}:${typed}`
   const [previousKey, setPreviousKey] = React.useState(activeKey)
 
   if (activeKey !== previousKey) {
     setPreviousKey(activeKey)
-    setHighlightedIndex(0)
+    setHighlightedIndex(suggestions[0]?.kind === "value" ? 0 : -1)
     setBrowsing(false)
     if (tokenStart !== dismissedStart) setDismissedStart(null)
   }
@@ -127,6 +124,7 @@ function QueryInput({
         event.preventDefault()
         setBrowsing(true)
         setDismissedStart(null)
+        setHighlightedIndex(0)
       }
       return
     }
@@ -134,14 +132,17 @@ function QueryInput({
       case "ArrowDown":
       case "ArrowUp": {
         event.preventDefault()
-        const delta = event.key === "ArrowDown" ? 1 : -1
+        const count = suggestions.length
         setHighlightedIndex(
-          (activeIndex + delta + suggestions.length) % suggestions.length
+          event.key === "ArrowDown"
+            ? (activeIndex + 1) % count
+            : (Math.max(activeIndex, 0) - 1 + count) % count
         )
         return
       }
       case "Enter":
       case "Tab":
+        if (activeIndex < 0) return
         event.preventDefault()
         selectSuggestion(suggestions[activeIndex])
         return
@@ -192,7 +193,7 @@ function QueryInput({
           aria-expanded={isOpen}
           aria-controls={isOpen ? listId : undefined}
           aria-activedescendant={
-            isOpen ? `${listId}-${activeIndex}` : undefined
+            isOpen && activeIndex >= 0 ? `${listId}-${activeIndex}` : undefined
           }
           autoComplete="off"
           spellCheck={false}

@@ -2373,7 +2373,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "QueryInput",
       description:
-        "A combobox input that parses key:value terms into filters. Typing at the end of a term suggests keys, then values. Arrow keys move through the list, ArrowDown on an empty term opens it, Enter or Tab inserts, and Escape closes.",
+        "A combobox input that parses key:value terms into filters. Typing at the end of a term suggests keys, then values. Arrow keys move through the list, ArrowDown on an empty term opens it, Enter or Tab inserts the highlighted suggestion, and Escape closes. Key suggestions start with nothing highlighted, so Enter on a plain word still submits; value suggestions start on the first option.",
       props: [
         {
           name: "fields",

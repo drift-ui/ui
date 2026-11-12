@@ -65,7 +65,7 @@ describe("QueryInput", () => {
     await user.type(input(), "la")
     expect(input()).toHaveAttribute("aria-expanded", "true")
     expect(optionNames()).toEqual(["Labellabel:"])
-    await user.keyboard("{Enter}")
+    await user.keyboard("{ArrowDown}{Enter}")
     expect(input()).toHaveValue("label:")
 
     expect(optionNames()).toEqual(["Bugbug", "Needs reviewneeds review"])
@@ -80,13 +80,30 @@ describe("QueryInput", () => {
     render(<QueryInput aria-label="Search" fields={FIELDS} />)
 
     await user.type(input(), "a")
+    expect(input()).not.toHaveAttribute("aria-activedescendant")
+    await user.keyboard("{ArrowUp}")
     expect(input()).toHaveAttribute(
       "aria-activedescendant",
-      screen.getAllByRole("option")[0].id
+      screen.getAllByRole("option")[1].id
     )
-    await user.keyboard("{ArrowUp}{Tab}")
+    await user.keyboard("{Tab}")
 
     expect(input()).toHaveValue("age:")
+  })
+
+  it("lets Enter and Tab through on a word that only starts a key", async () => {
+    const user = userEvent.setup()
+    const onKeyDown = vi.fn()
+    render(
+      <QueryInput aria-label="Search" fields={FIELDS} onKeyDown={onKeyDown} />
+    )
+
+    await user.type(input(), "auth")
+    expect(input()).toHaveAttribute("aria-expanded", "true")
+    expect(fireEvent.keyDown(input(), { key: "Enter" })).toBe(true)
+    expect(fireEvent.keyDown(input(), { key: "Tab" })).toBe(true)
+
+    expect(input()).toHaveValue("auth")
   })
 
   it("lists every key on ArrowDown in an empty spot", async () => {
