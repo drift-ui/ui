@@ -1,8 +1,15 @@
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 
+import {
+  Children,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from "react"
 import { describe, expect, it } from "vitest"
 
+import { DocSection } from "@/components/docs/doc-section"
 import { createPageMetadata } from "@/lib/page-metadata"
 import {
   findResource,
@@ -106,6 +113,27 @@ describe("resources", () => {
     for (const resource of RESOURCES) {
       const ids = resourceOutline(resource).map(({ id }) => id)
       expect(new Set(ids).size).toBe(ids.length)
+    }
+  })
+
+  it("points every outline link at a section in the post", () => {
+    for (const resource of RESOURCES) {
+      if (!resource.Content) continue
+      const article = (
+        resource.Content as () => ReactElement<{
+          children: ReactNode
+        }>
+      )()
+      const sectionIds = Children.toArray(article.props.children).flatMap(
+        (child) =>
+          isValidElement<{ id?: string }>(child) && child.type === DocSection
+            ? [child.props.id]
+            : []
+      )
+
+      expect(sectionIds, resource.slug).toEqual(
+        resourceOutline(resource).map(({ id }) => id)
+      )
     }
   })
 
