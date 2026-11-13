@@ -2,6 +2,8 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
+import { CronInputPreview } from "@/components/preview/cron-input-preview"
+import { CronInputPresetsPreview } from "@/components/preview/examples/cron-input/presets"
 import { CronInput } from "@/registry/default/ui/cron-input"
 
 describe("CronInput", () => {
@@ -99,5 +101,31 @@ describe("CronInput", () => {
     expect(input).toBeDisabled()
     const nextRuns = document.querySelector("[data-slot=cron-input-next-runs]")
     expect(nextRuns).toHaveClass("opacity-50")
+  })
+
+  it("renders CronInputPreview and updates schedule when preset is clicked", async () => {
+    const user = userEvent.setup()
+    render(<CronInputPreview />)
+
+    const input = screen.getByRole("textbox", { name: "Job schedule" })
+    expect(input).toHaveValue("0 9 * * 1-5")
+
+    const hourlyBtn = screen.getByRole("button", { name: "Hourly" })
+    await user.click(hourlyBtn)
+
+    expect(input).toHaveValue("0 * * * *")
+  })
+
+  it("renders CronInputPresetsPreview and selects preset", async () => {
+    const user = userEvent.setup()
+    render(<CronInputPresetsPreview />)
+
+    const input = screen.getByRole("textbox", { name: "Database backup" })
+    expect(input).toHaveValue("0 0 * * *")
+
+    const every5mBtn = screen.getByRole("button", { name: "Every 5m" })
+    await user.click(every5mBtn)
+
+    expect(input).toHaveValue("*/5 * * * *")
   })
 })

@@ -108,10 +108,42 @@ describe("parseCron", () => {
     const invalidChar = parseCron("abc * * * *")
     expect(invalidChar.isValid).toBe(false)
     expect(invalidChar.error).toContain("minute")
+
+    expect(parseCron("1,,2 * * * *").error).toContain("Invalid list syntax")
+    expect(parseCron("1/2/3 * * * *").error).toContain("Invalid step syntax")
+    expect(parseCron("*/foo * * * *").error).toContain("Invalid step")
+    expect(parseCron("1-2-3 * * * *").error).toContain("Invalid range syntax")
+    expect(parseCron("foo-5 * * * *").error).toContain("Invalid range start")
+    expect(parseCron("5-bar * * * *").error).toContain("Invalid range end")
+    expect(parseCron("foo/10 * * * *").error).toContain("Invalid value")
+
+    const singleStep = parseCron("10/15 * * * *")
+    expect(singleStep.isValid).toBe(true)
+    expect(singleStep.fields?.minute).toEqual([10, 25, 40, 55])
   })
 })
 
 describe("POSIX Day-of-Month OR Day-of-Week matching", () => {
+  it("returns false for invalid parsed cron", () => {
+    expect(isCronMatch(parseCron("invalid"), new Date())).toBe(false)
+  })
+
+  it("checks month, hour, and minute mismatches correctly", () => {
+    const parsed = parseCron("0 12 15 5 *")
+    expect(isCronMatch(parsed, new Date(2026, 4, 15, 12, 0, 0))).toBe(true)
+    // Month mismatch
+    expect(isCronMatch(parsed, new Date(2026, 3, 15, 12, 0, 0))).toBe(false)
+    // Hour mismatch
+    expect(isCronMatch(parsed, new Date(2026, 4, 15, 13, 0, 0))).toBe(false)
+    // Minute mismatch
+    expect(isCronMatch(parsed, new Date(2026, 4, 15, 12, 1, 0))).toBe(false)
+  })
+
+  it("matches wildcard expression unconditionally", () => {
+    expect(
+      isCronMatch(parseCron("* * * * *"), new Date(2026, 0, 1, 12, 34, 0))
+    ).toBe(true)
+  })
   it("matches if EITHER day-of-month OR day-of-week matches when both are set", () => {
     // Cron: 0 0 13 * 5 -> Day 13 of the month OR Friday
     const parsed = parseCron("0 0 13 * 5")
@@ -184,6 +216,20 @@ describe("describeCron", () => {
     )
     expect(describeCron("*/15 9-17/2 * * *")).toBe(
       "Every 15 minutes, every 2 hours from 09:00 through 17:59"
+    )
+    expect(describeCron("*/15 9-17 * * *")).toBe(
+      "Every 15 minutes, 09:00 through 17:59"
+    )
+    expect(describeCron("*/15 9 * * *")).toBe("Every 15 minutes past hour 9")
+    expect(describeCron("15,30 9,12 * * *")).toBe(
+      "At minute 15,30 past hour 9,12 every day"
+    )
+    expect(describeCron("0 9 * * 1,3,5")).toBe(
+      "At 09:00, on Monday, Wednesday, and Friday"
+    )
+    expect(describeCron("0 9 * * *")).toBe("At 09:00 every day")
+    expect(describeCron("0 9 1 1,6 *")).toBe(
+      "At 09:00, on day 1 of the month, in January and June"
     )
   })
 })
