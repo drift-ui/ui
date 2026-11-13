@@ -13,6 +13,7 @@ import { PopoverPreview as BaseUiPopoverPreview } from "@/components/preview/bas
 import { QueryInputPreview as BaseUiQueryInputPreview } from "@/components/preview/base/query-input-preview"
 import { StepperPreview as BaseUiStepperPreview } from "@/components/preview/base/stepper-preview"
 import { TemplateInputPreview as BaseUiTemplateInputPreview } from "@/components/preview/base/template-input-preview"
+import { ToastPreview as BaseUiToastPreview } from "@/components/preview/base/toast-preview"
 import { TourPreview as BaseUiTourPreview } from "@/components/preview/base/tour-preview"
 import { ActivityHeatmapPreview } from "@/components/preview/activity-heatmap-preview"
 import { AvatarGroupPreview } from "@/components/preview/avatar-group-preview"
@@ -65,6 +66,7 @@ import { TemplateInputPreview } from "@/components/preview/template-input-previe
 import { TimeFieldPreview } from "@/components/preview/time-field-preview"
 import { TimelinePreview } from "@/components/preview/timeline-preview"
 import { TimezonePickerPreview } from "@/components/preview/timezone-picker-preview"
+import { ToastPreview } from "@/components/preview/toast-preview"
 import { TourPreview } from "@/components/preview/tour-preview"
 import { TraceWaterfallPreview } from "@/components/preview/trace-waterfall-preview"
 import { TransferListPreview } from "@/components/preview/transfer-list-preview"
@@ -125,6 +127,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "time-field": TimeFieldPreview,
   timeline: TimelinePreview,
   "timezone-picker": TimezonePickerPreview,
+  toast: ToastPreview,
   tour: TourPreview,
   "trace-waterfall": TraceWaterfallPreview,
   "transfer-list": TransferListPreview,
@@ -148,5 +151,6 @@ export const BASE_UI_PREVIEWS: Record<string, ComponentType> = {
   "query-input": BaseUiQueryInputPreview,
   stepper: BaseUiStepperPreview,
   "template-input": BaseUiTemplateInputPreview,
+  toast: BaseUiToastPreview,
   tour: BaseUiTourPreview,
 }

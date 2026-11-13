@@ -1119,6 +1119,28 @@
       ]
     },
     {
+      "name": "toast",
+      "type": "registry:ui",
+      "title": "Toast",
+      "description": "Toasts that keep shadcn's API and add undo with a working shortcut, progress, merging of repeated toasts, reading-time durations and a handoff to the notification inbox.",
+      "dependencies": ["sonner", "next-themes", "lucide-react"],
+      "registryDependencies": ["@drift-ui/shape"],
+      "files": [
+        {
+          "path": "registry/default/ui/sonner.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/toast.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/shortcut.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "tour",
       "type": "registry:ui",
       "title": "Tour",

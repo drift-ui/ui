@@ -3314,6 +3314,123 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<button>",
     },
   ],
+  toast: [
+    {
+      name: "Toaster",
+      description:
+        "Render once near the root of the app. On Radix it takes every prop of shadcn's Sonner Toaster, and on Base UI every prop of shadcn's toast Toaster. The default duration it sets is the shortest a toast stays up.",
+      props: [
+        {
+          name: "duration",
+          type: "number",
+          default: "4000",
+          description:
+            "Radix. Default time on screen in ms. Toasts with long text stay longer.",
+        },
+        {
+          name: "timeout",
+          type: "number",
+          default: "5000",
+          description:
+            "Base UI. Default time on screen in ms. Toasts with long text stay longer.",
+        },
+      ],
+      rest: "Sonner Toaster (Radix) or Toast.Provider (Base UI)",
+    },
+    {
+      name: "toast",
+      signature:
+        "toast(message, options?) and toast.success, info, warning, error, loading, promise, dismiss (Radix); toast.add(options), close, update, promise (Base UI)",
+      description:
+        "The same calls as shadcn. Import it from the toast file, not from sonner, to get merging, reading-time durations and toast.undo. Error toasts are announced assertively.",
+      props: [
+        {
+          name: "id",
+          type: "string | number",
+          description:
+            "Radix. A toast of the same type with an id that is already showing merges into it: the newest content wins, a count badge appears and the timer restarts. Reusing the id with another type, such as loading then success, updates the toast without a count.",
+        },
+        {
+          name: "key",
+          type: "string",
+          description: "Base UI. Same merging as id on Radix.",
+        },
+        {
+          name: "duration",
+          type: "number",
+          description:
+            "Radix. Time on screen in ms. When unset it grows with the length of the title and description.",
+        },
+        {
+          name: "timeout",
+          type: "number",
+          description:
+            "Base UI. Time on screen in ms, 0 to stay until closed. When unset it grows with the length of the title and description, unless the Toaster timeout is 0, which keeps every toast up until closed.",
+        },
+        {
+          name: "persist",
+          type: "boolean",
+          description:
+            "Hands the toast to onToastPersist listeners when it closes, ready for the notification inbox. Only text titles and descriptions are passed on, so a toast whose title is a React element is not persisted.",
+        },
+      ],
+    },
+    {
+      name: "toast.undo",
+      signature:
+        "toast.undo(message, options) on Radix, toast.undo(options) with a title on Base UI",
+      description:
+        "Shows a toast with an Undo button and a countdown ring that pauses while the toasts are hovered or focused. The action is delayed until the toast goes away.",
+      props: [
+        {
+          name: "onCommit",
+          type: "() => void",
+          required: true,
+          description:
+            "Runs once when the toast times out, is swiped away or closed, or the page unloads. Because it can run during pagehide, send its request with fetch(url, { keepalive: true }) or navigator.sendBeacon, which the browser finishes after the tab closes.",
+        },
+        {
+          name: "onUndo",
+          type: "() => void",
+          description: "Runs when Undo is clicked. onCommit then never runs.",
+        },
+        {
+          name: "undoLabel",
+          type: "ReactNode",
+          default: '"Undo"',
+          description: "Text of the Undo button.",
+        },
+        {
+          name: "shortcut",
+          type: "string",
+          description:
+            'Shortcut such as "Mod+Z" that triggers Undo on the newest undo toast while it is open. Shown as ⌘Z on a Mac and Ctrl+Z elsewhere, and ignored while focus is in a text field.',
+        },
+      ],
+    },
+    {
+      name: "toast.progress",
+      signature:
+        "toast.progress(message, options) on Radix, toast.progress(options) with a title on Base UI",
+      description:
+        "Shows a determinate progress bar that stays up until replaced. Call it again with the same id to move the bar, then show a success or error toast with that id.",
+      props: [
+        {
+          name: "value",
+          type: "number",
+          required: true,
+          description: "Progress from 0 to 100. Values outside are clamped.",
+        },
+      ],
+    },
+    {
+      name: "onToastPersist",
+      signature:
+        "onToastPersist(listener: (toast: PersistedToast) => void): () => void",
+      description:
+        "Subscribes to toasts shown with persist. Each one arrives as { id, title, body?, createdAt } when it closes, which fits NotificationInbox items. Returns an unsubscribe function.",
+    },
+  ],
   tour: [
     {
       name: "Tour",

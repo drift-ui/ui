@@ -184,7 +184,10 @@ export function resolveBuildsOn(
   entry: CatalogEntry,
   library: PrimitiveLibrary
 ) {
-  return entry.registryDependencies
+  const { registryDependencies = [] } =
+    library === "base" ? toBaseUiItem(entry) : entry
+
+  return registryDependencies
     .filter((dependency) => dependency !== "utils")
     .map((dependency) => toBuildsOn(dependency, library))
 }
