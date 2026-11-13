@@ -44,6 +44,12 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: PAGE, action: "Previous or next category" },
     { keys: ["Enter", "Space"], action: "Pick the focused emoji" },
   ],
+  "histogram-range": [
+    { keys: LEFT_RIGHT, action: "Adjust the focused thumb by step" },
+    { keys: UP_DOWN, action: "Adjust the focused thumb by step" },
+    { keys: PAGE, action: "Adjust the focused thumb by larger step" },
+    { keys: HOME_END, action: "Set the focused thumb to min or max" },
+  ],
   "image-cropper": [
     { keys: ARROWS, action: "Pan, hold Shift for larger steps" },
     { keys: ["]", "["], action: "Zoom in or out" },

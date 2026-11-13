@@ -19,6 +19,7 @@
     "registry/default/ui/command.tsx",
     "registry/default/ui/dialog.tsx",
     "registry/default/ui/filter-menu.tsx",
+    "registry/default/ui/histogram-range.tsx",
     "registry/default/ui/label.tsx",
     "registry/default/ui/mention-textarea.tsx",
     "registry/default/ui/multi-select.tsx",
