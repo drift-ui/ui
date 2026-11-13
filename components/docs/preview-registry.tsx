@@ -5,6 +5,7 @@ import { BadgePreview as BaseUiBadgePreview } from "@/components/preview/base/ba
 import { BulkActionBarPreview as BaseUiBulkActionBarPreview } from "@/components/preview/base/bulk-action-bar-preview"
 import { ButtonPreview as BaseUiButtonPreview } from "@/components/preview/base/button-preview"
 import { DialogPreview as BaseUiDialogPreview } from "@/components/preview/base/dialog-preview"
+import { HistogramRangePreview as BaseUiHistogramRangePreview } from "@/components/preview/base/histogram-range-preview"
 import { LabelPreview as BaseUiLabelPreview } from "@/components/preview/base/label-preview"
 import { MentionTextareaPreview as BaseUiMentionTextareaPreview } from "@/components/preview/base/mention-textarea-preview"
 import { MultiSelectPreview as BaseUiMultiSelectPreview } from "@/components/preview/base/multi-select-preview"
@@ -32,6 +33,7 @@ import { DurationInputPreview } from "@/components/preview/duration-input-previe
 import { EmojiPickerPreview } from "@/components/preview/emoji-picker-preview"
 import { FileDropzonePreview } from "@/components/preview/file-dropzone-preview"
 import { FilterBuilderPreview } from "@/components/preview/filter-builder-preview"
+import { HistogramRangePreview } from "@/components/preview/histogram-range-preview"
 import { ImageCropperPreview } from "@/components/preview/image-cropper-preview"
 import { InlineEditPreview } from "@/components/preview/inline-edit-preview"
 import { InputPreview } from "@/components/preview/input-preview"
@@ -92,6 +94,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "emoji-picker": EmojiPickerPreview,
   "file-dropzone": FileDropzonePreview,
   "filter-builder": FilterBuilderPreview,
+  "histogram-range": HistogramRangePreview,
   "image-cropper": ImageCropperPreview,
   "inline-edit": InlineEditPreview,
   input: InputPreview,
@@ -140,6 +143,7 @@ export const BASE_UI_PREVIEWS: Record<string, ComponentType> = {
   "bulk-action-bar": BaseUiBulkActionBarPreview,
   button: BaseUiButtonPreview,
   dialog: BaseUiDialogPreview,
+  "histogram-range": BaseUiHistogramRangePreview,
   label: BaseUiLabelPreview,
   "mention-textarea": BaseUiMentionTextareaPreview,
   "multi-select": BaseUiMultiSelectPreview,

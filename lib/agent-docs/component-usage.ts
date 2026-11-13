@@ -359,6 +359,35 @@ export function IssueFilters({ issues }: { issues: { status: string; title: stri
   )
 }`,
   },
+  "histogram-range": {
+    notes:
+      "A dual-thumb range slider sitting below a distribution histogram bar chart, designed for filtering datasets where distribution matters such as price, file size, or duration. Values inside the active range default to bg-primary (customizable via barColor, e.g., bg-chart-1) while values outside default to bg-muted-foreground/20 (customizable via mutedBarColor). Bucketing logic in @/lib/histogram-range ensures values equal to max land strictly in the last bucket. Accessible thumb labeling (minThumbLabel, maxThumbLabel), aria-valuetext generated via formatValue, and decorative bars (aria-hidden) with screen-reader result announcements via an aria-live region. Supports controlled and uncontrolled states via use-controllable-state.",
+    example: `"use client"
+
+import { useState } from "react"
+import { HistogramRange } from "@/components/ui/histogram-range"
+
+const prices = [25, 45, 60, 75, 80, 110, 120, 150, 180, 220, 260, 310, 450]
+
+export function PriceFilter() {
+  const [range, setRange] = useState<[number, number]>([50, 200])
+
+  return (
+    <HistogramRange
+      data={prices}
+      min={0}
+      max={500}
+      value={range}
+      onValueChange={setRange}
+      formatValue={(n) => \`$\${n}\`}
+      minThumbLabel="Minimum price"
+      maxThumbLabel="Maximum price"
+      showValues
+      showCount
+    />
+  )
+}`,
+  },
   "image-cropper": {
     notes:
       "Interactive image crop component for avatars and covers. Supports pointer drag-to-pan, 2-finger pinch zoom, mouse wheel / slider zoom, 90-degree step rotation, rule-of-thirds grid, and fixed aspect ratios (1 for square, 16/9 for banner, 4/3 for photo). cropShape can be 'rect' or 'round'. Emits a cropped Blob and pixel crop coordinates through onCropComplete(blob, pixelCrop) when user clicks Apply or presses Enter. Shows a pulsing stage while the image loads and a message if it fails, keeps Apply disabled until it has loaded, and reports load or canvas errors via onCropError(error). The Reset button restores defaultZoom, defaultRotation and defaultCrop. Wheel and trackpad pinch zoom scale with the scroll delta, and the wheel falls through to page scroll at the zoom limits. Full keyboard support with Arrow keys to pan (Shift for 10x larger steps), + / - or [ / ] to zoom, R to rotate, and Enter to apply crop.",
