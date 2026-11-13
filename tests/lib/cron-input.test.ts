@@ -41,6 +41,16 @@ describe("parseCron", () => {
     expect(res7.fields?.dayOfWeek).toEqual([0])
   })
 
+  it("rejects inherited object properties as field names", () => {
+    const resMonth = parseCron("* * * constructor *")
+    expect(resMonth.isValid).toBe(false)
+    expect(resMonth.errorField).toBe("month")
+
+    const resDow = parseCron("* * * * toString")
+    expect(resDow.isValid).toBe(false)
+    expect(resDow.errorField).toBe("day of week")
+  })
+
   it("fails when expression is empty or missing", () => {
     expect(parseCron("").isValid).toBe(false)
     expect(parseCron(undefined).isValid).toBe(false)
@@ -169,6 +179,12 @@ describe("describeCron", () => {
   it("returns empty string for invalid expressions", () => {
     expect(describeCron("invalid")).toBe("")
     expect(describeCron("")).toBe("")
+    expect(describeCron("*/15 */2 * * *")).toBe(
+      "Every 15 minutes, every 2 hours"
+    )
+    expect(describeCron("*/15 9-17/2 * * *")).toBe(
+      "Every 15 minutes, every 2 hours from 09:00 through 17:59"
+    )
   })
 })
 
@@ -198,6 +214,19 @@ describe("getNextRunTimes", () => {
 
     // Run 5: Thursday Nov 19 at 09:00
     expect(runs[4].getDate()).toBe(19)
+  })
+
+  it("computes leap-day runs across multiple leap years", () => {
+    const from = new Date(2025, 0, 1, 0, 0, 0)
+    const runs = getNextRunTimes("0 0 29 2 *", 5, from)
+    expect(runs).toHaveLength(5)
+    expect(runs.map((r) => r.getFullYear())).toEqual([
+      2028, 2032, 2036, 2040, 2044,
+    ])
+    for (const r of runs) {
+      expect(r.getMonth()).toBe(1) // February
+      expect(r.getDate()).toBe(29)
+    }
   })
 
   it("returns empty array for invalid expression", () => {

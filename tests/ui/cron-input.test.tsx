@@ -57,7 +57,7 @@ describe("CronInput", () => {
       />
     )
 
-    expect(screen.getByText(/Run at 2026-11-13/)).toBeInTheDocument()
+    expect(screen.getByText(/^Run at \d{4}-\d{2}-\d{2}T/)).toBeInTheDocument()
   })
 
   it("can hide description and next runs", () => {

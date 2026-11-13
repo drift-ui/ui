@@ -633,7 +633,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         },
         {
           name: "inputProps",
-          type: 'Omit<React.ComponentProps<"input">, ...>',
+          type: 'Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "disabled" | "readOnly">',
           description:
             "Additional props passed directly to the inner input element.",
         },

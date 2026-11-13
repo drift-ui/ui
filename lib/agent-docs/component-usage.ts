@@ -142,7 +142,7 @@ export function ReviewThread() {
   },
   "cron-input": {
     notes:
-      "A standard five-field cron expression input (minute, hour, day-of-month, month, day-of-week) for scheduling jobs. Validates standard cron grammar with wildcards (*), comma lists, ranges (-), and steps (/), explicitly excluding non-standard extensions. When both day-of-month and day-of-week are set, cron matches either one (POSIX standard). Displays a plain-English schedule readout (e.g., 'At 09:00, Monday through Friday') and lists the next 5 upcoming run times deterministically. Invalid input sets aria-invalid and names the offending field in an accessible role='alert' error. Pure logic helpers are exported from @/lib/cron-input.",
+      "A standard five-field cron expression input (minute, hour, day-of-month, month, day-of-week) for scheduling jobs. Validates standard cron grammar with wildcards (*), comma lists, ranges (-), and steps (/), explicitly excluding non-standard extensions. When both day-of-month and day-of-week are set, cron matches either one (POSIX standard). Displays a plain-English schedule readout (e.g., 'At 09:00, Monday through Friday') and lists the next 5 upcoming run times deterministically. Invalid input sets aria-invalid and shows an accessible role='alert' error; field-specific validation errors also name the offending field. Pure logic helpers are exported from @/lib/cron-input.",
     example: `"use client"
 
 import { useState } from "react"

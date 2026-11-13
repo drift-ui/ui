@@ -100,6 +100,7 @@ function CronInput({
     >
       <div className="relative flex w-full flex-col gap-1.5">
         <input
+          {...inputProps}
           id={inputId}
           data-slot="cron-input-field"
           type="text"
@@ -123,7 +124,6 @@ function CronInput({
               "border-destructive text-destructive focus-visible:border-destructive focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
             inputProps?.className
           )}
-          {...inputProps}
         />
 
         {isInvalid ? (

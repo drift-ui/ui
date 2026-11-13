@@ -85,7 +85,7 @@ const FIELD_CONFIGS: FieldConfig[] = [
 
 function parseNumber(token: string, config: FieldConfig): number | null {
   const lower = token.toLowerCase()
-  if (config.names && lower in config.names) {
+  if (config.names && Object.hasOwn(config.names, lower)) {
     return config.names[lower]
   }
   if (!/^\d+$/.test(token)) {
@@ -346,7 +346,7 @@ export function getNextRunTimes(
   curr.setSeconds(0, 0)
   curr.setMinutes(curr.getMinutes() + 1)
 
-  const maxYear = curr.getFullYear() + 5
+  const maxYear = curr.getFullYear() + 100
 
   while (results.length < count && curr.getFullYear() <= maxYear) {
     const month = curr.getMonth() + 1
@@ -468,6 +468,10 @@ export function describeCron(expression: string | undefined | null): string {
     rawDow === "*"
   ) {
     const step = rawHour.slice(2)
+    if (rawMin.startsWith("*/")) {
+      const minStep = rawMin.slice(2)
+      return `Every ${minStep} minutes, every ${step} hours`
+    }
     const minText = rawMin === "0" ? "at minute 0" : `at minute ${rawMin}`
     return `Every ${step} hours, ${minText}`
   }
@@ -492,9 +496,18 @@ export function describeCron(expression: string | undefined | null): string {
     const step = rawMin.slice(2)
     if (rawHour === "*") {
       timeStr = `Every ${step} minutes`
+    } else if (rawHour.startsWith("*/")) {
+      const hStep = rawHour.slice(2)
+      timeStr = `Every ${step} minutes, every ${hStep} hours`
     } else if (rawHour.includes("-")) {
-      const [h1, h2] = rawHour.split("-")
-      timeStr = `Every ${step} minutes, ${padTwo(parseInt(h1, 10))}:00 through ${padTwo(parseInt(h2, 10))}:59`
+      if (rawHour.includes("/")) {
+        const [range, hStep] = rawHour.split("/")
+        const [h1, h2] = range.split("-")
+        timeStr = `Every ${step} minutes, every ${hStep} hours from ${padTwo(parseInt(h1, 10))}:00 through ${padTwo(parseInt(h2, 10))}:59`
+      } else {
+        const [h1, h2] = rawHour.split("-")
+        timeStr = `Every ${step} minutes, ${padTwo(parseInt(h1, 10))}:00 through ${padTwo(parseInt(h2, 10))}:59`
+      }
     } else {
       timeStr = `Every ${step} minutes past hour ${rawHour}`
     }
