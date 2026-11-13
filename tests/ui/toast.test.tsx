@@ -8,6 +8,7 @@ describe.skipIf(process.env.UI_PRIMITIVES !== "base")(
   "Toast on Base UI",
   () => {
     afterEach(() => {
+      vi.useRealTimers()
       act(() => {
         toast.close()
       })
@@ -16,14 +17,24 @@ describe.skipIf(process.env.UI_PRIMITIVES !== "base")(
     it("commits an undo toast when it times out", async () => {
       const onCommit = vi.fn()
       const onUndo = vi.fn()
+      vi.useFakeTimers({ shouldAdvanceTime: true })
       render(<Toaster />)
 
       act(() => {
-        toast.undo({ title: "Deleted 3 files", timeout: 50, onCommit, onUndo })
+        toast.undo({
+          title: "Deleted 3 files",
+          timeout: 10_000,
+          onCommit,
+          onUndo,
+        })
       })
 
       expect(await screen.findByText("Deleted 3 files")).toBeInTheDocument()
-      await waitFor(() => expect(onCommit).toHaveBeenCalledTimes(1))
+      expect(onCommit).not.toHaveBeenCalled()
+      act(() => {
+        vi.advanceTimersByTime(10_000)
+      })
+      expect(onCommit).toHaveBeenCalledTimes(1)
       expect(onUndo).not.toHaveBeenCalled()
     })
 

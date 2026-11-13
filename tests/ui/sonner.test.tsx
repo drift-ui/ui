@@ -6,6 +6,7 @@ import { Toaster, onToastPersist, toast } from "@/registry/default/ui/sonner"
 
 describe.skipIf(process.env.UI_PRIMITIVES === "base")("Toast on Radix", () => {
   afterEach(() => {
+    vi.useRealTimers()
     act(() => {
       toast.dismiss()
     })
@@ -14,14 +15,19 @@ describe.skipIf(process.env.UI_PRIMITIVES === "base")("Toast on Radix", () => {
   it("commits an undo toast when it times out", async () => {
     const onCommit = vi.fn()
     const onUndo = vi.fn()
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     render(<Toaster />)
 
     act(() => {
-      toast.undo("Deleted 3 files", { duration: 50, onCommit, onUndo })
+      toast.undo("Deleted 3 files", { duration: 10_000, onCommit, onUndo })
     })
 
     expect(await screen.findByText("Deleted 3 files")).toBeInTheDocument()
-    await waitFor(() => expect(onCommit).toHaveBeenCalledTimes(1))
+    expect(onCommit).not.toHaveBeenCalled()
+    act(() => {
+      vi.advanceTimersByTime(10_000)
+    })
+    expect(onCommit).toHaveBeenCalledTimes(1)
     expect(onUndo).not.toHaveBeenCalled()
   })
 
