@@ -24,6 +24,7 @@ import { ButtonPreview } from "@/components/preview/button-preview"
 import { CardPreview } from "@/components/preview/card-preview"
 import { ColorPickerPreview } from "@/components/preview/color-picker-preview"
 import { CommentThreadPreview } from "@/components/preview/comment-thread-preview"
+import { CronInputPreview } from "@/components/preview/cron-input-preview"
 import { CsvImporterPreview } from "@/components/preview/csv-importer-preview"
 import { DateTimeRangePreview } from "@/components/preview/date-time-range-preview"
 import { DescriptionListPreview } from "@/components/preview/description-list-preview"
@@ -85,6 +86,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   card: CardPreview,
   "color-picker": ColorPickerPreview,
   "comment-thread": CommentThreadPreview,
+  "cron-input": CronInputPreview,
   "csv-importer": CsvImporterPreview,
   "date-time-range": DateTimeRangePreview,
   "description-list": DescriptionListPreview,

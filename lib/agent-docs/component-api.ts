@@ -560,6 +560,107 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       ],
     },
   ],
+  "cron-input": [
+    {
+      name: "CronInput",
+      description:
+        "A standard five-field cron expression input with plain-English schedule readout and upcoming run times.",
+      props: [
+        {
+          name: "value",
+          type: "string",
+          description: "Controlled cron expression value.",
+        },
+        {
+          name: "defaultValue",
+          type: "string",
+          default: '"* * * * *"',
+          description: "Initial value in uncontrolled mode.",
+        },
+        {
+          name: "onValueChange",
+          type: "(value: string) => void",
+          description: "Fires whenever the cron expression text changes.",
+        },
+        {
+          name: "placeholder",
+          type: "string",
+          default: '"* * * * *"',
+          description: "Placeholder text for the cron input field.",
+        },
+        {
+          name: "showDescription",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to display the plain-English schedule readout below the input.",
+        },
+        {
+          name: "showNextRuns",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to show the list of upcoming calculated run times.",
+        },
+        {
+          name: "nextRunsCount",
+          type: "number",
+          default: "5",
+          description: "Number of upcoming run times to calculate and display.",
+        },
+        {
+          name: "nextRunsFrom",
+          type: "Date",
+          description:
+            "Reference date for upcoming runs calculation. Defaults to current time.",
+        },
+        {
+          name: "formatNextRun",
+          type: "(date: Date) => string",
+          description: "Custom date formatting function for upcoming runs.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Whether the input is disabled.",
+        },
+        {
+          name: "readOnly",
+          type: "boolean",
+          default: "false",
+          description: "Whether the input is read-only.",
+        },
+        {
+          name: "inputProps",
+          type: 'Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "disabled" | "readOnly">',
+          description:
+            "Additional props passed directly to the inner input element.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "parseCron",
+      signature:
+        "parseCron(expression: string | undefined | null): ParseCronResult",
+      description:
+        "Pure logic helper in @/lib/cron-input that parses, validates, and expands a standard 5-field cron expression.",
+    },
+    {
+      name: "describeCron",
+      signature: "describeCron(expression: string | undefined | null): string",
+      description:
+        "Pure logic helper in @/lib/cron-input that turns a 5-field cron expression into a plain-English sentence.",
+    },
+    {
+      name: "getNextRunTimes",
+      signature:
+        "getNextRunTimes(expression: string | undefined | null, count?: number, from?: Date): Date[]",
+      description:
+        "Pure logic helper in @/lib/cron-input that computes the next N run times starting from a reference date, following POSIX matching rules.",
+    },
+  ],
   "csv-importer": [
     {
       name: "CsvImporter",

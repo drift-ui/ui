@@ -140,6 +140,29 @@ export function ReviewThread() {
   )
 }`,
   },
+  "cron-input": {
+    notes:
+      "A standard five-field cron expression input (minute, hour, day-of-month, month, day-of-week) for scheduling jobs. Validates standard cron grammar with wildcards (*), comma lists, ranges (-), and steps (/), explicitly excluding non-standard extensions. When both day-of-month and day-of-week are set, cron matches either one (POSIX standard). Displays a plain-English schedule readout (e.g., 'At 09:00, Monday through Friday') and lists the next 5 upcoming run times deterministically. Invalid input sets aria-invalid and shows an accessible role='alert' error; field-specific validation errors also name the offending field. Pure logic helpers are exported from @/lib/cron-input.",
+    example: `"use client"
+
+import { useState } from "react"
+import { CronInput } from "@/components/ui/cron-input"
+
+export function BackupSchedule() {
+  const [schedule, setSchedule] = useState("0 9 * * 1-5")
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor="cron" className="text-sm font-medium">Backup schedule</label>
+      <CronInput
+        value={schedule}
+        onValueChange={setSchedule}
+        inputProps={{ id: "cron" }}
+      />
+    </div>
+  )
+}`,
+  },
   "csv-importer": {
     notes:
       "Multi-step CSV import workflow component. Composes file-dropzone for upload, stepper for the 4-step wizard, and virtual-list for reviewing and fixing invalid rows. Parses CSV in the browser with support for quotes, newlines, escaped quotes, CRLF, and UTF-8 BOM. Auto-suggests column mappings case-insensitively, and validates rows inline with custom rules. Props: fields: CsvField[], onComplete: (rows: Record<string, any>[]) => void, onCancel?, maxRows? (default 10000), maxFileSize? (default 10MB), sampleRowsCount? (default 3), autoMap? (default true), step/defaultStep/onStepChange, defaultFile?.",
