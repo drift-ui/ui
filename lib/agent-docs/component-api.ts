@@ -3239,7 +3239,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           name: "timeout",
           type: "number",
           description:
-            "Base UI. Time on screen in ms, 0 to stay until closed. When unset it grows with the length of the title and description.",
+            "Base UI. Time on screen in ms, 0 to stay until closed. When unset it grows with the length of the title and description, unless the Toaster timeout is 0, which keeps every toast up until closed.",
         },
         {
           name: "persist",
