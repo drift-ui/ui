@@ -57,6 +57,7 @@ const ENTRY_LAYOUT: {
   isFlagship?: boolean
 }[] = [
   { slug: "color-picker", category: "inputs" },
+  { slug: "cron-input", category: "inputs" },
   { slug: "date-time-range", category: "inputs", isFlagship: true },
   { slug: "duration-input", category: "inputs" },
   { slug: "emoji-picker", category: "inputs" },
