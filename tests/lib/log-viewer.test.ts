@@ -7,7 +7,7 @@ import {
   parseAnsi,
   stripAnsi,
   type LogLine,
-} from "@/registry/default/lib/log-viewer"
+} from "@/registry/default/lib/log-viewer-utils"
 
 describe("parseAnsi", () => {
   it("handles plain text without ANSI codes", () => {

@@ -14,7 +14,7 @@ import {
   formatCurrencyLive,
   parseCurrency,
   unmaskValue,
-} from "@/registry/default/lib/masked-input.ts"
+} from "@/registry/default/lib/masked-input-utils"
 import { cn } from "@/registry/default/lib/utils"
 
 interface MaskedInputProps extends Omit<

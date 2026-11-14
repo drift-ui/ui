@@ -8,7 +8,7 @@ import {
   describeCron,
   getNextRunTimes,
   parseCron,
-} from "@/registry/default/lib/cron-input.ts"
+} from "@/registry/default/lib/cron-input-utils"
 import { cn } from "@/registry/default/lib/utils"
 
 export interface CronInputProps extends Omit<

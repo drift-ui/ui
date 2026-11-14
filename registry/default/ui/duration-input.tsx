@@ -15,7 +15,7 @@ import {
   unitCountText,
   unitLabel,
   writeSegment,
-} from "@/registry/default/lib/duration-input.ts"
+} from "@/registry/default/lib/duration-input-utils"
 import { cn } from "@/registry/default/lib/utils"
 
 const TYPEAHEAD_RESET_MS = 1000

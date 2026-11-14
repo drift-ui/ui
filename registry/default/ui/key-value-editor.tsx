@@ -9,7 +9,7 @@ import {
   findDuplicateKeys,
   pasteRows,
   type KeyValueRow,
-} from "@/registry/default/lib/key-value-editor.ts"
+} from "@/registry/default/lib/key-value-editor-utils"
 import { cn } from "@/registry/default/lib/utils"
 import { Button } from "@/registry/default/ui/button"
 import { Input } from "@/registry/default/ui/input"

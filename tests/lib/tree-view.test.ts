@@ -6,7 +6,7 @@ import {
   stepNode,
   toggleChecked,
   type TreeData,
-} from "@/registry/default/lib/tree-view"
+} from "@/registry/default/lib/tree-view-utils"
 
 const TREE: TreeData[] = [
   {

@@ -8,7 +8,7 @@ import {
   computePixelCrop,
   getBoundaries,
   getRotatedSize,
-} from "@/registry/default/lib/image-cropper"
+} from "@/registry/default/lib/image-cropper-utils"
 
 describe("image-cropper pure logic", () => {
   describe("computeCropSize", () => {

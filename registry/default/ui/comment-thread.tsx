@@ -29,7 +29,7 @@ import {
   type Comment,
   type CommentAuthor,
   type ReactionOption,
-} from "@/registry/default/lib/comment-thread.ts"
+} from "@/registry/default/lib/comment-thread-utils"
 import type { MentionOption } from "@/registry/default/lib/mention"
 import { cn } from "@/registry/default/lib/utils"
 import {

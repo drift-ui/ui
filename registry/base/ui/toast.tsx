@@ -25,7 +25,7 @@ import {
   trackPause,
   type PersistedToast,
   type UndoTimer,
-} from "@/registry/default/lib/toast.ts"
+} from "@/registry/default/lib/toast-utils"
 import { cn } from "@/registry/default/lib/utils"
 import { Button } from "@/registry/base/ui/button"
 

@@ -8,7 +8,7 @@ import {
   getSegmentAccessibleLabel,
   normalizeDayStatus,
   type UptimeDay,
-} from "@/registry/default/lib/uptime-bar"
+} from "@/registry/default/lib/uptime-bar-utils"
 
 describe("normalizeDayStatus", () => {
   it("normalizes canonical and variant status strings", () => {

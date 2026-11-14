@@ -75,8 +75,8 @@ import {
 } from "@/registry/default/ui/trace-waterfall"
 import { TreeView, type TreeNode } from "@/registry/default/ui/tree-view"
 import { UptimeBar } from "@/registry/default/ui/uptime-bar"
-import type { Comment } from "@/registry/default/lib/comment-thread"
-import type { UptimeDay } from "@/registry/default/lib/uptime-bar"
+import type { Comment } from "@/registry/default/lib/comment-thread-utils"
+import type { UptimeDay } from "@/registry/default/lib/uptime-bar-utils"
 import type { BlockKind } from "@/lib/blocks"
 
 function Screen({

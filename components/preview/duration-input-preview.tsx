@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { formatDuration } from "@/registry/default/lib/duration-input"
+import { formatDuration } from "@/registry/default/lib/duration-input-utils"
 import { DurationInput } from "@/registry/default/ui/duration-input"
 import { Label } from "@/registry/default/ui/label"
 

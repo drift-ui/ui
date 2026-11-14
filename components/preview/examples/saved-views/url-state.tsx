@@ -5,7 +5,7 @@ import * as React from "react"
 import {
   readViewParam,
   writeViewParam,
-} from "@/registry/default/lib/saved-views"
+} from "@/registry/default/lib/saved-views-utils"
 import { SavedViews, type SavedView } from "@/registry/default/ui/saved-views"
 
 const VIEWS: SavedView[] = [

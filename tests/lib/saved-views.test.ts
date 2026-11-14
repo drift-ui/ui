@@ -15,7 +15,7 @@ import {
   setDefaultSavedView,
   writeViewParam,
   type SavedView,
-} from "@/registry/default/lib/saved-views"
+} from "@/registry/default/lib/saved-views-utils"
 
 describe("generateViewId", () => {
   it("generates unique string identifiers", () => {

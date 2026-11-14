@@ -19,7 +19,7 @@ const REGISTRY_ENTRY = `{
   "registryDependencies": ["utils", "@drift-ui/use-controllable-state"],
   "files": [
     { "path": "registry/default/ui/trace-waterfall.tsx", "type": "registry:ui" },
-    { "path": "registry/default/lib/trace-waterfall.ts", "type": "registry:lib" }
+    { "path": "registry/default/lib/trace-waterfall-utils.ts", "type": "registry:lib" }
   ]
 }`
 
@@ -78,7 +78,7 @@ export function OneComponentSixteenFiles() {
             </tr>
             <tr>
               <td>
-                <code>registry/default/lib/trace-waterfall.ts</code>
+                <code>registry/default/lib/trace-waterfall-utils.ts</code>
               </td>
               <td>Pure functions behind it, 237 lines</td>
             </tr>

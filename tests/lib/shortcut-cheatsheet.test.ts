@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   filterSections,
   matchesTrigger,
-} from "@/registry/default/lib/shortcut-cheatsheet"
+} from "@/registry/default/lib/shortcut-cheatsheet-utils"
 
 const SECTIONS = [
   {

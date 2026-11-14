@@ -5,7 +5,7 @@ import {
   groupOptions,
   toggleAll,
   toggleValue,
-} from "@/registry/default/lib/multi-select"
+} from "@/registry/default/lib/multi-select-utils"
 
 const OPTIONS = [
   { value: "eu-west-1", label: "Ireland", group: "Europe" },

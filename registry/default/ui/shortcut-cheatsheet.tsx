@@ -7,7 +7,7 @@ import {
   filterSections,
   matchesTrigger,
   type CheatsheetSection,
-} from "@/registry/default/lib/shortcut-cheatsheet.ts"
+} from "@/registry/default/lib/shortcut-cheatsheet-utils"
 import { useControllableState } from "@/registry/default/hooks/use-controllable-state"
 import {
   Dialog,

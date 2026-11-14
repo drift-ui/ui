@@ -2,7 +2,7 @@
 
 import { Button } from "@/registry/default/ui/button"
 import { toast } from "@/registry/default/ui/sonner"
-import { readableDuration, toastText } from "@/registry/default/lib/toast"
+import { readableDuration, toastText } from "@/registry/default/lib/toast-utils"
 
 const MESSAGES = [
   { title: "Saved", description: "" },

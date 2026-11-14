@@ -11,7 +11,7 @@ import {
   segmentText,
   stepSegment,
   writeSegment,
-} from "@/registry/default/lib/duration-input"
+} from "@/registry/default/lib/duration-input-utils"
 
 describe("duration-input logic", () => {
   describe("decomposeDuration", () => {

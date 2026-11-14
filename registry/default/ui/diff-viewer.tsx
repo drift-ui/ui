@@ -12,7 +12,10 @@ import {
   type DiffPair,
 } from "@/registry/default/lib/diff"
 import { cn } from "@/registry/default/lib/utils"
-import { rowOffsets, visibleRange } from "@/registry/default/lib/virtual-list"
+import {
+  rowOffsets,
+  visibleRange,
+} from "@/registry/default/lib/virtual-list-utils"
 
 type DiffMode = "split" | "unified"
 
