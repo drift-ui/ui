@@ -8,6 +8,10 @@ import {
 import metadata from "libphonenumber-js/min/metadata"
 import type { ReactNode } from "react"
 
+import { countryFlag } from "@/registry/default/lib/countries"
+
+export { countryFlag }
+
 export type PhoneCountry = {
   code: CountryCode
   name: string
@@ -18,8 +22,6 @@ export type PhoneCountry = {
 export type PhoneCountryOption =
   | CountryCode
   | (Pick<PhoneCountry, "code"> & Partial<Pick<PhoneCountry, "name" | "flag">>)
-
-const REGIONAL_INDICATOR_OFFSET = 0x1f1a5
 
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" })
 
@@ -33,15 +35,6 @@ function digitsOf(text: string) {
 
 function foldText(text: string) {
   return text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase()
-}
-
-export function countryFlag(country: CountryCode) {
-  return String.fromCodePoint(
-    ...Array.from(
-      country,
-      (letter) => REGIONAL_INDICATOR_OFFSET + letter.charCodeAt(0)
-    )
-  )
 }
 
 export const PHONE_COUNTRIES: PhoneCountry[] = getCountries()

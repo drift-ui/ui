@@ -28,6 +28,35 @@ export function ContributionGraph() {
   )
 }`,
   },
+  "address-input": {
+    notes:
+      'AddressInput renders a country select and the address fields for that country, holding a flat { country, line1, line2, city, region, postalCode } object through value/defaultValue and onValueChange. defaultValue may be partial. defaultCountry (default "US") is an ISO 3166-1 alpha-2 code. Built-in layouts for AU, CA, DE, FR, GB, IN, JP and US set field order, required fields, labels and a postal code pattern, so Japan starts with the postal code, Germany and France put it before the city, and the UK and France have no region field. Every other country gets a generic layout (line 1 and city required; line 2, region and postal code optional, with no postal code check) unless you pass layouts, a record of country code to { rows, required, labels?, postalCode?: { pattern, format } }. Switching country keeps the fields both layouts share and clears the rest. Required fields get the required attribute and optional ones show "(optional)". A postal code that does not match its pattern, or is only spaces, shows an error built from the label and format of the layout, such as "ZIP code must be 5 digits, like 94105." for the US, after the field loses focus, sets aria-invalid and aria-describedby, and blocks form submit through setCustomValidity. Every field has its autocomplete token (country, address-line1, address-line2, address-level2, address-level1, postal-code); addressType="shipping" or "billing" prefixes them. name submits each field as name.country, name.line1 and so on. countries limits and orders the list, though the current country is always listed, first if it is missing from countries, and locale names the countries. Other props go to the role="group" wrapper, so pass aria-label or aria-labelledby. The country select is native so browser autofill can fill it. Address lookup from a provider is not included.',
+    example: `"use client"
+
+import * as React from "react"
+
+import { AddressInput, type Address } from "@/components/ui/address-input"
+
+export function ShippingAddress() {
+  const [address, setAddress] = React.useState<Address>({
+    country: "DE",
+    line1: "",
+    line2: "",
+    city: "",
+    region: "",
+    postalCode: "",
+  })
+
+  return (
+    <AddressInput
+      aria-label="Shipping address"
+      addressType="shipping"
+      value={address}
+      onValueChange={setAddress}
+    />
+  )
+}`,
+  },
   avatar: {
     notes: SAME_AS_SHADCN,
     example: `import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
