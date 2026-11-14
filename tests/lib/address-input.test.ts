@@ -37,6 +37,20 @@ describe("countries", () => {
     expect(COUNTRY_CODES).toContain("XK")
   })
 
+  it("only lists real regions, each under its own name", () => {
+    const regions = new Intl.DisplayNames(["en"], {
+      type: "region",
+      fallback: "none",
+    })
+    const names = COUNTRY_CODES.map((code) => regions.of(code))
+    expect(
+      COUNTRY_CODES.filter(
+        (_, index) => !names[index] || names[index] === "Unknown Region"
+      )
+    ).toEqual([])
+    expect(new Set(names).size).toBe(COUNTRY_CODES.length)
+  })
+
   it("builds an emoji flag and a localized name", () => {
     expect(countryFlag("GB")).toBe("🇬🇧")
     expect(countryFlag("jp")).toBe("🇯🇵")
@@ -173,6 +187,28 @@ describe("postalCodeError", () => {
     const address = { ...ADDRESS, country: "SG", postalCode: "018956" }
     expect(postalCodeError(address, layouts)).toBeNull()
     expect(postalCodeError(address, layouts)).toBeNull()
+  })
+
+  it("requires the whole code to match an unanchored pattern", () => {
+    const layouts = {
+      SG: {
+        rows: [["postalCode"]],
+        required: [],
+        postalCode: { pattern: /\d{6}/, format: "6 digits" },
+      },
+    } satisfies AddressLayouts
+    expect(
+      postalCodeError(
+        { ...ADDRESS, country: "SG", postalCode: "a018956z" },
+        layouts
+      )
+    ).toBe("Postal code must be 6 digits.")
+    expect(
+      postalCodeError(
+        { ...ADDRESS, country: "SG", postalCode: "018956" },
+        layouts
+      )
+    ).toBeNull()
   })
 })
 

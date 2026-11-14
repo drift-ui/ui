@@ -155,7 +155,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "AddressInput",
       description:
-        "A country select followed by the address fields that country uses, in its order and with its labels, such as State and ZIP code for the US or Prefecture first after the postal code for Japan. Tab moves through the fields in layout order, and the country is a native select, so arrow keys and typing a name pick a country. A postal code error appears when the field loses focus or a form is submitted, and is linked to the field with aria-describedby.",
+        "A country select followed by the address fields that country uses, in its order and with its labels, such as State and ZIP code for the US or Prefecture first after the postal code for Japan. Tab moves through the fields in layout order, and the country is a native select, so arrow keys and typing a name pick a country. A filled-in postal code that fails its layout pattern shows an error when the field loses focus or a form is submitted, linked to the field with aria-describedby. An empty required postal code gets only the native required check.",
       rest: '<div role="group">',
       props: [
         STATE_PROPS.value(

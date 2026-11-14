@@ -21,6 +21,7 @@ export function AddressInputCustomLayoutsPreview() {
   return (
     <AddressInput
       aria-label="Billing address"
+      addressType="billing"
       defaultCountry="BR"
       layouts={LAYOUTS}
       className="max-w-md"

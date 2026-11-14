@@ -162,9 +162,9 @@ export function changeAddressCountry(
 export function postalCodeError(address: Address, layouts?: AddressLayouts) {
   const layout = layoutFor(address.country, layouts)
   if (!address.postalCode || !layout.postalCode) return null
-  if (address.postalCode.trim().search(layout.postalCode.pattern) !== -1) {
-    return null
-  }
+  const { source, flags } = layout.postalCode.pattern
+  const wholeCode = new RegExp(`^(?:${source})$`, flags.replace(/[gy]/g, ""))
+  if (wholeCode.test(address.postalCode.trim())) return null
   return `${labelFor("postalCode", layout)} must be ${layout.postalCode.format}.`
 }
 
