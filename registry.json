@@ -632,7 +632,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/merge-resolver.ts",
+          "path": "registry/default/lib/merge-resolver-utils.ts",
           "type": "registry:lib"
         },
         {

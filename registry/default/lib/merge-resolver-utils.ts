@@ -1,4 +1,4 @@
-import { diffWords, type DiffSegment } from "@/registry/default/lib/diff.ts"
+import { diffWords, type DiffSegment } from "@/registry/default/lib/diff"
 
 export type MergeFieldChoice = "ours" | "theirs" | "custom"
 

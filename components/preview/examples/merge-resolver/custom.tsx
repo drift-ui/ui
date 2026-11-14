@@ -6,7 +6,7 @@ import type {
   MergedRecord,
   MergeField,
   MergeResolutions,
-} from "@/registry/default/lib/merge-resolver.ts"
+} from "@/registry/default/lib/merge-resolver-utils"
 import { Button } from "@/registry/default/ui/button"
 import { MergeResolver } from "@/registry/default/ui/merge-resolver"
 

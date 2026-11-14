@@ -5,7 +5,7 @@ import * as React from "react"
 import type {
   MergedRecord,
   MergeField,
-} from "@/registry/default/lib/merge-resolver.ts"
+} from "@/registry/default/lib/merge-resolver-utils"
 import { MergeResolver } from "@/registry/default/ui/merge-resolver"
 
 const FIELDS: MergeField[] = [
