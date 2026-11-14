@@ -175,7 +175,11 @@ function AddressInput({
             className="h-9 w-full rounded-md border border-input bg-transparent pr-2 pl-9 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30 [&>option]:bg-popover [&>option]:text-popover-foreground"
           >
             {countryOptions.map((option) => (
-              <option key={option.code} value={option.code}>
+              <option
+                key={option.code}
+                value={option.code}
+                suppressHydrationWarning
+              >
                 {option.name}
               </option>
             ))}
