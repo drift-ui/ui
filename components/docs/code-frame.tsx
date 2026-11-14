@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 
 import { cn } from "@/registry/default/lib/utils"
@@ -11,20 +11,20 @@ const COLLAPSE_AFTER_LINES = 22
 
 export function CodeFrame({
   title,
-  code,
   html,
+  lines,
   collapsible = false,
   className,
 }: {
   title: string
-  code: string
   html: string
+  lines: number
   collapsible?: boolean
   className?: string
 }) {
+  const codeRef = useRef<HTMLDivElement>(null)
   const [isExpanded, setIsExpanded] = useState(false)
-  const lineCount = code.split("\n").length
-  const canCollapse = collapsible && lineCount > COLLAPSE_AFTER_LINES
+  const canCollapse = collapsible && lines > COLLAPSE_AFTER_LINES
   const isCollapsed = canCollapse && !isExpanded
 
   return (
@@ -36,12 +36,16 @@ export function CodeFrame({
     >
       <figcaption className="flex h-11 items-center justify-between gap-4 border-b pr-1.5 pl-4 font-mono text-xs text-muted-foreground">
         <span className="truncate">{title}</span>
-        <CopyButton value={code} label={`Copy ${title}`} />
+        <CopyButton
+          value={() => codeRef.current?.textContent ?? ""}
+          label={`Copy ${title}`}
+        />
       </figcaption>
       <div
         className={cn("relative", isCollapsed && "max-h-96 overflow-hidden")}
       >
         <div
+          ref={codeRef}
           className="code-block overflow-x-auto py-4 font-mono text-[13px] leading-6"
           dangerouslySetInnerHTML={{ __html: html }}
         />
@@ -54,7 +58,7 @@ export function CodeFrame({
               className="active:scale-[0.98]"
             >
               <ChevronDownIcon />
-              Show all {lineCount} lines
+              Show all {lines} lines
             </Button>
           </div>
         )}

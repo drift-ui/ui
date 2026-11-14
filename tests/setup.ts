@@ -28,6 +28,8 @@ Element.prototype.scrollIntoView ??= () => {}
 Element.prototype.hasPointerCapture ??= () => false
 Element.prototype.setPointerCapture ??= () => {}
 Element.prototype.releasePointerCapture ??= () => {}
+HTMLCanvasElement.prototype.getContext = (() =>
+  null) as HTMLCanvasElement["getContext"]
 
 afterEach(() => {
   cleanup()

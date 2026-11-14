@@ -9,10 +9,6 @@ export const alt = siteConfig.title
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
-const COMPONENT_COUNT = CATALOG.filter(
-  (entry) => entry.category !== "primitives"
-).length
-
 export default async function OpenGraphImage() {
   return new ImageResponse(
     <OgFrame>
@@ -51,7 +47,7 @@ export default async function OpenGraphImage() {
           color: OG_COLORS.muted,
         }}
       >
-        {COMPONENT_COUNT} components for the shadcn CLI, on Radix or Base UI
+        {CATALOG.length} components for the shadcn CLI, on Radix or Base UI
       </span>
       <OgCommand command="npx shadcn add @drift-ui/tags-input" />
     </OgFrame>,

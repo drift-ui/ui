@@ -22,7 +22,7 @@ import {
   type InboxNotification,
   type NotificationActor,
   type NotificationGroup,
-} from "@/registry/default/lib/notification-inbox"
+} from "@/registry/default/lib/notification-inbox.ts"
 import { cn } from "@/registry/default/lib/utils"
 import {
   Avatar,
@@ -262,13 +262,13 @@ function NotificationInbox<T extends InboxNotification = InboxNotification>({
         <PopoverContent
           align="end"
           aria-labelledby={headingId}
-          className="w-[min(24rem,calc(100vw-2rem))] p-0"
+          className="flex max-h-[calc(var(--radix-popover-content-available-height,var(--available-height,100vh))-0.5rem)] w-[min(24rem,calc(100vw-2rem))] flex-col p-0"
         >
           <div
             ref={panelRef}
             tabIndex={-1}
             data-slot="notification-inbox"
-            className="flex flex-col outline-none"
+            className="flex min-h-0 flex-col outline-none"
           >
             <div className="flex items-center justify-between gap-2 border-b px-4 py-2">
               <h2 id={headingId} className="text-sm font-semibold">
@@ -292,7 +292,7 @@ function NotificationInbox<T extends InboxNotification = InboxNotification>({
               </p>
             ) : (
               <div
-                className="max-h-[min(28rem,70vh)] overflow-y-auto overscroll-contain py-1"
+                className="max-h-[min(28rem,70vh)] min-h-0 overflow-y-auto overscroll-contain py-1"
                 onKeyDown={handleListKeyDown}
               >
                 {groups.map((group) => (

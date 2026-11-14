@@ -144,7 +144,7 @@ describe("ComponentsBrowser", () => {
     const links = screen.getAllByRole("link", { name: /Request a component/ })
     expect(links).toHaveLength(1)
     const url = new URL(links[0].getAttribute("href")!)
-    expect(url.pathname).toBe("/localhostd3veloper/drift-ui/issues/new")
+    expect(url.pathname).toBe("/drift-ui/ui/issues/new")
     expect(url.searchParams.get("template")).toBe("component_request.yml")
     expect(url.searchParams.get("component")).toBe("comment thread")
     expect(links[0]).toHaveAttribute("target", "_blank")

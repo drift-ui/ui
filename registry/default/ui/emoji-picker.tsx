@@ -30,7 +30,7 @@ import {
   type Emoji,
   type EmojiCell,
   type SkinTone,
-} from "@/registry/default/lib/emoji-picker"
+} from "@/registry/default/lib/emoji-picker.ts"
 import { cn } from "@/registry/default/lib/utils"
 import { Input } from "@/registry/default/ui/input"
 
@@ -252,7 +252,7 @@ function EmojiPicker({
           if (gridRef.current) gridRef.current.scrollTop = 0
         }}
         onKeyDown={handleSearchKeyDown}
-        className="h-8"
+        className="h-control-sm py-0"
       />
       {!needle && layout.sections.length > 0 && (
         <div aria-hidden className="flex justify-between">

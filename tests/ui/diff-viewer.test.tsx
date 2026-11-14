@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { DiffViewer } from "@/registry/default/ui/diff-viewer"
 
@@ -145,5 +145,154 @@ describe("DiffViewer", () => {
     )
 
     expect(screen.getByTestId("diff")).toHaveClass("h-96", "border")
+  })
+
+  it("ignores whitespace-only changes when asked", () => {
+    render(
+      <DiffViewer
+        oldValue={"if (a) {\n  run()\n}"}
+        newValue={"if (a) {\n    run()\n}"}
+        ignoreWhitespace
+      />
+    )
+
+    expect(screen.getByRole("table", { name: "Diff" })).toHaveTextContent(
+      "No changes"
+    )
+  })
+
+  it("renders each line through renderLine and keeps the change labels", () => {
+    render(
+      <DiffViewer
+        oldValue="a"
+        newValue="b"
+        mode="unified"
+        renderLine={(line) => <code>{line.text.toUpperCase()}</code>}
+      />
+    )
+
+    expect(rowTexts()).toEqual(["1-Removed: A", "1+Added: B"])
+  })
+
+  it("fills a gutter cell per side for line actions", async () => {
+    const user = userEvent.setup()
+    const comment = vi.fn()
+    render(
+      <DiffViewer
+        oldValue="a"
+        newValue="b"
+        renderGutter={(line) => (
+          <button
+            type="button"
+            aria-label={`Comment on line ${line.oldNumber ?? line.newNumber}`}
+            onClick={() => comment(line.type)}
+          />
+        )}
+      />
+    )
+
+    expect(screen.getAllByRole("columnheader")).toHaveLength(6)
+    // Slot output is clipped to the fixed row height.
+    expect(
+      screen.getAllByRole("button", { name: "Comment on line 1" })[0]
+        .parentElement
+    ).toHaveClass("h-5", "overflow-hidden")
+    await user.tab()
+    await user.tab()
+    await user.keyboard("{Enter}")
+    expect(comment).toHaveBeenCalledWith("add")
+  })
+})
+
+describe("DiffViewer with a large diff", () => {
+  const OLD = Array.from({ length: 5000 }, (_, index) => `line ${index}`)
+  const NEW = OLD.map((line, index) => (index % 10 === 0 ? `${line} x` : line))
+
+  beforeEach(() => {
+    vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(400)
+  })
+  afterEach(() => vi.restoreAllMocks())
+
+  it("renders only the rows near the viewport and states the total", () => {
+    render(
+      <DiffViewer
+        oldValue={OLD.join("\n")}
+        newValue={NEW.join("\n")}
+        mode="unified"
+        contextLines={20}
+      />
+    )
+
+    const table = screen.getByRole("table")
+    const total = Number(table.getAttribute("aria-rowcount"))
+    expect(total).toBe(1 + 5000 + 500)
+    expect(rowTexts().length).toBeLessThan(100)
+    const firstRow = () =>
+      Math.min(
+        ...screen
+          .getAllByRole("row")
+          .slice(1)
+          .map((row) => Number(row.getAttribute("aria-rowindex")))
+      )
+    expect(firstRow()).toBe(2)
+
+    const container = table.parentElement!
+    container.scrollTop = 20 * 3000
+    fireEvent.scroll(container)
+
+    expect(firstRow()).toBeGreaterThan(2900)
+  })
+
+  it("keeps a focused row mounted after it scrolls out of view", () => {
+    render(
+      <DiffViewer
+        oldValue={OLD.join("\n")}
+        newValue={NEW.join("\n")}
+        mode="unified"
+        contextLines={20}
+        renderGutter={(line) => (
+          <button
+            type="button"
+            aria-label={`Comment on line ${line.newNumber ?? line.oldNumber}`}
+          />
+        )}
+      />
+    )
+
+    const button = screen.getAllByRole("button", {
+      name: "Comment on line 3",
+    })[0]
+    button.focus()
+    const container = screen.getByRole("table").parentElement!
+    container.scrollTop = 20 * 3000
+    fireEvent.scroll(container)
+
+    expect(button).toBeInTheDocument()
+    expect(button).toHaveFocus()
+  })
+
+  it("sizes the table for wide characters", () => {
+    render(
+      <DiffViewer
+        oldValue="漢字漢字漢字漢字漢字"
+        newValue="漢字漢字漢字漢字漢"
+        mode="unified"
+      />
+    )
+
+    expect(screen.getByRole("table").style.width).toContain("22ch")
+  })
+
+  it("keeps every collapsed region in the tab order", async () => {
+    const user = userEvent.setup()
+    render(<DiffViewer oldValue={OLD.join("\n")} newValue={NEW.join("\n")} />)
+
+    const toggles = screen.getAllByRole("button", { name: /^Show/ })
+    expect(toggles).toHaveLength(500)
+
+    toggles[400].focus()
+    await user.keyboard("{Enter}")
+    expect(toggles[400]).toHaveFocus()
+    expect(toggles[400]).toHaveAttribute("aria-expanded", "true")
   })
 })

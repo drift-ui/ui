@@ -24,7 +24,7 @@ import {
   reorderItem,
   type SortableKey,
   type SortableOrientation,
-} from "@/registry/default/lib/sortable-list"
+} from "@/registry/default/lib/sortable-list.ts"
 
 const SORTABLE_SPRING = {
   type: "spring",

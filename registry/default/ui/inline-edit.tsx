@@ -85,7 +85,7 @@ function InlineEdit({
             if (!isPending) save()
           }}
           className={cn(
-            "-mx-2 h-8 w-[calc(100%+1rem)] rounded-md border border-input bg-transparent px-2 text-sm shadow-xs outline-none dark:bg-input/30",
+            "-mx-2 h-control-sm w-[calc(100%+1rem)] rounded-control border border-input bg-transparent px-2 text-sm shadow-control outline-none dark:bg-input/30",
             "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
             "aria-busy:opacity-60 aria-invalid:border-destructive aria-invalid:ring-destructive/20"
           )}
@@ -102,7 +102,7 @@ function InlineEdit({
           disabled={disabled}
           onClick={startEditing}
           className={cn(
-            "-mx-2 flex h-8 w-[calc(100%+1rem)] items-center justify-between gap-2 rounded-md px-2 text-left text-sm outline-none",
+            "-mx-2 flex h-control-sm w-[calc(100%+1rem)] items-center justify-between gap-2 rounded-control px-2 text-left text-sm outline-none",
             "hover:bg-accent/60 focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none"
           )}
         >

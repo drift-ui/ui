@@ -17,10 +17,9 @@ export function RatingPreview() {
         step={0.5}
       />
       <Rating
-        aria-label="Average"
+        aria-label="How much you like it"
         defaultValue={4}
         icon={<HeartIcon />}
-        readOnly
         className="text-destructive"
       />
     </div>

@@ -6,7 +6,14 @@ export type DiffLine = {
   oldNumber: number | null
   newNumber: number | null
   segments?: DiffSegment[]
+  // Set on an equal line whose old text differs only in whitespace.
+  oldText?: string
 }
+
+export type DiffOptions = { ignoreWhitespace?: boolean }
+
+// Same rule as git diff -w: whitespace never makes two lines differ.
+const withoutWhitespace = (text: string) => text.replace(/\s+/g, "")
 
 export type DiffPair = { old: DiffLine | null; new: DiffLine | null }
 
@@ -16,99 +23,185 @@ export type DiffBlock =
 
 type Edit = DiffLine["type"]
 
-const MAX_EDIT_DISTANCE = 2000
-
-function backtrack(trace: Int32Array[], oldLength: number, newLength: number) {
-  const edits: Edit[] = []
-  let x = oldLength
-  let y = newLength
-
-  for (let distance = trace.length - 1; distance > 0; distance--) {
-    const furthest = trace[distance]
-    const diagonal = x - y
-    const at = (k: number) => furthest[k + distance + 1]
-    const movedDown =
-      diagonal === -distance ||
-      (diagonal !== distance && at(diagonal - 1) < at(diagonal + 1))
-    const previousDiagonal = movedDown ? diagonal + 1 : diagonal - 1
-    const previousX = at(previousDiagonal)
-    const previousY = previousX - previousDiagonal
-
-    while (x > previousX && y > previousY) {
-      edits.push("equal")
-      x--
-      y--
-    }
-    edits.push(movedDown ? "add" : "remove")
-    x = previousX
-    y = previousY
-  }
-
-  for (; x > 0; x--) edits.push("equal")
-  return edits.reverse()
+function pushEdits(edits: Edit[], edit: Edit, count: number) {
+  for (let index = 0; index < count; index++) edits.push(edit)
 }
 
-function shortestEdits(oldItems: string[], newItems: string[]): Edit[] {
-  const oldLength = oldItems.length
-  const newLength = newItems.length
-  const limit = Math.min(oldLength + newLength, MAX_EDIT_DISTANCE)
-  const center = limit + 1
-  const furthest = new Int32Array(2 * limit + 3)
-  const trace: Int32Array[] = []
+// Myers' middle snake: the point halfway along a shortest edit path between
+// a[aStart..aEnd] and b[bStart..bEnd], found from both ends in linear space.
+function middleSnake(
+  a: Int32Array,
+  aStart: number,
+  aEnd: number,
+  b: Int32Array,
+  bStart: number,
+  bEnd: number
+) {
+  const oldLength = aEnd - aStart
+  const newLength = bEnd - bStart
+  const maxDistance = Math.ceil((oldLength + newLength) / 2)
+  const offset = maxDistance + 1
+  const forward = new Int32Array(2 * offset + 1).fill(-1)
+  const backward = new Int32Array(2 * offset + 1).fill(-1)
+  forward[offset + 1] = 0
+  backward[offset + 1] = 0
+  const delta = oldLength - newLength
+  const checksForward = delta % 2 !== 0
 
-  for (let distance = 0; distance <= limit; distance++) {
-    trace.push(furthest.slice(center - distance - 1, center + distance + 2))
-
-    for (let diagonal = -distance; diagonal <= distance; diagonal += 2) {
-      const movesDown =
-        diagonal === -distance ||
-        (diagonal !== distance &&
-          furthest[center + diagonal - 1] < furthest[center + diagonal + 1])
-      let x = movesDown
-        ? furthest[center + diagonal + 1]
-        : furthest[center + diagonal - 1] + 1
-      let y = x - diagonal
-
-      while (x < oldLength && y < newLength && oldItems[x] === newItems[y]) {
+  for (let distance = 0; distance <= maxDistance; distance++) {
+    for (let k = -distance; k <= distance; k += 2) {
+      let x =
+        k === -distance ||
+        (k !== distance && forward[offset + k - 1] < forward[offset + k + 1])
+          ? forward[offset + k + 1]
+          : forward[offset + k - 1] + 1
+      let y = x - k
+      if (x > oldLength || y > newLength || y < 0) continue
+      while (
+        x < oldLength &&
+        y < newLength &&
+        a[aStart + x] === b[bStart + y]
+      ) {
         x++
         y++
       }
-      furthest[center + diagonal] = x
+      forward[offset + k] = x
+      const reverse = offset + delta - k
+      if (
+        checksForward &&
+        reverse >= 0 &&
+        reverse < backward.length &&
+        backward[reverse] !== -1 &&
+        x >= oldLength - backward[reverse]
+      ) {
+        return { x: aStart + x, y: bStart + y }
+      }
+    }
 
-      if (x >= oldLength && y >= newLength) {
-        return backtrack(trace, oldLength, newLength)
+    for (let k = -distance; k <= distance; k += 2) {
+      let x =
+        k === -distance ||
+        (k !== distance && backward[offset + k - 1] < backward[offset + k + 1])
+          ? backward[offset + k + 1]
+          : backward[offset + k - 1] + 1
+      let y = x - k
+      if (x > oldLength || y > newLength || y < 0) continue
+      while (
+        x < oldLength &&
+        y < newLength &&
+        a[aEnd - x - 1] === b[bEnd - y - 1]
+      ) {
+        x++
+        y++
+      }
+      backward[offset + k] = x
+      const ahead = offset + delta - k
+      if (
+        !checksForward &&
+        ahead >= 0 &&
+        ahead < forward.length &&
+        forward[ahead] !== -1 &&
+        forward[ahead] >= oldLength - x
+      ) {
+        const splitX = forward[ahead]
+        return { x: aStart + splitX, y: bStart + splitX - (delta - k) }
       }
     }
   }
-
-  return [
-    ...oldItems.map((): Edit => "remove"),
-    ...newItems.map((): Edit => "add"),
-  ]
+  return null
 }
 
-export function diffSequences(oldItems: string[], newItems: string[]): Edit[] {
-  const shortest = Math.min(oldItems.length, newItems.length)
-  let prefix = 0
-  while (prefix < shortest && oldItems[prefix] === newItems[prefix]) prefix++
-
+function diffRange(
+  a: Int32Array,
+  aStart: number,
+  aEnd: number,
+  b: Int32Array,
+  bStart: number,
+  bEnd: number,
+  edits: Edit[]
+) {
+  while (aStart < aEnd && bStart < bEnd && a[aStart] === b[bStart]) {
+    edits.push("equal")
+    aStart++
+    bStart++
+  }
   let suffix = 0
   while (
-    suffix < shortest - prefix &&
-    oldItems[oldItems.length - 1 - suffix] ===
-      newItems[newItems.length - 1 - suffix]
+    aEnd - suffix > aStart &&
+    bEnd - suffix > bStart &&
+    a[aEnd - suffix - 1] === b[bEnd - suffix - 1]
   ) {
     suffix++
   }
+  aEnd -= suffix
+  bEnd -= suffix
 
-  return [
-    ...Array.from({ length: prefix }, (): Edit => "equal"),
-    ...shortestEdits(
-      oldItems.slice(prefix, oldItems.length - suffix),
-      newItems.slice(prefix, newItems.length - suffix)
-    ),
-    ...Array.from({ length: suffix }, (): Edit => "equal"),
-  ]
+  const split =
+    aStart < aEnd && bStart < bEnd
+      ? middleSnake(a, aStart, aEnd, b, bStart, bEnd)
+      : null
+  // A split at either corner would recurse forever, so treat it as no split.
+  if (
+    split &&
+    !(split.x === aStart && split.y === bStart) &&
+    !(split.x === aEnd && split.y === bEnd)
+  ) {
+    diffRange(a, aStart, split.x, b, bStart, split.y, edits)
+    diffRange(a, split.x, aEnd, b, split.y, bEnd, edits)
+  } else {
+    pushEdits(edits, "remove", aEnd - aStart)
+    pushEdits(edits, "add", bEnd - bStart)
+  }
+  pushEdits(edits, "equal", suffix)
+}
+
+// A shortest edit script in O((N + M) D) time and linear space, so there is
+// no size limit. Items found on one side only can never match, so they are
+// set aside before the search and put back after, which keeps rewrites fast.
+export function diffSequences(oldItems: string[], newItems: string[]): Edit[] {
+  const ids = new Map<string, number>()
+  const idOf = (item: string) => {
+    let id = ids.get(item)
+    if (id === undefined) ids.set(item, (id = ids.size))
+    return id
+  }
+  const a = Int32Array.from(oldItems, idOf)
+  const b = Int32Array.from(newItems, idOf)
+  const inOld = new Uint8Array(ids.size)
+  const inNew = new Uint8Array(ids.size)
+  for (const id of a) inOld[id] = 1
+  for (const id of b) inNew[id] = 1
+  const keptOld = a.filter((id) => inNew[id])
+  const keptNew = b.filter((id) => inOld[id])
+
+  const searched: Edit[] = []
+  diffRange(keptOld, 0, keptOld.length, keptNew, 0, keptNew.length, searched)
+
+  const edits: Edit[] = []
+  let oldIndex = 0
+  let newIndex = 0
+  const skipOld = () => {
+    while (oldIndex < a.length && !inNew[a[oldIndex]]) {
+      edits.push("remove")
+      oldIndex++
+    }
+  }
+  const skipNew = () => {
+    while (newIndex < b.length && !inOld[b[newIndex]]) {
+      edits.push("add")
+      newIndex++
+    }
+  }
+  for (const edit of searched) {
+    skipOld()
+    skipNew()
+    edits.push(edit)
+    if (edit !== "add") oldIndex++
+    if (edit !== "remove") newIndex++
+  }
+  skipOld()
+  skipNew()
+  return edits
 }
 
 function tokenize(text: string) {
@@ -125,7 +218,11 @@ function appendSegment(
   else segments.push({ text, changed })
 }
 
-export function diffWords(oldText: string, newText: string) {
+export function diffWords(
+  oldText: string,
+  newText: string,
+  { ignoreWhitespace = false }: DiffOptions = {}
+) {
   const oldTokens = tokenize(oldText)
   const newTokens = tokenize(newText)
   const oldSegments: DiffSegment[] = []
@@ -134,15 +231,24 @@ export function diffWords(oldText: string, newText: string) {
   let newIndex = 0
   let hasSharedWord = false
 
-  for (const edit of diffSequences(oldTokens, newTokens)) {
+  const changed = (token: string) => !ignoreWhitespace || token.trim() !== ""
+  const keyOf = (token: string) =>
+    ignoreWhitespace && token.trim() === "" ? " " : token
+
+  for (const edit of diffSequences(
+    oldTokens.map(keyOf),
+    newTokens.map(keyOf)
+  )) {
     if (edit === "equal") {
       hasSharedWord ||= oldTokens[oldIndex].trim() !== ""
       appendSegment(oldSegments, oldTokens[oldIndex++], false)
       appendSegment(newSegments, newTokens[newIndex++], false)
     } else if (edit === "remove") {
-      appendSegment(oldSegments, oldTokens[oldIndex++], true)
+      const token = oldTokens[oldIndex++]
+      appendSegment(oldSegments, token, changed(token))
     } else {
-      appendSegment(newSegments, newTokens[newIndex++], true)
+      const token = newTokens[newIndex++]
+      appendSegment(newSegments, token, changed(token))
     }
   }
 
@@ -153,9 +259,15 @@ function splitLines(text: string) {
   return text === "" ? [] : text.split(/\r?\n/)
 }
 
-export function diffLines(oldText: string, newText: string) {
+export function diffLines(
+  oldText: string,
+  newText: string,
+  options: DiffOptions = {}
+) {
   const oldLines = splitLines(oldText)
   const newLines = splitLines(newText)
+  const keys = (lines: string[]) =>
+    options.ignoreWhitespace ? lines.map(withoutWhitespace) : lines
   const lines: DiffLine[] = []
   let removed: DiffLine[] = []
   let added: DiffLine[] = []
@@ -165,7 +277,7 @@ export function diffLines(oldText: string, newText: string) {
   function flushChanges() {
     removed.forEach((line, index) => {
       const partner = added[index]
-      const words = partner && diffWords(line.text, partner.text)
+      const words = partner && diffWords(line.text, partner.text, options)
       if (!words) return
       line.segments = words.old
       partner.segments = words.new
@@ -175,7 +287,7 @@ export function diffLines(oldText: string, newText: string) {
     added = []
   }
 
-  for (const edit of diffSequences(oldLines, newLines)) {
+  for (const edit of diffSequences(keys(oldLines), keys(newLines))) {
     if (edit === "remove") {
       removed.push({
         type: "remove",
@@ -192,12 +304,15 @@ export function diffLines(oldText: string, newText: string) {
       })
     } else {
       flushChanges()
-      lines.push({
+      const old = oldLines[oldIndex++]
+      const line: DiffLine = {
         type: "equal",
-        text: oldLines[oldIndex++],
+        text: newLines[newIndex++],
         oldNumber: oldIndex,
-        newNumber: ++newIndex,
-      })
+        newNumber: newIndex,
+      }
+      if (old !== line.text) line.oldText = old
+      lines.push(line)
     }
   }
   flushChanges()
@@ -210,8 +325,13 @@ export function pairLines(lines: DiffLine[]) {
   let index = 0
 
   while (index < lines.length) {
-    if (lines[index].type === "equal") {
-      pairs.push({ old: lines[index], new: lines[index] })
+    const line = lines[index]
+    if (line.type === "equal") {
+      pairs.push({
+        old:
+          line.oldText === undefined ? line : { ...line, text: line.oldText },
+        new: line,
+      })
       index++
       continue
     }

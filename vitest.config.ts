@@ -15,6 +15,10 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
     css: false,
+    coverage: {
+      include: ["registry/**", "lib/**", "components/**"],
+      reporter: ["text-summary", "lcov"],
+    },
     projects: [
       {
         extends: true,

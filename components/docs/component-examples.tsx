@@ -1,10 +1,16 @@
 import { PreviewTabs } from "@/components/docs/preview-tabs"
 import type { LoadedExample } from "@/lib/component-docs"
 
-export function ComponentExamples({ examples }: { examples: LoadedExample[] }) {
+export function ComponentExamples({
+  src,
+  examples,
+}: {
+  src: string
+  examples: LoadedExample[]
+}) {
   return (
     <div className="flex flex-col gap-14">
-      {examples.map(({ id, title, description, Preview, usage }) => (
+      {examples.map(({ id, title, description, Preview, code }) => (
         <div key={id} id={id} className="flex scroll-mt-32 flex-col gap-3">
           <h3 className="text-lg font-medium tracking-tight">
             <a
@@ -17,7 +23,11 @@ export function ComponentExamples({ examples }: { examples: LoadedExample[] }) {
           <p className="max-w-[68ch] text-sm leading-relaxed text-muted-foreground">
             {description}
           </p>
-          <PreviewTabs compact preview={<Preview />} usage={usage} />
+          <PreviewTabs
+            compact
+            preview={<Preview />}
+            code={{ src, title: code }}
+          />
         </div>
       ))}
     </div>

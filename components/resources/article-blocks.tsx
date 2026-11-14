@@ -1,16 +1,10 @@
 import { InfoIcon } from "lucide-react"
 
 import { CodeFrame } from "@/components/docs/code-frame"
-import { highlight } from "@/lib/highlight"
+import { highlightFile } from "@/lib/highlight"
 
 export async function Commands({ code }: { code: string }) {
-  return (
-    <CodeFrame
-      title="Terminal"
-      code={code}
-      html={await highlight(code, "bash")}
-    />
-  )
+  return <CodeFrame {...await highlightFile("Terminal", code, "bash")} />
 }
 
 export async function CodeSample({
@@ -20,7 +14,7 @@ export async function CodeSample({
   title: string
   code: string
 }) {
-  return <CodeFrame title={title} code={code} html={await highlight(code)} />
+  return <CodeFrame {...await highlightFile(title, code)} />
 }
 
 export function StepList({ children }: { children: React.ReactNode }) {

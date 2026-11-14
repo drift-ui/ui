@@ -7,6 +7,12 @@ const HOME_END = ["Home", "End"]
 const PAGE = ["PageUp", "PageDown"]
 
 export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
+  "activity-heatmap": [
+    { keys: ARROWS, action: "Move through the calendar grid" },
+    { keys: HOME_END, action: "First or last week in the row" },
+    { keys: ["Enter", "Space"], action: "Select the focused day" },
+    { keys: ["Escape"], action: "Dismiss the hover or focus tooltip" },
+  ],
   "bulk-action-bar": [
     { keys: LEFT_RIGHT, action: "Move between actions" },
     { keys: ["Escape"], action: "Clear the selection" },
@@ -20,6 +26,11 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ["Mod+Enter"], action: "Post, or save an edit" },
     { keys: ["Escape"], action: "Cancel a reply, edit or delete" },
   ],
+  "csv-importer": [
+    { keys: ["Enter", "Space"], action: "Upload file or advance step" },
+    { keys: ["Tab"], action: "Move between mapping selectors and table cells" },
+    { keys: ["Escape"], action: "Cancel or reset current step" },
+  ],
   "duration-input": [
     { keys: UP_DOWN, action: "Step the focused unit" },
     { keys: PAGE, action: "Step by ten" },
@@ -32,6 +43,12 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: HOME_END, action: "First or last emoji in the row" },
     { keys: PAGE, action: "Previous or next category" },
     { keys: ["Enter", "Space"], action: "Pick the focused emoji" },
+  ],
+  "histogram-range": [
+    { keys: LEFT_RIGHT, action: "Adjust the focused thumb by step" },
+    { keys: UP_DOWN, action: "Adjust the focused thumb by step" },
+    { keys: PAGE, action: "Adjust the focused thumb by larger step" },
+    { keys: HOME_END, action: "Set the focused thumb to min or max" },
   ],
   "image-cropper": [
     { keys: ARROWS, action: "Pan, hold Shift for larger steps" },
@@ -132,9 +149,26 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: UP_DOWN, action: "Move through zones" },
     { keys: ["Enter"], action: "Pick the zone" },
   ],
+  toast: [
+    { keys: ["Alt+T"], action: "Focus the toasts (Radix)" },
+    { keys: ["F6"], action: "Focus the toasts (Base UI)" },
+    { keys: ["Mod+Z"], action: "Undo the newest undo toast that sets it" },
+    { keys: ["Tab"], action: "Move to Undo and other actions" },
+    {
+      keys: ["Escape"],
+      action: "Collapse the stack (Radix) or close the toast (Base UI)",
+    },
+  ],
   tour: [
     { keys: LEFT_RIGHT, action: "Previous or next step" },
     { keys: ["Escape"], action: "End the tour" },
+  ],
+  "trace-waterfall": [
+    { keys: UP_DOWN, action: "Move between spans" },
+    { keys: ["ArrowRight"], action: "Expand, then enter children" },
+    { keys: ["ArrowLeft"], action: "Collapse, then go to the parent" },
+    { keys: HOME_END, action: "First or last span" },
+    { keys: ["Enter", "Space"], action: "Select or deselect the span" },
   ],
   "transfer-list": [
     { keys: UP_DOWN, action: "Move through items" },
@@ -152,6 +186,15 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: HOME_END, action: "First or last row" },
     { keys: ["Enter"], action: "Select" },
     { keys: ["Space"], action: "Check, in multiple mode" },
+  ],
+  "unit-input": [
+    { keys: UP_DOWN, action: "Step the number in the current unit" },
+    {
+      keys: ["Shift+ArrowUp", "Shift+ArrowDown", ...PAGE],
+      action: "Step by ten",
+    },
+    { keys: HOME_END, action: "Jump to min or max" },
+    { keys: ["Enter"], action: "Apply typed text such as 2gb" },
   ],
   "uptime-bar": [
     { keys: LEFT_RIGHT, action: "Move between segments" },

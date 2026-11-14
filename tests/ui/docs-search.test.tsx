@@ -41,8 +41,7 @@ function pressShortcut() {
 async function search(text: string) {
   const user = userEvent.setup()
   render(<DocsSearch groups={GROUPS} />)
-  pressShortcut()
-  await user.type(await screen.findByRole("combobox"), text)
+  await user.type(screen.getByRole("combobox"), text)
 }
 
 afterEach(() => {
@@ -52,12 +51,16 @@ afterEach(() => {
 })
 
 describe("DocsSearch", () => {
-  it("toggles with the keyboard shortcut", () => {
+  it("toggles focus with the keyboard shortcut", () => {
     render(<DocsSearch groups={GROUPS} />)
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    const input = screen.getByRole("combobox")
+    expect(input).not.toHaveFocus()
 
     pressShortcut()
-    expect(screen.getByRole("dialog")).toBeInTheDocument()
+    expect(input).toHaveFocus()
+
+    pressShortcut()
+    expect(input).not.toHaveFocus()
   })
 
   it("ignores a shortcut another control already handled", () => {
@@ -72,24 +75,22 @@ describe("DocsSearch", () => {
     event.preventDefault()
     window.dispatchEvent(event)
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-  })
-
-  it("opens from the header button", async () => {
-    const user = userEvent.setup()
-    render(<DocsSearch groups={GROUPS} />)
-
-    await user.click(screen.getByRole("button", { name: "Search docs" }))
-    expect(screen.getByRole("dialog")).toBeInTheDocument()
+    expect(screen.getByRole("combobox")).not.toHaveFocus()
   })
 
   it("matches descriptions and opens the component with Enter", async () => {
     await search("upload{Enter}")
 
     expect(push).toHaveBeenCalledWith("/components/file-dropzone")
-    await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-    )
+    await waitFor(() => expect(screen.getByRole("combobox")).toHaveValue(""))
+    expect(screen.getByRole("combobox")).not.toHaveFocus()
+  })
+
+  it("clears and leaves the input on Escape", async () => {
+    await search("rat{Escape}")
+
+    expect(screen.getByRole("combobox")).toHaveValue("")
+    expect(screen.getByRole("combobox")).not.toHaveFocus()
   })
 
   it("hides entries that do not match", async () => {

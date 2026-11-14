@@ -12,7 +12,7 @@ export function CopyButton({
   label = "Copy code",
   className,
 }: {
-  value: string
+  value: string | (() => string)
   label?: string
   className?: string
 }) {
@@ -21,7 +21,7 @@ export function CopyButton({
   return (
     <button
       type="button"
-      onClick={() => copy(value)}
+      onClick={() => copy(typeof value === "function" ? value() : value)}
       aria-label={label}
       className={cn(
         "flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-[color,background-color,scale] outline-none hover:bg-accent hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 active:scale-90",

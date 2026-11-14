@@ -4,7 +4,9 @@ import { AccessibilityTreeFix } from "@/components/resources/accessibility-tree-
 import { CodingAgentGuide } from "@/components/resources/coding-agent-guide"
 import { CollegeGuide } from "@/components/resources/college-guide"
 import { FirstPrReview } from "@/components/resources/first-pr-review"
+import { OneComponentSixteenFiles } from "@/components/resources/one-component-sixteen-files"
 import { OpenSourceGuide } from "@/components/resources/open-source-guide"
+import { RadixAndBaseUi } from "@/components/resources/radix-and-base-ui"
 import { MAINTAINERS, type Maintainer } from "@/lib/contributors"
 
 export const RESOURCE_TAGS = [
@@ -46,6 +48,70 @@ export type Resource = {
 const [GAUTAM_ANAND] = MAINTAINERS
 
 export const RESOURCES: Resource[] = [
+  {
+    slug: "radix-and-base-ui",
+    title: "One registry for Radix and Base UI",
+    description:
+      "The same shadcn add command installs a Radix or a Base UI build of every drift-ui component. How the registry picks one, and how we test both.",
+    publishedAt: "2026-11-12",
+    readMinutes: 5,
+    author: GAUTAM_ANAND,
+    tags: ["Contributing", "drift-ui"],
+    tldr: [
+      "The shadcn CLI fills your project’s style into the registry URL, and any base- style gets the Base UI build.",
+      "Only 13 files have a Base UI copy. The Base UI registry is generated from registry.json, so there’s one manifest to edit.",
+      "drift’s own props stay the same on both libraries, so StepperNext still takes asChild on Base UI.",
+      "The component tests run once per library, and a test fails if the Base UI build mentions radix-ui.",
+    ],
+    image: {
+      src: "/images/resources/radix-and-base-ui.png",
+      alt: "One shadcn add command resolving to the Base UI build for a base-nova project and the Radix build for radix-nova and new-york, with a blue card labelled Same command, beside the headline One command. Two libraries.",
+    },
+    sections: [],
+    Content: RadixAndBaseUi,
+    outline: [
+      { id: "one-command", label: "One command, two builds" },
+      { id: "which-files", label: "Which files get a copy" },
+      { id: "derived", label: "A generated registry" },
+      { id: "shared-files", label: "Sharing a file" },
+      { id: "one-api", label: "One API on both" },
+      { id: "testing", label: "Testing both" },
+      { id: "docs-pages", label: "Two pages per component" },
+      { id: "gaps", label: "What’s still different" },
+      { id: "your-pr", label: "If your component imports Radix" },
+    ],
+  },
+  {
+    slug: "what-goes-into-one-component",
+    title: "What goes into one drift-ui component",
+    description:
+      "The trace waterfall installs as two files. Its pull request changed 16. A walk through each one, and the six bugs review caught before merge.",
+    publishedAt: "2026-11-09",
+    readMinutes: 5,
+    author: GAUTAM_ANAND,
+    tags: ["Contributing", "drift-ui"],
+    tldr: [
+      "Users install two files. The pull request also touched the registry manifest, docs, agent docs, the keyboard map, tests and the README.",
+      "Pure logic in a lib file meant 15 of the 22 tests needed no rendering.",
+      "Review found six bugs, including a two-span parent loop that emptied the whole tree.",
+      "Insert into every list alphabetically, because a test fails if you append.",
+    ],
+    image: {
+      src: "/images/resources/what-goes-into-one-component.png",
+      alt: "A pull request listing trace waterfall files with their added lines, and a blue card labelled 16 files changed, beside the headline Two files to install. Sixteen to ship.",
+    },
+    sections: [],
+    Content: OneComponentSixteenFiles,
+    outline: [
+      { id: "the-pr", label: "The pull request" },
+      { id: "the-files", label: "Where the 16 files go" },
+      { id: "split-logic", label: "Why the logic is separate" },
+      { id: "registry-entry", label: "The registry entry" },
+      { id: "keyboard", label: "The keyboard map" },
+      { id: "review", label: "What review caught" },
+      { id: "your-pr", label: "If you’re adding one" },
+    ],
+  },
   {
     slug: "fixing-our-accessibility-tree",
     title: "How we fixed the accessibility tree on drift-ui",

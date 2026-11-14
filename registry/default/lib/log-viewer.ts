@@ -139,7 +139,7 @@ export function parseAnsi(rawText: string): AnsiSegment[] {
   // 1. Strip OSC sequences, non-SGR CSI sequences (including private modes like ?25l), and standard 2-char escapes
   const text = rawText
     .replace(/\x1b\].*?(?:\x07|\x1b\\)/g, "")
-    .replace(/\x1b\[[0-9;?><=]*[ -/]*[@-ln-~]/g, "")
+    .replace(/\x1b\[[0-9;?><=]*[ -/]*[@A-Z[\\\]^_`a-ln-z{|}~]/g, "")
     .replace(/\x1b[@-Z\\-_]/g, "")
 
   if (!text.includes("\x1b[")) {

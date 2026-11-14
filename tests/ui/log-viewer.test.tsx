@@ -249,6 +249,26 @@ describe("LogViewer", () => {
     expect(onFollowChange).toHaveBeenCalledWith(false)
   })
 
+  it("toggles line wrap", async () => {
+    const user = userEvent.setup()
+    const onWrapChange = vi.fn()
+    render(<LogViewer lines={TEST_LOGS} onWrapChange={onWrapChange} />)
+
+    const wrapButton = screen.getByRole("button", { name: "Wrap" })
+    const row = screen
+      .getByText("Server initialized on port 3000")
+      .closest("[data-slot='virtual-list-row'] > div") as HTMLElement
+    expect(wrapButton).toHaveAttribute("aria-pressed", "false")
+    expect(row).toHaveClass("whitespace-pre")
+
+    await user.click(wrapButton)
+
+    expect(onWrapChange).toHaveBeenCalledWith(true)
+    expect(wrapButton).toHaveAttribute("aria-pressed", "true")
+    expect(row).toHaveClass("whitespace-pre-wrap")
+    expect(row.style.minHeight).toBe("24px")
+  })
+
   it("supports controlled search and level", async () => {
     const user = userEvent.setup()
     const onSearchChange = vi.fn()

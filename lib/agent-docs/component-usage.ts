@@ -8,6 +8,26 @@ const SAME_AS_SHADCN =
   "Identical API to the shadcn/ui component of the same name. Skip it if the project already has one."
 
 export const COMPONENT_USAGE: Record<string, ComponentUsage> = {
+  "activity-heatmap": {
+    notes:
+      "ActivityHeatmap displays activity and contributions over a year on a grid of weeks by weekdays. Intensity levels 0 to 4 are mapped from counts using theme tokens (bg-muted/40 through bg-primary). Follows the WAI-ARIA grid pattern with a single tab stop and 2D arrow key navigation across cells. Includes accessible labels, customizable week start day, optional summary header, floating tooltips on hover and focus (with custom renderTooltip support), and a legend.",
+    example: `import { ActivityHeatmap } from "@/components/ui/activity-heatmap"
+
+const DATA = [
+  { date: "2026-10-30", count: 3 },
+  { date: "2026-10-31", count: 7 },
+]
+
+export function ContributionGraph() {
+  return (
+    <ActivityHeatmap
+      data={DATA}
+      weekStartsOn={1}
+      onDaySelect={(day) => console.log(day.date, day.count)}
+    />
+  )
+}`,
+  },
   "address-input": {
     notes:
       'AddressInput renders a country select and the address fields for that country, holding a flat { country, line1, line2, city, region, postalCode } object through value/defaultValue and onValueChange. defaultValue may be partial. defaultCountry (default "US") is an ISO 3166-1 alpha-2 code. Each country has a layout with its field order, required fields, labels and postal code pattern: built in for AU, CA, DE, FR, GB, IN, JP and US, so Japan starts with the postal code, Germany and France put it before the city, and the UK and France have no region field. Every other country gets a generic layout (line 1, line 2, city, optional region and postal code) unless you pass layouts, a record of country code to { rows, required, labels?, postalCode?: { pattern, format } }. Switching country keeps the fields both layouts share and clears the rest. Required fields get the required attribute and optional ones show "(optional)". A postal code that does not match shows "ZIP code must be 5 digits, like 94105." after the field loses focus, sets aria-invalid and aria-describedby, and blocks form submit through setCustomValidity. Every field has its autocomplete token (country, address-line1, address-line2, address-level2, address-level1, postal-code); addressType="shipping" or "billing" prefixes them. name submits each field as name.country, name.line1 and so on. countries limits and orders the list, and locale names the countries. Other props go to the role="group" wrapper, so pass aria-label or aria-labelledby. The country select is native so browser autofill can fill it. Address lookup from a provider is not included.',
@@ -149,6 +169,56 @@ export function ReviewThread() {
   )
 }`,
   },
+  "cron-input": {
+    notes:
+      "A standard five-field cron expression input (minute, hour, day-of-month, month, day-of-week) for scheduling jobs. Validates standard cron grammar with wildcards (*), comma lists, ranges (-), and steps (/), explicitly excluding non-standard extensions. When both day-of-month and day-of-week are set, cron matches either one (POSIX standard). Displays a plain-English schedule readout (e.g., 'At 09:00, Monday through Friday') and lists the next 5 upcoming run times deterministically. Invalid input sets aria-invalid and shows an accessible role='alert' error; field-specific validation errors also name the offending field. Pure logic helpers are exported from @/lib/cron-input.",
+    example: `"use client"
+
+import { useState } from "react"
+import { CronInput } from "@/components/ui/cron-input"
+
+export function BackupSchedule() {
+  const [schedule, setSchedule] = useState("0 9 * * 1-5")
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor="cron" className="text-sm font-medium">Backup schedule</label>
+      <CronInput
+        value={schedule}
+        onValueChange={setSchedule}
+        inputProps={{ id: "cron" }}
+      />
+    </div>
+  )
+}`,
+  },
+  "csv-importer": {
+    notes:
+      "Multi-step CSV import workflow component. Composes file-dropzone for upload, stepper for the 4-step wizard, and virtual-list for reviewing and fixing invalid rows. Parses CSV in the browser with support for quotes, newlines, escaped quotes, CRLF, and UTF-8 BOM. Auto-suggests column mappings case-insensitively, and validates rows inline with custom rules. Props: fields: CsvField[], onComplete: (rows: Record<string, any>[]) => void, onCancel?, maxRows? (default 10000), maxFileSize? (default 10MB), sampleRowsCount? (default 3), autoMap? (default true), step/defaultStep/onStepChange, defaultFile?.",
+    example: `"use client"
+
+import { CsvImporter } from "@/components/ui/csv-importer"
+
+export function CustomerImport() {
+  return (
+    <CsvImporter
+      fields={[
+        { id: "name", label: "Full Name", required: true },
+        {
+          id: "email",
+          label: "Email",
+          required: true,
+          validate: (val) => (val.includes("@") ? true : "Invalid email address"),
+        },
+        { id: "role", label: "Role" },
+      ]}
+      onComplete={(rows) => {
+        console.log("Imported clean rows:", rows)
+      }}
+    />
+  )
+}`,
+  },
   "date-time-range": {
     notes:
       'DateTimeRangePicker with value/defaultValue of { from?: Date, to?: Date } and onValueChange. Start and end times default to 09:00 and 17:00 and are edited with two TimeFields in the popover. locale formats the trigger and picks a 12 or 24 hour clock. presets takes { label, value } items; build them once (useState or useMemo) so the pressed preset still matches after a re-render. min and max disable days outside the bounds and clamp times on the edge days. Editing a day or time never puts the end before the start, and a preset with its end before its start is disabled. A "Type a range" field at the top of the popover reads English text: "last 7 days", "past 2 hours", "next 3 days", today, yesterday, tomorrow, weekdays such as "next fri 3pm", "3 days ago", and "A to B" ranges such as "yesterday to now" or "mon 9am to fri 5pm". It previews the parsed range as you type and applies it on Enter. A range that overlaps min or max is clamped to them; text it can\'t read, a range entirely outside min and max, or one ending before it starts leaves the range unchanged and shows a message. A day alone covers the whole day, a moment alone sets only the start. "next fri" is the first Friday after today, "last fri" the first before, and a bare "fri" is today or the coming one. Pass parse(text, now) returning { from, to } or null to support other phrasings or languages, for example with chrono-node. The local time zone is shown next to each time; the picker does not convert zones. Other props go to the trigger button, so pass id for a Label. Installs the shadcn calendar, input and popover and drift\'s time-field.',
@@ -236,7 +306,7 @@ export function ProfileDialog() {
   },
   "diff-viewer": {
     notes:
-      "Compares two strings line by line with no dependencies. mode is split (default) or unified, and the component holds no mode state, so a mode switch belongs to the parent. Replaced lines that share a word get word-level highlights in ins and del elements. Runs of unchanged lines beyond contextLines (default 3) collapse behind a Show N unchanged lines button that stays in place as Hide once open, so keyboard focus stays on it. Added lines use the chart-2 token and removed lines use destructive; every changed line also has a + or - sign and screen reader text, so color is not the only signal. Past 2000 edits the middle of the text is shown as one full replacement, which keeps two unrelated large inputs from using unbounded memory. Pass aria-label to name the table.",
+      "Compares two strings line by line with no dependencies. mode is split (default) or unified, and the component holds no mode state, so a mode switch belongs to the parent. Replaced lines that share a word get word-level highlights in ins and del elements. Runs of unchanged lines beyond contextLines (default 3) collapse behind a Show N unchanged lines button that stays in place as Hide once open, so keyboard focus stays on it. Added lines use the chart-2 token and removed lines use destructive; every changed line also has a + or - sign and screen reader text, so color is not the only signal. ignoreWhitespace treats lines that differ only in whitespace as unchanged (git diff -w); word highlights skip whitespace, and in split mode each side keeps its own text. renderLine(line) replaces the line text, for syntax highlighting with Shiki or Prism brought by the app, and line.segments still holds the word changes. renderGutter(line) adds a cell per line, per side in split mode, for actions such as a comment button. Rows never wrap: long lines scroll sideways, so every row has a fixed 20px height, and renderLine and renderGutter output is clipped to it (keep gutter buttons at size-5 or smaller). Wide characters such as CJK count as two columns when sizing the table. A row that holds focus stays rendered while scrolled out of view. Past 300 rows only the rows near the viewport render, the root gets max-h-[32rem] (override with className), and the table sets aria-rowcount and aria-rowindex. Collapsed-region buttons always render so Tab reaches all of them. The diff is an exact shortest edit script with no size limit: two 10,000-line files with 1,000 changed lines diff in about 50 ms and a full rewrite in about 150 ms on a laptop. Pass aria-label to name the table.",
     example: `import { DiffViewer } from "@/components/ui/diff-viewer"
 
 export function RevisionDiff({ before, after }: { before: string; after: string }) {
@@ -341,6 +411,35 @@ export function IssueFilters({ issues }: { issues: { status: string; title: stri
   )
 }`,
   },
+  "histogram-range": {
+    notes:
+      "A dual-thumb range slider sitting below a distribution histogram bar chart, designed for filtering datasets where distribution matters such as price, file size, or duration. Values inside the active range default to bg-primary (customizable via barColor, e.g., bg-chart-1) while values outside default to bg-muted-foreground/20 (customizable via mutedBarColor). Bucketing logic in @/lib/histogram-range ensures values equal to max land strictly in the last bucket. Accessible thumb labeling (minThumbLabel, maxThumbLabel), aria-valuetext generated via formatValue, and decorative bars (aria-hidden) with screen-reader result announcements via an aria-live region. Supports controlled and uncontrolled states via use-controllable-state.",
+    example: `"use client"
+
+import { useState } from "react"
+import { HistogramRange } from "@/components/ui/histogram-range"
+
+const prices = [25, 45, 60, 75, 80, 110, 120, 150, 180, 220, 260, 310, 450]
+
+export function PriceFilter() {
+  const [range, setRange] = useState<[number, number]>([50, 200])
+
+  return (
+    <HistogramRange
+      data={prices}
+      min={0}
+      max={500}
+      value={range}
+      onValueChange={setRange}
+      formatValue={(n) => \`$\${n}\`}
+      minThumbLabel="Minimum price"
+      maxThumbLabel="Maximum price"
+      showValues
+      showCount
+    />
+  )
+}`,
+  },
   "image-cropper": {
     notes:
       "Interactive image crop component for avatars and covers. Supports pointer drag-to-pan, 2-finger pinch zoom, mouse wheel / slider zoom, 90-degree step rotation, rule-of-thirds grid, and fixed aspect ratios (1 for square, 16/9 for banner, 4/3 for photo). cropShape can be 'rect' or 'round'. Emits a cropped Blob and pixel crop coordinates through onCropComplete(blob, pixelCrop) when user clicks Apply or presses Enter. Shows a pulsing stage while the image loads and a message if it fails, keeps Apply disabled until it has loaded, and reports load or canvas errors via onCropError(error). The Reset button restores defaultZoom, defaultRotation and defaultCrop. Wheel and trackpad pinch zoom scale with the scroll delta, and the wheel falls through to page scroll at the zoom limits. Full keyboard support with Arrow keys to pan (Shift for 10x larger steps), + / - or [ / ] to zoom, R to rotate, and Enter to apply crop.",
@@ -406,6 +505,28 @@ export function WebhookPayload({ payload }: { payload: unknown }) {
   )
 }`,
   },
+  "key-value-editor": {
+    notes:
+      "Rows of key and value for env vars, HTTP headers, query params or metadata. Each row is { id, key, value }; value/defaultValue/onValueChange hold the array. Enter in the last row adds a row and focuses its key, Enter elsewhere moves to the next row's key. Pasting text that contains KEY=value into a key field splits it into rows: comments, blank lines, an export prefix, quoted values and = inside a value are handled, multi-line values are not. Keys used more than once (after trimming) are marked aria-invalid with a Duplicate key message. secretValues masks every value with password-input, each with its own reveal button. Inputs are labelled Key 1, Value 1 and Remove row 1; rename with keyLabel and valueLabel. Pass aria-label to name the group.",
+    example: `import { KeyValueEditor, type KeyValueRow } from "@/components/ui/key-value-editor"
+
+export function EnvVars({
+  rows,
+  onRowsChange,
+}: {
+  rows: KeyValueRow[]
+  onRowsChange: (rows: KeyValueRow[]) => void
+}) {
+  return (
+    <KeyValueEditor
+      aria-label="Environment variables"
+      value={rows}
+      onValueChange={onRowsChange}
+      secretValues
+    />
+  )
+}`,
+  },
   label: {
     notes: SAME_AS_SHADCN,
     example: `import { Input } from "@/components/ui/input"
@@ -422,7 +543,7 @@ export function NameField() {
   },
   "log-viewer": {
     notes:
-      "High-throughput virtualized log viewer with ANSI color parsing, search, level filtering, and tail auto-scroll. lines is an array of LogLine ({ id, message, timestamp?, level?, lineNumber? }). parseAnsi converts ANSI escape sequences into styled text spans safely without dangerouslySetInnerHTML. Follow mode auto-scrolls to new lines when at the bottom; scrolling up automatically pauses follow, and clicking the floating Jump to latest button resumes it. Search filters across stripped log messages, levels, and formatted timestamps. Level filter buttons isolate lines by log severity (e.g. error, warn, info, debug) while preserving original line numbers in the gutter. VirtualList ensures smooth 60fps rendering even with tens of thousands of lines.",
+      "High-throughput virtualized log viewer with ANSI color parsing, search, level filtering, and tail auto-scroll. lines is an array of LogLine ({ id, message, timestamp?, level?, lineNumber? }). parseAnsi converts ANSI escape sequences into styled text spans safely without dangerouslySetInnerHTML. Follow mode auto-scrolls to new lines when at the bottom; scrolling up automatically pauses follow, and clicking the floating Jump to latest button resumes it. Search filters across stripped log messages, levels, and formatted timestamps. Level filter buttons isolate lines by log severity (e.g. error, warn, info, debug) while preserving original line numbers in the gutter. Long messages scroll sideways in one shared viewport with the line numbers pinned; the Wrap toggle (wrap/defaultWrap/onWrapChange) wraps them onto extra lines instead. VirtualList ensures smooth 60fps rendering even with tens of thousands of lines.",
     example: `"use client"
 
 import { LogViewer, type LogLine } from "@/components/ui/log-viewer"
@@ -467,13 +588,19 @@ export function PaymentFields() {
   },
   "mention-textarea": {
     notes:
-      "Textarea that opens a suggestion list when the caret follows a trigger character. triggers maps a character to options, for example { '@': people, '#': channels }, each option { value, label, description? }. Selecting inserts trigger + value. Value is plain text with value/defaultValue/onValueChange.",
+      "Textarea that opens a suggestion list when the caret follows a trigger character. triggers maps a character to a list of options, for example { '@': people, '#': channels }, each { value, label, description? }, or to a search function (query, { signal }) => Promise<MentionOption[]>. A search runs searchDelay ms (default 150) after typing stops; each new query aborts the previous request, so stale responses never show, and the list shows loading, no results and error states in a polite status region. Selecting inserts trigger + value + space. Inserted mentions are atomic: Backspace right after one or Delete right before one removes it whole, the caret jumps over it, and a selection grows to cover it. Mentions are recognised from the text, so a mention is any trigger + value from a static list or picked from a search in this session, at the start or after whitespace, and followed by whitespace, the end, or closing punctuation (\"(@noor)\" stays plain text). Enter and Tab are left to the IME while a Japanese, Chinese or Korean composition is active. Value is plain text with value/defaultValue/onValueChange. Each trigger key is one character. Finding mentions measured under 1 ms per change at 200,000 characters and 10,000 known mentions.",
     example: `import { MentionTextarea } from "@/components/ui/mention-textarea"
 
 const people = [{ value: "noor", label: "Noor Haddad" }, { value: "tomasz", label: "Tomasz Wierzba" }]
 
+async function searchChannels(query: string, { signal }: { signal: AbortSignal }) {
+  const response = await fetch("/api/channels?q=" + encodeURIComponent(query), { signal })
+  if (!response.ok) throw new Error(response.statusText)
+  return response.json()
+}
+
 export function CommentBox() {
-  return <MentionTextarea aria-label="Comment" placeholder="Write a comment" triggers={{ "@": people }} />
+  return <MentionTextarea aria-label="Comment" placeholder="Write a comment" triggers={{ "@": people, "#": searchChannels }} />
 }`,
   },
   "multi-select": {
@@ -693,6 +820,24 @@ export function ExportPopover() {
       <PopoverContent>Pixels, applied to every frame.</PopoverContent>
     </Popover>
   )
+}`,
+  },
+  "query-input": {
+    notes:
+      'Single-line search that reads key:value terms into Filter objects, the same type filter-builder uses. fields: FilterField[] ({ id, label, type: text | select | number | date, options? }); keys match field ids case-insensitively. Syntax: key:value is is, -key:value is is-not, key:a,b on a text or select field is is-any-of (is-none-of with -; a trailing comma, as in key:a, keeps a one-item list), key:*text* on a text field is contains, key:>7 and key:<7 compare numbers (gt, lt; key:7 is eq; >= and <= are not supported), dates take >, < and from..to (a bare date is a one-day between). Quote values with spaces: label:"needs review". A term with an unknown key, or a negated number or date, stays in the free text; a trailing key: gives a filter with an empty value, which matchesFilter treats as matching everything. onFiltersChange(filters, text) fires on every edit; value/defaultValue/onValueChange hold the raw string. Typing at the end of a term suggests keys, then select options, in a combobox: ArrowUp and ArrowDown move (ArrowDown on an empty term opens the key list, up to eight keys), Enter or Tab inserts the highlighted suggestion, Escape closes. Key suggestions start with nothing highlighted, so Enter on a plain word like auth still reaches the form; value suggestions start on the first option. Matched terms are highlighted behind the input. The lib exports parseQuery(query, fields) and formatQuery(filters, text) to convert both ways. className goes on the bordered wrapper and other props on the input.',
+    example: `"use client"
+
+import type { FilterField } from "@/lib/filter"
+import { QueryInput } from "@/components/ui/query-input"
+
+const fields: FilterField[] = [
+  { id: "is", label: "State", type: "select", options: [{ value: "open", label: "Open" }, { value: "closed", label: "Closed" }] },
+  { id: "author", label: "Author", type: "text" },
+  { id: "age", label: "Age in days", type: "number" },
+]
+
+export function IssueSearch({ onSearch }: { onSearch: (filters: unknown[], text: string) => void }) {
+  return <QueryInput aria-label="Search issues" fields={fields} defaultValue="is:open author:me" onFiltersChange={onSearch} />
 }`,
   },
   rating: {
@@ -931,6 +1076,20 @@ export function EnvironmentsField() {
   )
 }`,
   },
+  "template-input": {
+    notes:
+      "Textarea for text with {{placeholders}}, such as email subjects, notification templates and webhook payloads. Typing {{ opens a list of variables filtered on value and label; ArrowUp and ArrowDown move, Enter or Tab inserts {{value}}, Escape closes. {{ works after any character, as in id-{{name. variables: { value, label, description? }[] (the MentionOption type). The value stays a plain string with value/defaultValue/onValueChange. Variables are highlighted in a layer drawn behind the textarea, so native undo, selection and caret behaviour are untouched. A {{name}} that is not in variables gets a wavy underline and is named in the textarea's accessible description; findUnknownVariables(text, variables) from the lib returns those names for form validation. className goes on the bordered wrapper and other props go on the textarea, so aria-label, placeholder, rows and aria-invalid work.",
+    example: `import { TemplateInput } from "@/components/ui/template-input"
+
+const variables = [
+  { value: "first_name", label: "First name" },
+  { value: "order_id", label: "Order number" },
+]
+
+export function SubjectField() {
+  return <TemplateInput aria-label="Subject" variables={variables} defaultValue="Hi {{first_name}}, order {{order_id}} shipped" />
+}`,
+  },
   theme: {
     notes:
       "Neutral oklch tokens for light and dark mode, written into the project's global CSS. Optional: components read whatever tokens the project already has.",
@@ -983,6 +1142,47 @@ export function TimezoneSetting() {
   return <TimezonePicker aria-label="Time zone" value={timeZone} onValueChange={setTimeZone} />
 }`,
   },
+  toast: {
+    notes:
+      'Radix: registry/default/ui/sonner.tsx installs as components/ui/sonner.tsx and wraps sonner, so every shadcn Sonner call and Toaster prop works. Base UI installs components/ui/toast.tsx with shadcn\'s toast API (toast.add({ title, type })). Render Toaster once near the root. Import toast from the component file instead of from sonner to get the additions. toast.undo delays a destructive action until the toast goes away (onCommit) unless Undo or its shortcut ("Mod+Z") runs onUndo, and it commits on pagehide, so send the request in onCommit with fetch keepalive: true or navigator.sendBeacon so it survives the tab closing. toast.progress shows a determinate bar; update it by id and finish with a success toast on the same id. Toasts that reuse an id (Radix) or key (Base UI) merge into one with a ×N badge and a restarted timer. Durations grow with text length. Error toasts are announced assertively. persist: true sends the toast to onToastPersist listeners when it closes, ready for NotificationInbox.',
+    example: `"use client"
+
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/sonner"
+
+export function DeleteFiles({ ids, setHidden }: { ids: string[]; setHidden: (hidden: boolean) => void }) {
+  function remove() {
+    setHidden(true)
+    toast.undo(\`Deleted \${ids.length} files\`, {
+      shortcut: "Mod+Z",
+      onCommit: () =>
+        fetch("/api/files/delete", { method: "POST", body: JSON.stringify(ids), keepalive: true }),
+      onUndo: () => setHidden(false),
+    })
+  }
+
+  return <Button variant="destructive" onClick={remove}>Delete</Button>
+}`,
+    baseExample: `"use client"
+
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/toast"
+
+export function DeleteFiles({ ids, setHidden }: { ids: string[]; setHidden: (hidden: boolean) => void }) {
+  function remove() {
+    setHidden(true)
+    toast.undo({
+      title: \`Deleted \${ids.length} files\`,
+      shortcut: "Mod+Z",
+      onCommit: () =>
+        fetch("/api/files/delete", { method: "POST", body: JSON.stringify(ids), keepalive: true }),
+      onUndo: () => setHidden(false),
+    })
+  }
+
+  return <Button variant="destructive" onClick={remove}>Delete</Button>
+}`,
+  },
   tour: {
     notes:
       "Wrap the page in Tour with steps: TourStep[] ({ target, title, description?, side? }) and mark elements with TourTarget name matching step.target. open/onOpenChange and step/onStepChange are optional controlled props; onComplete fires after the last step. Focus is trapped in the tour card and returns to the opener on close.",
@@ -1003,6 +1203,20 @@ export function DashboardTour() {
       <Button variant="ghost" onClick={() => setIsOpen(true)}>Take the tour</Button>
     </Tour>
   )
+}`,
+  },
+  "trace-waterfall": {
+    notes:
+      "Hierarchical trace waterfall visualizing distributed request spans and execution profiles. spans: Span[] with id, parentId?, name, start, duration, status? ('ok' | 'error' | 'warning'), service?, color?. Spans with missing parentId render as root spans. Full WAI-ARIA tree keyboard navigation: ArrowUp/ArrowDown move focus, ArrowRight expands or enters children, ArrowLeft collapses or moves to parent, Home/End jump to first/last span, Enter/Space select. Controlled or uncontrolled with expandedSpanIds/onExpandedChange and selectedSpanId/onSpanSelect. Zero-duration spans render with minBarWidth (default 4px). A header summarizes the root span, total time, span, service and error counts, with a legend mapping each service to its color. Services get --chart-* colors in first-seen order (they repeat after five); error spans get a striped bg-destructive bar, a warning icon and red text. Rows show the full span name (wrapping at . / _ : -), the service and the duration. Selecting a span opens a details panel with duration, share of trace, start offset, status, id and attributes; pass showSpanDetails={false} to render your own from onSpanSelect.",
+    example: `import { TraceWaterfall, type Span } from "@/components/ui/trace-waterfall"
+
+const spans: Span[] = [
+  { id: "1", name: "GET /orders", start: 0, duration: 240, service: "gateway" },
+  { id: "2", parentId: "1", name: "SELECT orders", start: 18, duration: 90, status: "error", service: "postgres" },
+]
+
+export function RequestTrace() {
+  return <TraceWaterfall spans={spans} />
 }`,
   },
   "transfer-list": {
@@ -1039,6 +1253,32 @@ const items: TreeNode[] = [
 
 export function ProjectTree() {
   return <TreeView aria-label="Project files" items={items} defaultExpanded={["app"]} />
+}`,
+  },
+  "unit-input": {
+    notes:
+      "Number field plus a native unit select for memory limits, storage quotas, upload caps and bandwidth. value and onValueChange take number | null in the base unit (bytes for the presets), so the parent never converts. A unit is { id, label, factor }, where factor is how many base units one of it holds. BYTE_UNITS (B, KB, MB, GB, TB, powers of 1000) and BINARY_BYTE_UNITS (B, KiB, MiB, GiB, TiB, powers of 1024) are exported from the lib file, and units defaults to BYTE_UNITS. Changing the unit converts the number on screen and leaves the stored value alone, so 512 MB becomes 0.512 GB. Typing 2gb or 512 MiB sets the unit as well as the number, matched against unit ids and labels, case-insensitive. Typed units must be a single word, so give multiword labels a short id such as GBps. defaultUnit, or unit with onUnitChange, picks the unit; without one the largest unit that keeps the number at 1 or more is used. min and max are in base units. step is in the current unit, Shift with the arrows, or PageUp and PageDown, steps by ten, Home and End jump to min and max, and Enter or blur applies typed text. Unknown units revert the text. name submits the base value through a hidden input.",
+    example: `import { BYTE_UNITS } from "@/lib/unit-input-utils"
+import { UnitInput } from "@/components/ui/unit-input"
+
+export function MemoryLimitField({
+  value,
+  onChange,
+}: {
+  value: number | null
+  onChange: (bytes: number | null) => void
+}) {
+  return (
+    <UnitInput
+      aria-label="Memory limit"
+      value={value}
+      onValueChange={onChange}
+      units={BYTE_UNITS}
+      defaultUnit="MB"
+      min={128_000_000}
+      max={10_000_000_000}
+    />
+  )
 }`,
   },
   "uptime-bar": {

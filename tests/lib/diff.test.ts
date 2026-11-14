@@ -19,10 +19,27 @@ function applyEdits(
   let oldIndex = 0
   let newIndex = 0
   for (const edit of edits) {
+    if (edit === "equal") expect(oldItems[oldIndex]).toBe(newItems[newIndex])
     if (edit !== "add") rebuiltOld.push(oldItems[oldIndex++])
     if (edit !== "remove") rebuiltNew.push(newItems[newIndex++])
   }
   return { rebuiltOld, rebuiltNew }
+}
+
+function longestCommonSubsequence(a: string[], b: string[]) {
+  const row = new Array<number>(b.length + 1).fill(0)
+  for (const item of a) {
+    let diagonal = 0
+    for (let index = 1; index <= b.length; index++) {
+      const above = row[index]
+      row[index] =
+        item === b[index - 1]
+          ? diagonal + 1
+          : Math.max(row[index], row[index - 1])
+      diagonal = above
+    }
+  }
+  return row[b.length]
 }
 
 function shape(lines: DiffLine[]) {
@@ -81,28 +98,54 @@ describe("diffSequences", () => {
     expect(edits.filter((edit) => edit !== "equal")).toHaveLength(5)
   })
 
-  it("falls back to replacing everything past the edit distance limit", () => {
+  it("replaces everything when nothing is shared", () => {
     const oldItems = Array.from({ length: 3000 }, (_, index) => `old ${index}`)
     const newItems = Array.from({ length: 3000 }, (_, index) => `new ${index}`)
 
     const edits = diffSequences(oldItems, newItems)
 
     expect(edits).toHaveLength(6000)
-    expect(edits.slice(0, 3000).every((edit) => edit === "remove")).toBe(true)
-    expect(edits.slice(3000).every((edit) => edit === "add")).toBe(true)
+    expect(edits.filter((edit) => edit === "remove")).toHaveLength(3000)
   })
 
-  it("keeps shared lines around an over-limit middle", () => {
-    const middle = (label: string) =>
-      Array.from({ length: 3000 }, (_, index) => `${label} ${index}`)
+  it("matches the brute-force edit distance on random input", () => {
+    let seed = 7
+    const random = () => (seed = (seed * 48271) % 2147483647) / 2147483647
+    const sequence = () =>
+      Array.from({ length: Math.floor(random() * 12) }, () =>
+        "abcdef".charAt(Math.floor(random() * 6))
+      )
 
-    const edits = diffSequences(
-      ["head", ...middle("old"), "tail"],
-      ["head", ...middle("new"), "tail"]
+    for (let run = 0; run < 500; run++) {
+      const oldItems = sequence()
+      const newItems = sequence()
+      const edits = diffSequences(oldItems, newItems)
+
+      expect(applyEdits(oldItems, newItems, edits)).toEqual({
+        rebuiltOld: oldItems,
+        rebuiltNew: newItems,
+      })
+      expect(edits.filter((edit) => edit !== "equal")).toHaveLength(
+        oldItems.length +
+          newItems.length -
+          2 * longestCommonSubsequence(oldItems, newItems)
+      )
+    }
+  })
+
+  it("keeps a 10,000-line diff with 1,000 changes exact", () => {
+    const oldItems = Array.from(
+      { length: 10_000 },
+      (_, index) => `line ${index}`
+    )
+    const newItems = oldItems.map((line, index) =>
+      index % 10 === 0 ? `${line} changed` : line
     )
 
-    expect(edits[0]).toBe("equal")
-    expect(edits.at(-1)).toBe("equal")
+    const edits = diffSequences(oldItems, newItems)
+
+    expect(edits.filter((edit) => edit === "remove")).toHaveLength(1000)
+    expect(edits.filter((edit) => edit === "add")).toHaveLength(1000)
   })
 })
 
@@ -170,6 +213,37 @@ describe("diffLines", () => {
     expect(shape(diffLines("", ""))).toEqual([])
     expect(shape(diffLines("", "a"))).toEqual(["a a"])
     expect(shape(diffLines("a", ""))).toEqual(["r a"])
+  })
+})
+
+describe("ignoreWhitespace", () => {
+  it("treats lines that differ only in whitespace as equal", () => {
+    const lines = diffLines("if (a) {\n  run()\n}", "if (a) {\n    run( )\n}", {
+      ignoreWhitespace: true,
+    })
+
+    expect(lines.map((line) => line.type)).toEqual(["equal", "equal", "equal"])
+    expect(lines[1]).toMatchObject({ text: "    run( )", oldText: "  run()" })
+  })
+
+  it("shows each side's own text for a whitespace-only change in split mode", () => {
+    const [, pair] = pairLines(
+      diffLines("a\n  b", "a\nb", { ignoreWhitespace: true })
+    )
+
+    expect(pair.old?.text).toBe("  b")
+    expect(pair.new?.text).toBe("b")
+  })
+
+  it("still reports real changes and highlights only the changed words", () => {
+    const lines = diffLines("  total = a + b", "total  =  a + c", {
+      ignoreWhitespace: true,
+    })
+
+    expect(shape(lines)).toEqual(["r   total = a + b", "a total  =  a + c"])
+    expect(lines[1].segments?.filter((segment) => segment.changed)).toEqual([
+      { text: "c", changed: true },
+    ])
   })
 })
 

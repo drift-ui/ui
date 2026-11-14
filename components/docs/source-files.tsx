@@ -3,38 +3,44 @@
 import { useState } from "react"
 import { Tabs as TabsPrimitive } from "radix-ui"
 
-import { CodeFrame } from "@/components/docs/code-frame"
+import { LazyCodeFrame } from "@/components/docs/lazy-code-frame"
 import { TabsRail } from "@/components/docs/tabs-rail"
-import type { HighlightedFile } from "@/lib/component-docs"
 
 function fileName(title: string) {
   return title.split("/").pop() ?? title
 }
 
-export function SourceFiles({ files }: { files: HighlightedFile[] }) {
-  const [activeFile, setActiveFile] = useState(files[0]?.title ?? "")
+export function SourceFiles({
+  src,
+  titles,
+}: {
+  src: string
+  titles: string[]
+}) {
+  const [activeFile, setActiveFile] = useState(titles[0] ?? "")
 
-  if (files.length === 1) return <CodeFrame {...files[0]} collapsible />
+  if (titles.length === 1)
+    return <LazyCodeFrame src={src} title={titles[0]} collapsible />
 
   return (
     <TabsPrimitive.Root value={activeFile} onValueChange={setActiveFile}>
       <TabsRail
-        items={files.map((file) => ({
-          value: file.title,
-          label: fileName(file.title),
+        items={titles.map((title) => ({
+          value: title,
+          label: fileName(title),
         }))}
         value={activeFile}
         label="Source files"
         triggerClassName="font-mono text-xs"
         className="overflow-x-auto"
       />
-      {files.map((file) => (
+      {titles.map((title) => (
         <TabsPrimitive.Content
-          key={file.title}
-          value={file.title}
+          key={title}
+          value={title}
           className="mt-3 outline-none"
         >
-          <CodeFrame {...file} collapsible />
+          <LazyCodeFrame src={src} title={title} collapsible />
         </TabsPrimitive.Content>
       ))}
     </TabsPrimitive.Root>

@@ -10,7 +10,7 @@ import {
   toggleAll,
   toggleValue,
   type MultiSelectOption,
-} from "@/registry/default/lib/multi-select"
+} from "@/registry/default/lib/multi-select.ts"
 import { useControllableState } from "@/registry/default/hooks/use-controllable-state"
 import { Badge } from "@/registry/default/ui/badge"
 import {
@@ -245,7 +245,7 @@ function MultiSelect({
             open()
           }}
           className={cn(
-            "flex min-h-9 w-full min-w-0 cursor-text flex-wrap items-center gap-1.5 rounded-md border border-input bg-transparent px-2 py-1.5 text-base shadow-xs transition-[color,box-shadow] md:text-sm dark:bg-input/30",
+            "flex min-h-control w-full min-w-0 cursor-text flex-wrap items-center gap-1.5 rounded-control border border-input bg-transparent px-2 py-1.5 text-base shadow-control transition-[color,box-shadow] md:text-sm dark:bg-input/30",
             "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
             "has-[input[aria-invalid=true]]:border-destructive has-[input[aria-invalid=true]]:ring-destructive/20",
             "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",

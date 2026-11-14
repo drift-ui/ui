@@ -142,7 +142,7 @@ function Tour({
                 aria-labelledby={titleId}
                 initialFocus={nextButtonRef}
                 onKeyDown={handleKeyDown}
-                className="z-50 flex w-80 origin-(--transform-origin) flex-col gap-3 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95"
+                className="z-50 flex w-80 origin-(--transform-origin) flex-col gap-3 rounded-box border bg-popover p-4 text-popover-foreground shadow-md outline-hidden data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex flex-col gap-1">

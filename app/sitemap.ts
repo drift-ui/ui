@@ -1,14 +1,17 @@
 import type { MetadataRoute } from "next"
 
 import { CATALOG } from "@/lib/catalog"
-import { componentPath, PRIMITIVE_LIBRARIES } from "@/lib/primitive-library"
+import {
+  componentPath,
+  DEFAULT_PRIMITIVE_LIBRARY,
+} from "@/lib/primitive-library"
 import { RESOURCES, resourcePath } from "@/lib/resources"
 import { siteConfig } from "@/lib/site-config"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
-  const componentRoutes = PRIMITIVE_LIBRARIES.flatMap(({ value }) =>
-    CATALOG.map((entry) => componentPath(entry.slug, value))
+  const componentRoutes = CATALOG.map((entry) =>
+    componentPath(entry.slug, DEFAULT_PRIMITIVE_LIBRARY)
   )
 
   function toEntry(route: string, lastModified: Date) {

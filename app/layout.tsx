@@ -9,6 +9,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ThemeScopeStyle } from "@/components/theme-scope-style"
+import { codeTokenCss } from "@/lib/highlight"
 import { siteConfig } from "@/lib/site-config"
 import { cn } from "@/registry/default/lib/utils"
 
@@ -65,7 +66,7 @@ export const viewport: Viewport = {
   ],
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
@@ -82,6 +83,7 @@ export default function RootLayout({
       )}
     >
       <body>
+        <style>{await codeTokenCss()}</style>
         <ThemeProvider>
           <ThemeScopeStyle />
           {children}

@@ -6,10 +6,9 @@ import * as m from "motion/react-m"
 import { Tabs as TabsPrimitive } from "radix-ui"
 
 import { cn } from "@/registry/default/lib/utils"
-import { CodeFrame } from "@/components/docs/code-frame"
+import { LazyCodeFrame, type CodeRef } from "@/components/docs/lazy-code-frame"
 import { TabsRail } from "@/components/docs/tabs-rail"
 import { ThemeScopeControl } from "@/components/docs/theme-scope-control"
-import type { HighlightedFile } from "@/lib/component-docs"
 
 const TABS = [
   { value: "preview", label: "Preview" },
@@ -18,19 +17,28 @@ const TABS = [
 
 export function PreviewTabs({
   preview,
-  usage,
+  code,
   compact = false,
 }: {
   preview: React.ReactNode
-  usage: HighlightedFile
+  code: CodeRef
   compact?: boolean
 }) {
   const [tab, setTab] = useState("preview")
   const [resetCount, setResetCount] = useState(0)
 
   return (
-    <TabsPrimitive.Root value={tab} onValueChange={setTab}>
-      <div className="flex items-center justify-between gap-4">
+    <TabsPrimitive.Root
+      value={tab}
+      onValueChange={setTab}
+      className={cn(!compact && "flex flex-col")}
+    >
+      <div
+        className={cn(
+          "flex items-center justify-between gap-4",
+          !compact && "h-12 shrink-0 border-b px-2"
+        )}
+      >
         <TabsRail items={TABS} value={tab} label="Example" />
         {tab === "preview" && (
           <div className="flex items-center gap-1">
@@ -55,13 +63,18 @@ export function PreviewTabs({
       <TabsPrimitive.Content
         value="preview"
         forceMount
-        className="mt-3 outline-none data-[state=inactive]:hidden"
+        className={cn(
+          "outline-none data-[state=inactive]:hidden",
+          compact && "mt-3"
+        )}
       >
         <div
           data-theme-scope
           className={cn(
-            "flex items-center justify-center overflow-hidden rounded-[1.75rem] border bg-background bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent)] px-4 font-sans text-foreground sm:px-10",
-            compact ? "min-h-56 py-10" : "min-h-[26rem] py-10 md:py-16"
+            "flex items-center justify-center bg-background bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent)] px-4 font-sans text-foreground sm:px-10",
+            compact
+              ? "min-h-56 overflow-hidden rounded-[1.75rem] border py-10"
+              : "min-h-[26rem] py-10 md:py-16"
           )}
         >
           <div
@@ -72,8 +85,11 @@ export function PreviewTabs({
           </div>
         </div>
       </TabsPrimitive.Content>
-      <TabsPrimitive.Content value="code" className="mt-3 outline-none">
-        <CodeFrame {...usage} collapsible />
+      <TabsPrimitive.Content
+        value="code"
+        className={cn("outline-none", compact ? "mt-3" : "p-3")}
+      >
+        <LazyCodeFrame {...code} collapsible />
       </TabsPrimitive.Content>
     </TabsPrimitive.Root>
   )

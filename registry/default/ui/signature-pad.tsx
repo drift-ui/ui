@@ -17,7 +17,7 @@ import {
   type SignatureInk,
   type SignaturePoint,
   type SignatureStroke,
-} from "@/registry/default/lib/signature-pad"
+} from "@/registry/default/lib/signature-pad.ts"
 import { cn } from "@/registry/default/lib/utils"
 import { Button } from "@/registry/default/ui/button"
 import { Input } from "@/registry/default/ui/input"
@@ -146,7 +146,7 @@ function SignaturePad({
       <div
         data-slot="signature-pad-surface"
         className={cn(
-          "relative overflow-hidden rounded-md border border-input bg-transparent shadow-xs dark:bg-input/30",
+          "relative overflow-hidden rounded-box border border-input bg-transparent shadow-control dark:bg-input/30",
           disabled && "opacity-50"
         )}
       >

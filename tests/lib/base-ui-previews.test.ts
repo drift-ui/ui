@@ -5,12 +5,20 @@ const BASE_UI_PREVIEW_DIR = "components/preview/base"
 const DIFFERENT_BY_API = new Set([
   "dialog-preview.tsx",
   "popover-preview.tsx",
+  "toast-preview.tsx",
   "examples/badge/as-link.tsx",
   "examples/button/as-link.tsx",
   "examples/dialog/confirm.tsx",
   "examples/dialog/controlled.tsx",
   "examples/popover/help.tsx",
   "examples/popover/placement.tsx",
+  "examples/toast/inbox.tsx",
+  "examples/toast/merge.tsx",
+  "examples/toast/progress.tsx",
+  "examples/toast/promise.tsx",
+  "examples/toast/reading-time.tsx",
+  "examples/toast/types.tsx",
+  "examples/toast/undo.tsx",
 ])
 
 function readPreview(path: string) {

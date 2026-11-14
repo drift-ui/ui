@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { ArrowRightIcon } from "lucide-react"
 
-import { Button } from "@/registry/default/ui/button"
+import { cn } from "@/registry/default/lib/utils"
+import { buttonVariants } from "@/registry/default/ui/button"
 import { EmptyResults } from "@/components/docs/empty-results"
 import { FlagshipSticker } from "@/components/docs/flagship-sticker"
 import { KeyboardStrip } from "@/components/docs/keyboard-strip"
@@ -290,7 +291,7 @@ function SpecimenStage({
           {padNumber(total)}
         </span>
       </p>
-      <div className="@container flex max-h-[calc(100dvh-24rem)] min-h-80 items-center-safe overflow-y-auto rounded-[1.75rem] border bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent)] px-8 py-10">
+      <div className="@container flex max-h-[calc(100dvh-30rem)] min-h-56 items-center-safe overflow-y-auto rounded-[1.75rem] border bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--foreground)_5%,transparent),transparent)] px-8 py-10">
         <div className="mx-auto w-full max-w-xl">{card.thumbnail}</div>
       </div>
       <div className="flex flex-col gap-4">
@@ -309,12 +310,13 @@ function SpecimenStage({
           <KeyboardStrip bindings={keyboard.slice(0, STAGE_KEY_LIMIT)} />
         )}
         <div className="flex flex-wrap items-center gap-3">
-          <Button asChild className="h-10 px-4">
-            <Link href={`/components/${card.slug}`}>
-              Open {card.name}
-              <ArrowRightIcon />
-            </Link>
-          </Button>
+          <Link
+            href={`/components/${card.slug}`}
+            className={cn(buttonVariants(), "h-10 px-4")}
+          >
+            Open {card.name}
+            <ArrowRightIcon />
+          </Link>
           <CopyCommand
             command={`npx shadcn@latest add @drift-ui/${card.slug}`}
           />

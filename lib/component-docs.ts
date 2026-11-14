@@ -9,10 +9,11 @@ import {
   type CatalogEntry,
   type RegistryFile,
 } from "@/lib/catalog"
-import { highlight } from "@/lib/highlight"
+import { toBaseUiItem } from "@/lib/base-ui-registry"
+import { highlightFile, type HighlightedFile } from "@/lib/highlight"
 import { componentPath, type PrimitiveLibrary } from "@/lib/primitive-library"
 
-export type HighlightedFile = { title: string; code: string; html: string }
+export type { HighlightedFile }
 
 export type BuildsOn = { label: string; href?: string }
 
@@ -27,7 +28,9 @@ export type ComponentExample = {
 export type LoadedExample = Pick<
   ComponentExample,
   "id" | "title" | "description" | "Preview"
-> & { usage: HighlightedFile }
+> & { code: string }
+
+export type CodeBundle = Record<string, HighlightedFile>
 
 const IMPORT_REWRITES: [RegExp, string][] = [
   [/@\/registry\/[^/]+\/lib\/utils/g, "@/lib/utils"],
@@ -85,18 +88,18 @@ function previewPath(slug: string, library: PrimitiveLibrary) {
   return `components/preview/${slug}-preview.tsx`
 }
 
-async function toHighlightedFile(title: string, code: string) {
-  return { title, code, html: await highlight(code) }
-}
-
-async function loadDemo(filePath: string, title: string) {
+async function readDemo(filePath: string) {
   const source = await readProjectFile(filePath)
 
-  return toHighlightedFile(title, source.replace(/(\w+)Preview\b/g, "$1Demo"))
+  return source.replace(/(\w+)Preview\b/g, "$1Demo")
 }
 
-export function loadUsage(entry: CatalogEntry, library: PrimitiveLibrary) {
-  return loadDemo(previewPath(entry.slug, library), `${entry.slug}-demo.tsx`)
+export function demoTitle(slug: string) {
+  return `${slug}-demo.tsx`
+}
+
+function exampleTitle(slug: string, id: string) {
+  return `${slug}-${id}.tsx`
 }
 
 function examplePath(slug: string, id: string, library: PrimitiveLibrary) {
@@ -105,40 +108,59 @@ function examplePath(slug: string, id: string, library: PrimitiveLibrary) {
   return `components/preview/examples/${slug}/${id}.tsx`
 }
 
-export async function loadExamples(
-  slug: string,
-  library: PrimitiveLibrary
-): Promise<LoadedExample[]> {
+async function importExamples(slug: string): Promise<ComponentExample[]> {
   if (!existsSync(`components/preview/examples/${slug}/index.ts`)) return []
 
   const { examples }: { examples: ComponentExample[] } = await import(
     `@/components/preview/examples/${slug}/index`
   )
+  return examples
+}
 
-  return Promise.all(
-    examples.map(async ({ id, title, description, Preview, BasePreview }) => ({
-      id: `${slug}-${id}`,
-      title,
-      description,
-      Preview: (library === "base" && BasePreview) || Preview,
-      usage: await loadDemo(
-        examplePath(slug, id, library),
-        `${slug}-${id}.tsx`
-      ),
-    }))
+export async function loadExamples(
+  slug: string,
+  library: PrimitiveLibrary
+): Promise<LoadedExample[]> {
+  const examples = await importExamples(slug)
+
+  return examples.map(({ id, title, description, Preview, BasePreview }) => ({
+    id: `${slug}-${id}`,
+    title,
+    description,
+    Preview: (library === "base" && BasePreview) || Preview,
+    code: exampleTitle(slug, id),
+  }))
+}
+
+export async function loadCode(
+  entry: CatalogEntry,
+  library: PrimitiveLibrary
+): Promise<CodeBundle> {
+  const source = library === "base" ? toBaseUiItem(entry) : entry
+  const examples = await importExamples(entry.slug)
+  const files = [
+    {
+      title: demoTitle(entry.slug),
+      code: readDemo(previewPath(entry.slug, library)),
+    },
+    ...examples.map(({ id }) => ({
+      title: exampleTitle(entry.slug, id),
+      code: readDemo(examplePath(entry.slug, id, library)),
+    })),
+    ...source.files.map((file) => ({
+      title: installPath(file),
+      code: readProjectFile(file.path),
+    })),
+  ]
+  const highlighted = await Promise.all(
+    files.map(async ({ title, code }) => highlightFile(title, await code))
   )
+
+  return Object.fromEntries(highlighted.map((file) => [file.title, file]))
 }
 
 export function loadUsageSnippet(entry: CatalogEntry, code: string) {
-  return toHighlightedFile(`${entry.slug}-usage.tsx`, code)
-}
-
-export function loadSources(entry: CatalogEntry) {
-  return Promise.all(
-    entry.files.map(async (file) =>
-      toHighlightedFile(installPath(file), await readProjectFile(file.path))
-    )
-  )
+  return highlightFile(`${entry.slug}-usage.tsx`, code)
 }
 
 export function listInstallPaths(entry: CatalogEntry) {
@@ -162,7 +184,10 @@ export function resolveBuildsOn(
   entry: CatalogEntry,
   library: PrimitiveLibrary
 ) {
-  return entry.registryDependencies
+  const { registryDependencies = [] } =
+    library === "base" ? toBaseUiItem(entry) : entry
+
+  return registryDependencies
     .filter((dependency) => dependency !== "utils")
     .map((dependency) => toBuildsOn(dependency, library))
 }

@@ -8,7 +8,7 @@ import {
   rowOffsets,
   scrollTopToReveal,
   visibleRange,
-} from "@/registry/default/lib/virtual-list"
+} from "@/registry/default/lib/virtual-list.ts"
 
 function indexKey(_: unknown, index: number): React.Key {
   return index

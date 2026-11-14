@@ -2,13 +2,19 @@ import { readdirSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 
 import { COMPONENT_USAGE } from "@/lib/agent-docs/component-usage"
-import { CATALOG } from "@/lib/catalog"
-import { loadExamples } from "@/lib/component-docs"
+import { CATALOG, findEntry } from "@/lib/catalog"
+import { loadCode, loadExamples } from "@/lib/component-docs"
 
 const FOLDERS = readdirSync("components/preview/examples")
 const BASE_UI_COMPONENTS = readdirSync("components/preview/base")
   .filter((file) => file.endsWith("-preview.tsx"))
   .map((file) => file.replace("-preview.tsx", ""))
+
+function textOf(html: string) {
+  const element = document.createElement("div")
+  element.innerHTML = html
+  return element.textContent ?? ""
+}
 
 describe("component examples", () => {
   it.each(FOLDERS)("%s is named after a catalog component", (folder) => {
@@ -17,12 +23,13 @@ describe("component examples", () => {
 
   it.each(FOLDERS)("%s loads every listed example", async (slug) => {
     const examples = await loadExamples(slug, "radix")
+    const bundle = await loadCode(findEntry(slug)!, "radix")
 
     expect(examples.length).toBeGreaterThan(0)
     expect(new Set(examples.map(({ id }) => id)).size).toBe(examples.length)
-    for (const { id, usage } of examples) {
+    for (const { id, code } of examples) {
       expect(id.startsWith(`${slug}-`)).toBe(true)
-      expect(usage.code).toContain("Demo")
+      expect(textOf(bundle[code].html)).toContain("Demo")
     }
   })
 
@@ -54,11 +61,12 @@ describe("component examples", () => {
   )
 
   it("shows Base UI code on Base UI pages", async () => {
-    const [radix] = await loadExamples("dialog", "radix")
-    const [base] = await loadExamples("dialog", "base")
+    const [example] = await loadExamples("dialog", "radix")
+    const radix = await loadCode(findEntry("dialog")!, "radix")
+    const base = await loadCode(findEntry("dialog")!, "base")
 
-    expect(radix.usage.code).toContain("asChild")
-    expect(base.usage.code).toContain("render={")
+    expect(textOf(radix[example.code].html)).toContain("asChild")
+    expect(textOf(base[example.code].html)).toContain("render={")
   })
 
   it("returns nothing for an unknown component", async () => {

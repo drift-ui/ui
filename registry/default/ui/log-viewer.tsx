@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ArrowDownIcon, SearchIcon, XIcon } from "lucide-react"
+import { ArrowDownIcon, SearchIcon, TextWrapIcon, XIcon } from "lucide-react"
 
 import { useControllableState } from "@/registry/default/hooks/use-controllable-state"
 import {
@@ -13,7 +13,7 @@ import {
   type AnsiSegment,
   type LogLevel,
   type LogLine,
-} from "@/registry/default/lib/log-viewer"
+} from "@/registry/default/lib/log-viewer.ts"
 import { cn } from "@/registry/default/lib/utils"
 import { Button } from "@/registry/default/ui/button"
 import { Input } from "@/registry/default/ui/input"
@@ -63,8 +63,8 @@ const LEVEL_BADGE_CLASSES: Record<string, string> = {
   error: "bg-destructive/15 text-destructive border-destructive/20",
   warn: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20",
   info: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  debug: "bg-muted text-muted-foreground border-border",
-  trace: "bg-muted text-muted-foreground border-border",
+  debug: "bg-zinc-800 text-zinc-400 border-zinc-700",
+  trace: "bg-zinc-800 text-zinc-400 border-zinc-700",
 }
 
 function AnsiMessage({ message }: { message: string }) {
@@ -115,6 +115,9 @@ export interface LogViewerProps extends Omit<
   onLevelChange?: (level: string) => void
   showLineNumbers?: boolean
   showTimestamps?: boolean
+  wrap?: boolean
+  defaultWrap?: boolean
+  onWrapChange?: (wrap: boolean) => void
   rowHeight?: number
   height?: number | string
   emptyMessage?: React.ReactNode
@@ -135,6 +138,9 @@ function LogViewer({
   onLevelChange,
   showLineNumbers = true,
   showTimestamps = true,
+  wrap: wrapProp,
+  defaultWrap = false,
+  onWrapChange,
   rowHeight = 24,
   height = 400,
   emptyMessage = "No log lines matching criteria",
@@ -161,6 +167,12 @@ function LogViewer({
     onChange: onLevelChange,
   })
 
+  const { value: wrap, setValue: setWrap } = useControllableState<boolean>({
+    value: wrapProp,
+    defaultValue: defaultWrap,
+    onChange: onWrapChange,
+  })
+
   const indexedLines = React.useMemo(
     () =>
       lines.map((line, idx) => ({
@@ -179,9 +191,16 @@ function LogViewer({
   )
 
   React.useEffect(() => {
-    if (!follow || !listRef.current) return
     const container = listRef.current
-    container.scrollTop = container.scrollHeight
+    const content = container?.firstElementChild
+    if (!follow || !container || !content) return
+    const scrollToBottom = () => {
+      container.scrollTop = container.scrollHeight
+    }
+    scrollToBottom()
+    const observer = new ResizeObserver(scrollToBottom)
+    observer.observe(content)
+    return () => observer.disconnect()
   }, [follow, filteredLines.length])
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
@@ -225,9 +244,9 @@ function LogViewer({
       {...props}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/20 p-2">
-        <div className="flex min-w-48 flex-1 items-center gap-2">
+        <div className="flex min-w-48 flex-1 flex-wrap items-center gap-2">
           {searchable && (
-            <div className="relative max-w-xs flex-1">
+            <div className="relative max-w-xs min-w-40 flex-1">
               <SearchIcon className="absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="text"
@@ -240,7 +259,7 @@ function LogViewer({
                   }
                 }}
                 placeholder="Search logs..."
-                className="h-8 pr-7 pl-8 text-xs"
+                className="h-control-sm py-0 pr-7 pl-8 text-xs"
                 aria-label="Search logs"
               />
               {search && (
@@ -257,7 +276,7 @@ function LogViewer({
           )}
 
           {filterable && availableLevels.length > 0 && (
-            <div className="flex items-center gap-1 overflow-x-auto">
+            <div className="flex flex-wrap items-center gap-1">
               <Button
                 type="button"
                 size="sm"
@@ -291,6 +310,18 @@ function LogViewer({
               ? `${filteredLines.length} of ${lines.length} lines`
               : `${lines.length} lines`}
           </span>
+
+          <Button
+            type="button"
+            size="sm"
+            variant={wrap ? "secondary" : "ghost"}
+            aria-pressed={wrap}
+            className="h-7 gap-1.5 px-2 text-xs"
+            onClick={() => setWrap(!wrap)}
+          >
+            <TextWrapIcon className="size-3.5" />
+            Wrap
+          </Button>
 
           <Button
             type="button"
@@ -331,15 +362,26 @@ function LogViewer({
             estimateSize={rowHeight}
             getItemKey={(item) => item.id}
             onScroll={handleScroll}
-            className="h-full bg-zinc-950 text-zinc-100"
+            className="h-full overflow-x-auto bg-zinc-950 text-zinc-100"
           >
             {(line, index) => (
               <div
-                className="flex items-center gap-3 overflow-x-auto px-3 font-mono text-xs whitespace-pre select-text hover:bg-zinc-900"
-                style={{ height: `${rowHeight}px` }}
+                className={cn(
+                  "group flex gap-3 px-3 font-mono text-xs select-text hover:bg-zinc-900",
+                  wrap
+                    ? "w-full items-baseline py-1 leading-4 wrap-anywhere whitespace-pre-wrap"
+                    : "w-max min-w-full items-center whitespace-pre"
+                )}
+                style={wrap ? { minHeight: rowHeight } : { height: rowHeight }}
               >
                 {showLineNumbers && (
-                  <span className="w-10 shrink-0 text-right text-zinc-500 tabular-nums select-none">
+                  <span
+                    className={cn(
+                      "w-10 shrink-0 text-right text-zinc-500 tabular-nums select-none",
+                      !wrap &&
+                        "sticky left-0 z-10 -ml-3 flex w-14 items-center justify-end self-stretch border-r border-zinc-800 bg-zinc-950 pr-2 group-hover:bg-zinc-900"
+                    )}
+                  >
                     {line.lineNumber ?? index + 1}
                   </span>
                 )}
@@ -351,9 +393,9 @@ function LogViewer({
                 {line.level && (
                   <span
                     className={cn(
-                      "inline-flex shrink-0 items-center justify-center rounded border px-1.5 py-0.5 text-[10px] font-medium tracking-wider uppercase select-none",
+                      "inline-flex w-12 shrink-0 items-center justify-center rounded border px-1 py-0.5 text-[10px] font-medium tracking-wider uppercase select-none",
                       LEVEL_BADGE_CLASSES[line.level.toLowerCase()] ??
-                        "border-border bg-muted text-muted-foreground"
+                        "border-zinc-700 bg-zinc-800 text-zinc-400"
                     )}
                   >
                     {line.level.toUpperCase()}

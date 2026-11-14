@@ -1,9 +1,21 @@
+import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 
-import { highlightInline, highlightType } from "@/lib/highlight"
+import {
+  codeTokenCss,
+  highlight,
+  highlightInline,
+  highlightType,
+} from "@/lib/highlight"
 
 function tokenColors(html: string) {
-  return [...html.matchAll(/--shiki-dark:([^;"]+)/g)].map(([, color]) => color)
+  return [...html.matchAll(/\bsd\d+\b/g)].map(([className]) => className)
+}
+
+function textOf(html: string) {
+  const element = document.createElement("div")
+  element.innerHTML = html
+  return element.textContent ?? ""
 }
 
 describe("inline highlighting", () => {
@@ -32,5 +44,30 @@ describe("inline highlighting", () => {
     const colors = tokenColors(await highlightType('"split" | "unified"'))
 
     expect(new Set(colors).size).toBeGreaterThan(1)
+  })
+})
+
+describe("block highlighting", () => {
+  const code = readFileSync("registry/default/ui/saved-views.tsx", "utf8")
+
+  it("keeps the exact source as text so copy matches it", async () => {
+    expect(textOf(await highlight(code))).toBe(code)
+  })
+
+  it("colors tokens with classes instead of inline styles", async () => {
+    const html = await highlight(code)
+    const tokenStyles = html.match(/<span style=/g) ?? []
+
+    expect(tokenStyles).toHaveLength(0)
+    expect(tokenColors(html).length).toBeGreaterThan(0)
+  })
+
+  it("defines every class it emits", async () => {
+    const css = await codeTokenCss()
+    const used = new Set(
+      [...(await highlight(code)).matchAll(/\bs[ld]\d+\b/g)].map(([c]) => c)
+    )
+
+    for (const className of used) expect(css).toContain(`.${className}{`)
   })
 })

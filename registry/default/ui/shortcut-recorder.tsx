@@ -126,7 +126,7 @@ function ShortcutRecorder({
       onKeyUp={handleKeyUp}
       onBlur={stopRecording}
       className={cn(
-        "inline-flex h-9 min-w-40 items-center justify-between gap-3 rounded-md border border-input bg-transparent px-3 text-sm shadow-xs transition-[color,box-shadow] outline-none dark:bg-input/30",
+        "inline-flex h-control min-w-40 items-center justify-between gap-3 rounded-control border border-input bg-transparent px-3 text-sm shadow-control transition-[color,box-shadow] outline-none dark:bg-input/30",
         "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
         "data-recording:border-ring data-recording:ring-[3px] data-recording:ring-ring/50",
         "disabled:pointer-events-none disabled:opacity-50",

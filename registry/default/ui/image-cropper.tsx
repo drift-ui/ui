@@ -23,7 +23,7 @@ import {
   type PixelCrop,
   type Point,
   type Size,
-} from "@/registry/default/lib/image-cropper"
+} from "@/registry/default/lib/image-cropper.ts"
 import { cn } from "@/registry/default/lib/utils"
 import { Button } from "@/registry/default/ui/button"
 

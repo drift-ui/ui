@@ -36,7 +36,7 @@ describe("Button", () => {
     )
     expect(screen.getByRole("button", { name: "Delete" })).toHaveClass(
       "bg-destructive",
-      "h-8"
+      "h-control-sm"
     )
   })
 

@@ -1,9 +1,21 @@
+import { cn } from "@/registry/default/lib/utils"
 import { BlockPreview } from "@/components/landing/block-preview"
 import type { BlockKind } from "@/lib/blocks"
 
-export function BlockStage({ kind }: { kind: BlockKind }) {
+export function BlockStage({
+  kind,
+  className,
+}: {
+  kind: BlockKind
+  className?: string
+}) {
   return (
-    <div className="flex h-[26rem] items-end justify-center overflow-hidden rounded-2xl border bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--brand)_10%,transparent),transparent)] px-6 pt-10 md:px-10">
+    <div
+      className={cn(
+        "flex h-[26rem] items-end justify-center overflow-hidden rounded-2xl border bg-[radial-gradient(80%_70%_at_50%_0%,color-mix(in_oklab,var(--brand)_10%,transparent),transparent)] px-6 pt-10 md:px-10",
+        className
+      )}
+    >
       <div
         aria-hidden
         inert

@@ -8,10 +8,6 @@ import { DriftWord } from "@/components/landing/drift-word"
 import { SlotPattern } from "@/components/landing/slot-pattern"
 import { CATALOG } from "@/lib/catalog"
 
-const COMPONENT_COUNT = CATALOG.filter(
-  (entry) => entry.category !== "primitives"
-).length
-
 export function Hero() {
   return (
     <section className="relative isolate overflow-hidden">
@@ -26,7 +22,7 @@ export function Hero() {
             </span>
           </h1>
           <p className="mt-8 max-w-[38ch] rise text-lg leading-relaxed text-muted-foreground [--rise-delay:120ms] md:text-xl">
-            {COMPONENT_COUNT} components you install with the shadcn CLI. Built
+            {CATALOG.length} components you install with the shadcn CLI. Built
             on Radix or Base UI, styled by the tokens you already have.
           </p>
           <div className="mt-10 flex rise flex-col items-center gap-3 [--rise-delay:200ms] sm:flex-row">

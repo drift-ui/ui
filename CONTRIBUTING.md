@@ -26,8 +26,8 @@ Work comes in three sizes, and it's fine to start with the smallest:
 You need [Bun](https://bun.sh) 1.2 or newer. [Fork the repo][fork], then clone your fork:
 
 ```bash
-git clone https://github.com/<your-username>/drift-ui.git
-cd drift-ui
+git clone https://github.com/<your-username>/ui.git
+cd ui
 bun install
 bun run registry:build
 bun dev
@@ -67,7 +67,7 @@ test(time-field): cover segment editing
 ```
 
 > [!IMPORTANT]
-> Commit with an email linked to your GitHub account. That's how the [contributors page][contributors] matches your commits to you. It ranks people by merged pull requests and can take a few hours to update after a merge.
+> Commit with an email linked to your GitHub account. That's how the [contributors page][contributors] matches your commits to you. It ranks people by commits on main and can take a few hours to update after a merge.
 
 ## Adding a component
 
@@ -109,13 +109,14 @@ test(time-field): cover segment editing
 
 ### Component guidelines
 
-| Area          | Rule                                                                                                                           |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| State         | Support controlled and uncontrolled use. `use-controllable-state` handles the `value`, `defaultValue` and `onValueChange` trio |
-| Props         | Spread remaining props onto the element a user expects to style, and accept `className`                                        |
-| Accessibility | Follow the WAI-ARIA pattern for the widget and test keyboard interaction, not only clicks                                      |
-| Color         | Read colors from the theme tokens in `app/globals.css`. Do not hard-code colors                                                |
-| Primitives    | If shadcn/ui already ships a component, keep its API identical                                                                 |
+| Area          | Rule                                                                                                                                                                                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| State         | Support controlled and uncontrolled use. `use-controllable-state` handles the `value`, `defaultValue` and `onValueChange` trio                                                                                                                                                     |
+| Props         | Spread remaining props onto the element a user expects to style, and accept `className`                                                                                                                                                                                            |
+| Accessibility | Follow the WAI-ARIA pattern for the widget and test keyboard interaction, not only clicks                                                                                                                                                                                          |
+| Color         | Read colors from the theme tokens in `app/globals.css`. Do not hard-code colors                                                                                                                                                                                                    |
+| Shape         | Use `h-control`, `h-control-sm`, `rounded-control`, `rounded-box` and `shadow-control` for fields and buttons, and `rounded-card`, `py-card`, `px-card`, `gap-card`, `shadow-card` and `rounded-dialog` for cards and dialogs, and add `@drift-ui/shape` to `registryDependencies` |
+| Primitives    | If shadcn/ui already ships a component, keep its API identical                                                                                                                                                                                                                     |
 
 ### Base UI versions
 
@@ -167,11 +168,11 @@ Use the [issue templates][issue-templates], and include:
 
 By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).
 
-[bugs]: https://github.com/localhostd3veloper/drift-ui/labels/bug
+[bugs]: https://github.com/drift-ui/ui/labels/bug
 [contributors]: https://drift-ui.dev/contributors
 [discord]: https://discord.gg/tJH3dC8Exz
-[fork]: https://github.com/localhostd3veloper/drift-ui/fork
+[fork]: https://github.com/drift-ui/ui/fork
 [fork-pr-guide]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork
-[good-first-issues]: https://github.com/localhostd3veloper/drift-ui/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
-[issue-templates]: https://github.com/localhostd3veloper/drift-ui/issues/new/choose
-[new-components]: https://github.com/localhostd3veloper/drift-ui/labels/new%20component
+[good-first-issues]: https://github.com/drift-ui/ui/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+[issue-templates]: https://github.com/drift-ui/ui/issues/new/choose
+[new-components]: https://github.com/drift-ui/ui/labels/new%20component

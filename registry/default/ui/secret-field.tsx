@@ -5,11 +5,14 @@ import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from "lucide-react"
 
 import { useControllableState } from "@/registry/default/hooks/use-controllable-state"
 import { useCopyToClipboard } from "@/registry/default/hooks/use-copy-to-clipboard"
-import { getVisibleTail, maskSecret } from "@/registry/default/lib/secret-field"
+import {
+  getVisibleTail,
+  maskSecret,
+} from "@/registry/default/lib/secret-field.ts"
 import { cn } from "@/registry/default/lib/utils"
 
 const BUTTON_CLASS_NAME =
-  "inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 [&_svg]:size-3.5"
+  "inline-flex size-7 shrink-0 items-center justify-center rounded-control text-muted-foreground outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 [&_svg]:size-3.5"
 
 function SecretField({
   value,
@@ -40,7 +43,7 @@ function SecretField({
       data-slot="secret-field"
       data-revealed={revealed}
       className={cn(
-        "flex h-9 w-full min-w-0 items-center gap-1 rounded-md border bg-transparent pr-1 pl-3 font-mono text-sm shadow-xs dark:bg-input/30",
+        "flex h-control w-full min-w-0 items-center gap-1 rounded-control border bg-transparent pr-1 pl-3 font-mono text-sm shadow-control dark:bg-input/30",
         className
       )}
       {...props}

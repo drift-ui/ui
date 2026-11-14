@@ -16,7 +16,7 @@ import {
   stepNode,
   toggleChecked,
   type NodeRow,
-} from "@/registry/default/lib/tree-view"
+} from "@/registry/default/lib/tree-view.ts"
 import { cn } from "@/registry/default/lib/utils"
 import {
   rowOffsets,
