@@ -183,7 +183,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         },
         {
           name: "layouts",
-          type: "Record<string, AddressLayout>",
+          type: "AddressLayouts",
           description:
             "Layouts by country code: rows (field order, grouped into rows), required, labels and postalCode ({ pattern, format }). They override the built-in layouts for AU, CA, DE, FR, GB, IN, JP and US and replace the generic layout for other countries.",
         },

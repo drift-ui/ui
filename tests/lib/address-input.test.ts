@@ -12,6 +12,7 @@ import {
   postalCodeError,
   resolveCountryOptions,
   type AddressLayout,
+  type AddressLayouts,
 } from "@/registry/default/lib/address-input"
 import {
   COUNTRY_CODES,
@@ -154,6 +155,25 @@ describe("postalCodeError", () => {
       postalCodeError({ ...ADDRESS, country: "BR", postalCode: "anything" })
     ).toBeNull()
   })
+
+  it("rejects a code that is only spaces", () => {
+    expect(postalCodeError({ ...ADDRESS, postalCode: "   " })).toBe(
+      "ZIP code must be 5 digits, like 94105."
+    )
+  })
+
+  it("gives the same answer every time for a global pattern", () => {
+    const layouts = {
+      SG: {
+        rows: [["postalCode"]],
+        required: [],
+        postalCode: { pattern: /^\d{6}$/g, format: "6 digits" },
+      },
+    } satisfies AddressLayouts
+    const address = { ...ADDRESS, country: "SG", postalCode: "018956" }
+    expect(postalCodeError(address, layouts)).toBeNull()
+    expect(postalCodeError(address, layouts)).toBeNull()
+  })
 })
 
 describe("changeAddressCountry", () => {
@@ -167,6 +187,12 @@ describe("changeAddressCountry", () => {
       ...ADDRESS,
       country: "CA",
     })
+  })
+
+  it("doesn't bring back a field the old layout hid", () => {
+    expect(
+      changeAddressCountry({ ...ADDRESS, country: "GB", region: "CA" }, "US")
+    ).toEqual({ ...ADDRESS, region: "" })
   })
 
   it("uses layouts passed in", () => {

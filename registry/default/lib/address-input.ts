@@ -151,17 +151,20 @@ export function changeAddressCountry(
   country: string,
   layouts?: AddressLayouts
 ): Address {
-  const kept = fieldsOf(layoutFor(country, layouts))
+  const shown = fieldsOf(layoutFor(address.country, layouts))
   const next = emptyAddress(country)
-  for (const field of kept) next[field] = address[field]
+  for (const field of fieldsOf(layoutFor(country, layouts))) {
+    if (shown.includes(field)) next[field] = address[field]
+  }
   return next
 }
 
 export function postalCodeError(address: Address, layouts?: AddressLayouts) {
   const layout = layoutFor(address.country, layouts)
-  const postalCode = address.postalCode.trim()
-  if (!postalCode || !layout.postalCode) return null
-  if (layout.postalCode.pattern.test(postalCode)) return null
+  if (!address.postalCode || !layout.postalCode) return null
+  if (address.postalCode.trim().search(layout.postalCode.pattern) !== -1) {
+    return null
+  }
   return `${labelFor("postalCode", layout)} must be ${layout.postalCode.format}.`
 }
 

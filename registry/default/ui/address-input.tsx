@@ -17,7 +17,7 @@ import {
   type AddressLayout,
   type AddressLayouts,
   type AddressType,
-} from "@/registry/default/lib/address-input"
+} from "@/registry/default/lib/address-input.ts"
 import { countryFlag } from "@/registry/default/lib/countries"
 import { cn } from "@/registry/default/lib/utils"
 import { Input } from "@/registry/default/ui/input"
@@ -81,7 +81,7 @@ function AddressInput({
 
   React.useEffect(() => {
     postalCodeRef.current?.setCustomValidity(postalError ?? "")
-  }, [postalError])
+  })
 
   function fieldName(field: AddressField | "country") {
     return name ? `${name}.${field}` : undefined

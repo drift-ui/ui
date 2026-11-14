@@ -16,7 +16,7 @@ export const examples: ComponentExample[] = [
     id: "countries",
     title: "Limit the country list",
     description:
-      "countries lists only these, in this order, for a store that ships to a few countries. Without it, every country is listed by name.",
+      "countries lists only these, in this order, for a store that ships to a few countries. If the current country is not in the list, it is added at the top. Without countries, every country is listed by name.",
     Preview: AddressInputCountriesPreview,
   },
   {

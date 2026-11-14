@@ -217,6 +217,29 @@ describe("AddressInput", () => {
     expect(screen.queryByRole("textbox", { name: /Address line 2/ })).toBeNull()
   })
 
+  it("keeps a bad postal code invalid when the new country moves the field", async () => {
+    const user = userEvent.setup()
+    const postalCode = { pattern: /^\d$/, format: "1 digit" }
+    render(
+      <AddressInput
+        aria-label="Shipping address"
+        defaultCountry="SG"
+        countries={["SG", "NZ"]}
+        layouts={{
+          SG: { rows: [["postalCode"]], required: [], postalCode },
+          NZ: { rows: [["city", "postalCode"]], required: [], postalCode },
+        }}
+      />
+    )
+
+    await user.type(field(/Postal code/), "12")
+    expect(field(/Postal code/).validity.valid).toBe(false)
+
+    await user.selectOptions(country(), "NZ")
+    expect(field(/Postal code/)).toHaveValue("12")
+    expect(field(/Postal code/).validity.valid).toBe(false)
+  })
+
   it("disables every field and passes extra props to the group", () => {
     render(
       <AddressInput
