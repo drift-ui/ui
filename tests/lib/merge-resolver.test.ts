@@ -10,6 +10,7 @@ import {
   isFieldResolved,
   resolveAll,
   type MergeField,
+  type MergeFieldResolution,
   type MergeResolutions,
 } from "@/registry/default/lib/merge-resolver.ts"
 
@@ -83,6 +84,11 @@ describe("getFieldDiff", () => {
     expect(diff.oursSegments).toEqual([{ text: "alpha", changed: true }])
     expect(diff.theirsSegments).toEqual([{ text: "beta", changed: true }])
   })
+
+  it("returns no segments for an empty side of a conflict", () => {
+    expect(getFieldDiff("", "beta").oursSegments).toEqual([])
+    expect(getFieldDiff("alpha", "").theirsSegments).toEqual([])
+  })
 })
 
 describe("isFieldResolved", () => {
@@ -107,6 +113,12 @@ describe("isFieldResolved", () => {
 
   it("returns false for custom choice without customValue", () => {
     expect(isFieldResolved({ choice: "custom" })).toBe(false)
+  })
+
+  it("returns false for an unknown choice", () => {
+    expect(
+      isFieldResolved({ choice: "base" } as unknown as MergeFieldResolution)
+    ).toBe(false)
   })
 })
 
@@ -164,6 +176,13 @@ describe("getMergedRecord", () => {
     }
     const merged = getMergedRecord(SAMPLE_FIELDS, resolutions)
     expect(merged.status).toBe("published")
+  })
+
+  it("uses an empty string for a custom choice without a value", () => {
+    const merged = getMergedRecord(SAMPLE_FIELDS, {
+      title: { choice: "custom" },
+    })
+    expect(merged.title).toBe("")
   })
 
   it("safely handles __proto__ as a field name", () => {

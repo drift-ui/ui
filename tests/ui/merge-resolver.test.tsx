@@ -259,4 +259,32 @@ describe("MergeResolver UI", () => {
       expect(radio).toBeDisabled()
     })
   })
+
+  it("marks empty values and falls back to the field name as label", () => {
+    render(
+      <MergeResolver
+        fields={[
+          { name: "notes", ours: "", theirs: "" },
+          { name: "nickname", ours: "", theirs: "Mo" },
+          { name: "bio", ours: "Designer", theirs: "" },
+        ]}
+      />
+    )
+
+    expect(screen.getByText("notes")).toBeInTheDocument()
+    expect(screen.getAllByText("<empty>")).toHaveLength(3)
+    expect(
+      screen.getByRole("radio", { name: "Ours (Local) for nickname" })
+    ).toBeInTheDocument()
+  })
+
+  it("shows an empty custom input when a custom choice has no value", () => {
+    render(
+      <MergeResolver fields={FIELDS} value={{ title: { choice: "custom" } }} />
+    )
+
+    expect(
+      screen.getByRole("textbox", { name: "Custom value for Title" })
+    ).toHaveValue("")
+  })
 })

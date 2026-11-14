@@ -116,17 +116,16 @@ function MergeResolver({
     [fields]
   )
 
-  const handleChoiceChange = (fieldName: string, choice: MergeFieldChoice) => {
-    const current = resolutions[fieldName]
-    const field = fields.find((f) => f.name === fieldName)
+  const handleChoiceChange = (field: MergeField, choice: MergeFieldChoice) => {
+    const current = resolutions[field.name]
     const customValue =
       choice === "custom"
-        ? (current?.customValue ?? field?.ours ?? "")
+        ? (current?.customValue ?? field.ours)
         : current?.customValue
 
     setResolutions({
       ...resolutions,
-      [fieldName]: {
+      [field.name]: {
         choice,
         customValue,
       },
@@ -148,7 +147,6 @@ function MergeResolver({
   }
 
   const handleSave = () => {
-    if (!allResolved) return
     onResolve?.(getMergedRecord(fields, resolutions))
   }
 
@@ -297,7 +295,7 @@ function MergeResolver({
                     value="ours"
                     checked={fieldRes?.choice === "ours"}
                     disabled={disabled}
-                    onChange={() => handleChoiceChange(field.name, "ours")}
+                    onChange={() => handleChoiceChange(field, "ours")}
                     aria-label={`${oursLabel} for ${fieldLabel}`}
                     aria-describedby={`${fieldId}-ours-value`}
                     className="mt-0.5 size-4 shrink-0 text-primary accent-primary"
@@ -332,7 +330,7 @@ function MergeResolver({
                     value="theirs"
                     checked={fieldRes?.choice === "theirs"}
                     disabled={disabled}
-                    onChange={() => handleChoiceChange(field.name, "theirs")}
+                    onChange={() => handleChoiceChange(field, "theirs")}
                     aria-label={`${theirsLabel} for ${fieldLabel}`}
                     aria-describedby={`${fieldId}-theirs-value`}
                     className="mt-0.5 size-4 shrink-0 text-primary accent-primary"
@@ -368,7 +366,7 @@ function MergeResolver({
                       value="custom"
                       checked={fieldRes?.choice === "custom"}
                       disabled={disabled}
-                      onChange={() => handleChoiceChange(field.name, "custom")}
+                      onChange={() => handleChoiceChange(field, "custom")}
                       aria-label={`${customLabel} for ${fieldLabel}`}
                       className="size-4 shrink-0 text-primary accent-primary"
                     />
