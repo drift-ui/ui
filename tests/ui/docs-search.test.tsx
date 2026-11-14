@@ -114,6 +114,12 @@ describe("DocsSearch", () => {
     expect(push).toHaveBeenCalledWith("/components/radix/file-dropzone")
   })
 
+  it("opens a site page", async () => {
+    await search("contributors{Enter}")
+
+    expect(push).toHaveBeenCalledWith("/contributors")
+  })
+
   it("says so when nothing matches", async () => {
     await search("zzzz")
 

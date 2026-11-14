@@ -61,6 +61,15 @@ describe("ComponentsBrowser", () => {
     expect(mounts).toHaveBeenCalledTimes(2)
   })
 
+  it("filters by category", async () => {
+    const user = userEvent.setup()
+    renderBrowser()
+
+    await user.click(screen.getByRole("radio", { name: /Structure/ }))
+    expect(stepper()).toBeInTheDocument()
+    expect(rating()).not.toBeInTheDocument()
+  })
+
   it("announces how many components match", async () => {
     const user = userEvent.setup()
     renderBrowser()
