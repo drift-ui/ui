@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event"
 import * as React from "react"
 import { describe, expect, it, vi } from "vitest"
 
-import type { Address } from "@/registry/default/lib/address-input"
+import type { Address } from "@/registry/default/lib/address-input-utils"
 import { AddressInput } from "@/registry/default/ui/address-input"
 
 const ADDRESS: Address = {

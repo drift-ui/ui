@@ -38,7 +38,7 @@
           "type": "registry:ui"
         },
         {
-          "path": "registry/default/lib/address-input.ts",
+          "path": "registry/default/lib/address-input-utils.ts",
           "type": "registry:lib"
         },
         {

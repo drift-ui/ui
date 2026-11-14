@@ -13,7 +13,7 @@ import {
   resolveCountryOptions,
   type AddressLayout,
   type AddressLayouts,
-} from "@/registry/default/lib/address-input"
+} from "@/registry/default/lib/address-input-utils"
 import {
   COUNTRY_CODES,
   countryFlag,

@@ -17,7 +17,7 @@ import {
   type AddressLayout,
   type AddressLayouts,
   type AddressType,
-} from "@/registry/default/lib/address-input.ts"
+} from "@/registry/default/lib/address-input-utils"
 import { countryFlag } from "@/registry/default/lib/countries"
 import { cn } from "@/registry/default/lib/utils"
 import { Input } from "@/registry/default/ui/input"
