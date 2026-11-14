@@ -1870,6 +1870,131 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "(query: string, { signal }: { signal: AbortSignal }) => Promise<MentionOption[]>. Pass the signal to fetch; the request is aborted when the query changes or the list closes. A rejected promise shows the error state. The first 8 results are shown.",
     },
   ],
+  "merge-resolver": [
+    {
+      name: "MergeResolver",
+      description:
+        "Resolves conflicts between two versions of a structured record on a field-by-field basis. Displays word-level diff highlights distinguishing changes using semantic ins/del tags, offers ours/theirs/custom choices, supports batch acceptance, and announces remaining conflicts to screen readers.",
+      props: [
+        {
+          name: "fields",
+          type: "MergeField[]",
+          required: true,
+          description:
+            "List of fields with name, optional label, ours value, theirs value, and optional base value.",
+        },
+        STATE_PROPS.value("MergeResolutions", "resolutions"),
+        STATE_PROPS.defaultValue("MergeResolutions", "{}"),
+        STATE_PROPS.onValueChange(
+          "(resolutions: MergeResolutions) => void",
+          "when any field's resolution choice or custom value changes"
+        ),
+        {
+          name: "onResolve",
+          type: "(merged: MergedRecord) => void",
+          description:
+            "Called when the save resolutions button is clicked with the fully resolved record.",
+        },
+        {
+          name: "oursLabel",
+          type: "string",
+          default: '"Ours (Local)"',
+          description: "Label for the local/ours option.",
+        },
+        {
+          name: "theirsLabel",
+          type: "string",
+          default: '"Theirs (Remote)"',
+          description: "Label for the remote/theirs option.",
+        },
+        {
+          name: "customLabel",
+          type: "string",
+          default: '"Custom"',
+          description: "Label for the custom override option.",
+        },
+        {
+          name: "resolveLabel",
+          type: "string",
+          default: '"Save resolutions"',
+          description: "Text on the submit/resolve button.",
+        },
+        {
+          name: "acceptAllOursLabel",
+          type: "string",
+          default: '"Accept all ours"',
+          description: "Text on the batch accept ours button.",
+        },
+        {
+          name: "acceptAllTheirsLabel",
+          type: "string",
+          default: '"Accept all theirs"',
+          description: "Text on the batch accept theirs button.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description:
+            "Disables all radio inputs, custom text inputs, and action buttons.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "MergeField",
+      description: "A single record field undergoing conflict evaluation.",
+      props: [
+        {
+          name: "name",
+          type: "string",
+          required: true,
+          description: "Unique field identifier in the record.",
+        },
+        {
+          name: "ours",
+          type: "string",
+          required: true,
+          description: "Local version of the field value.",
+        },
+        {
+          name: "theirs",
+          type: "string",
+          required: true,
+          description: "Remote or conflicting version of the field value.",
+        },
+        {
+          name: "label",
+          type: "string",
+          description: "Human-readable label shown in the UI header.",
+        },
+        {
+          name: "base",
+          type: "string",
+          description:
+            "Common ancestor value for 3-way context display if available.",
+        },
+      ],
+    },
+    {
+      name: "MergeFieldResolution",
+      description:
+        "The resolution choice and optional custom value for one field.",
+      props: [
+        {
+          name: "choice",
+          type: '"ours" | "theirs" | "custom"',
+          required: true,
+          description: "Which option was chosen for this field.",
+        },
+        {
+          name: "customValue",
+          type: "string",
+          description: "Custom value when choice is 'custom'.",
+        },
+      ],
+    },
+  ],
   "multi-select": [
     {
       name: "MultiSelect",

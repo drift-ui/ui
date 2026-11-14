@@ -574,6 +574,28 @@ export function CommentBox() {
   return <MentionTextarea aria-label="Comment" placeholder="Write a comment" triggers={{ "@": people, "#": searchChannels }} />
 }`,
   },
+  "merge-resolver": {
+    notes:
+      'Field-by-field merge resolver for structured records encountering simultaneous or offline edits. fields: MergeField[] with name, ours, theirs, and optional label/base. Non-conflicting fields (ours === theirs) are marked as resolved automatically. Conflicting fields display word-level diffs with semantic <ins> and <del> tags. Radiogroup per field supports picking ours, theirs, or custom with an inline text input. Features live polite screen-reader announcements of remaining conflicts, batch "Accept all ours" / "Accept all theirs" actions, and a save button that stays disabled until every conflict is resolved.',
+    example: `"use client"
+
+import { MergeResolver } from "@/components/ui/merge-resolver"
+
+const fields = [
+  { name: "title", label: "Title", ours: "Draft Roadmap", theirs: "Final Roadmap" },
+  { name: "status", label: "Status", ours: "published", theirs: "published" },
+  { name: "description", label: "Description", ours: "Sprint dates added", theirs: "Milestones updated" },
+]
+
+export function DocumentMerge() {
+  return (
+    <MergeResolver
+      fields={fields}
+      onResolve={(merged) => console.log("Merged record:", merged)}
+    />
+  )
+}`,
+  },
   "multi-select": {
     notes:
       "Pick several values from a known list. options: { value, label, group? }[]. Controlled with value/onValueChange or uncontrolled with defaultValue, both string[]. Typing filters, Enter toggles the highlighted option, Backspace on an empty field selects then removes the last chip, and a clear button empties the selection. Props: maxSelected (disables unselected options when reached and hides Select all), maxVisibleChips (collapses the rest into +N). Spreads remaining props onto the inner input, so id, placeholder and aria-label work. For free text use tags-input instead.",

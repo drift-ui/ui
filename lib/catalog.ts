@@ -114,6 +114,11 @@ const ENTRY_LAYOUT: {
     isFlagship: true,
     stageClassName: "flex-col flex-nowrap items-stretch justify-start",
   },
+  {
+    slug: "merge-resolver",
+    category: "workflow",
+    stageClassName: "flex-col flex-nowrap items-stretch",
+  },
   { slug: "notification-inbox", category: "workflow" },
   {
     slug: "onboarding-checklist",

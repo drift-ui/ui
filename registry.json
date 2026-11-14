@@ -587,6 +587,35 @@
       ]
     },
     {
+      "name": "merge-resolver",
+      "type": "registry:ui",
+      "title": "Merge Resolver",
+      "description": "Per-field conflict resolution for structured records with diff highlights, custom overrides, and batch actions.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "utils",
+        "badge",
+        "button",
+        "input",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/merge-resolver.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/merge-resolver.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/diff.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "multi-select",
       "type": "registry:ui",
       "title": "Multi Select",

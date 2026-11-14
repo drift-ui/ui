@@ -44,6 +44,7 @@ import { LabelPreview } from "@/components/preview/label-preview"
 import { LogViewerPreview } from "@/components/preview/log-viewer-preview"
 import { MaskedInputPreview } from "@/components/preview/masked-input-preview"
 import { MentionTextareaPreview } from "@/components/preview/mention-textarea-preview"
+import { MergeResolverPreview } from "@/components/preview/merge-resolver-preview"
 import { MultiSelectPreview } from "@/components/preview/multi-select-preview"
 import { NotificationInboxPreview } from "@/components/preview/notification-inbox-preview"
 import { NumberInputPreview } from "@/components/preview/number-input-preview"
@@ -106,6 +107,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "log-viewer": LogViewerPreview,
   "masked-input": MaskedInputPreview,
   "mention-textarea": MentionTextareaPreview,
+  "merge-resolver": MergeResolverPreview,
   "multi-select": MultiSelectPreview,
   "notification-inbox": NotificationInboxPreview,
   "number-input": NumberInputPreview,
