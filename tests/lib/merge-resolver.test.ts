@@ -12,7 +12,7 @@ import {
   type MergeField,
   type MergeFieldResolution,
   type MergeResolutions,
-} from "@/registry/default/lib/merge-resolver.ts"
+} from "@/registry/default/lib/merge-resolver-utils"
 
 const SAMPLE_FIELDS: MergeField[] = [
   {

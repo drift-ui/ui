@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest"
 import type {
   MergeField,
   MergeResolutions,
-} from "@/registry/default/lib/merge-resolver.ts"
+} from "@/registry/default/lib/merge-resolver-utils"
 import { MergeResolver } from "@/registry/default/ui/merge-resolver"
 
 const FIELDS: MergeField[] = [

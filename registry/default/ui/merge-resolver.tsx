@@ -4,7 +4,7 @@ import * as React from "react"
 import { CheckIcon, GitMergeIcon } from "lucide-react"
 
 import { useControllableState } from "@/registry/default/hooks/use-controllable-state"
-import type { DiffSegment } from "@/registry/default/lib/diff.ts"
+import type { DiffSegment } from "@/registry/default/lib/diff"
 import {
   getConflictAnnouncement,
   getFieldDiff,
@@ -18,7 +18,7 @@ import {
   type MergeField,
   type MergeFieldChoice,
   type MergeResolutions,
-} from "@/registry/default/lib/merge-resolver.ts"
+} from "@/registry/default/lib/merge-resolver-utils"
 import { cn } from "@/registry/default/lib/utils"
 import { Badge } from "@/registry/default/ui/badge"
 import { Button } from "@/registry/default/ui/button"
