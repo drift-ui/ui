@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import { UptimeBar, UptimeBarLegend } from "@/registry/default/ui/uptime-bar"
-import type { UptimeDay } from "@/registry/default/lib/uptime-bar"
+import type { UptimeDay } from "@/registry/default/lib/uptime-bar-utils"
 
 const SAMPLE_DAYS: UptimeDay[] = [
   {

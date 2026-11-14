@@ -5,7 +5,7 @@ import {
   getNextRunTimes,
   isCronMatch,
   parseCron,
-} from "@/registry/default/lib/cron-input"
+} from "@/registry/default/lib/cron-input-utils"
 
 describe("parseCron", () => {
   it("parses valid 5-field cron expressions", () => {

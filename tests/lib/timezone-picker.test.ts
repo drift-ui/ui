@@ -9,7 +9,7 @@ import {
   listTimezones,
   parseOffsetMinutes,
   toCurrentTimezoneName,
-} from "@/registry/default/lib/timezone-picker"
+} from "@/registry/default/lib/timezone-picker-utils"
 
 // Fixed dates on both sides of northern daylight saving, so the suite passes all year.
 const WINTER = new Date("2026-01-15T12:00:00Z")

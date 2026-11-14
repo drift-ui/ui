@@ -17,7 +17,7 @@ import {
   type SpanStatus,
   type TimeTick,
   type TraceBounds,
-} from "@/registry/default/lib/trace-waterfall.ts"
+} from "@/registry/default/lib/trace-waterfall-utils"
 import { cn } from "@/registry/default/lib/utils"
 
 export type { Span, SpanStatus }

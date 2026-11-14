@@ -9,7 +9,7 @@ import {
   getCurrencyInfo,
   parseCurrency,
   unmaskValue,
-} from "@/registry/default/lib/masked-input"
+} from "@/registry/default/lib/masked-input-utils"
 
 describe("masked-input logic", () => {
   describe("applyMask and unmaskValue", () => {

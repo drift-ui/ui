@@ -7,7 +7,7 @@ import {
   readableDuration,
   toastText,
   trackPause,
-} from "@/registry/default/lib/toast"
+} from "@/registry/default/lib/toast-utils"
 
 describe("readableDuration", () => {
   it("never drops below the minimum", () => {

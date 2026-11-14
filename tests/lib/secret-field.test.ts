@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { getVisibleTail, maskSecret } from "@/registry/default/lib/secret-field"
+import {
+  getVisibleTail,
+  maskSecret,
+} from "@/registry/default/lib/secret-field-utils"
 
 describe("secret-field logic", () => {
   it("masks everything but the last visibleChars", () => {

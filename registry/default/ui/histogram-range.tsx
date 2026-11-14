@@ -7,7 +7,7 @@ import { useControllableState } from "@/registry/default/hooks/use-controllable-
 import {
   buildHistogramBuckets,
   clampRange,
-} from "@/registry/default/lib/histogram-range.ts"
+} from "@/registry/default/lib/histogram-range-utils"
 import { cn } from "@/registry/default/lib/utils"
 
 export interface HistogramRangeProps extends Omit<

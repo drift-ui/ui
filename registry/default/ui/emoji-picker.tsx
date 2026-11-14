@@ -30,7 +30,7 @@ import {
   type Emoji,
   type EmojiCell,
   type SkinTone,
-} from "@/registry/default/lib/emoji-picker.ts"
+} from "@/registry/default/lib/emoji-picker-utils"
 import { cn } from "@/registry/default/lib/utils"
 import { Input } from "@/registry/default/ui/input"
 

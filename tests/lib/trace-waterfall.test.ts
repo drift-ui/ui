@@ -11,7 +11,7 @@ import {
   getSpanColorClass,
   stepSpanRow,
   type Span,
-} from "@/registry/default/lib/trace-waterfall"
+} from "@/registry/default/lib/trace-waterfall-utils"
 
 const SAMPLE_SPANS: Span[] = [
   { id: "1", name: "GET /orders", start: 0, duration: 240, service: "gateway" },

@@ -4,7 +4,7 @@ import {
   buildHistogramBuckets,
   clampRange,
   isBucketInRange,
-} from "@/registry/default/lib/histogram-range"
+} from "@/registry/default/lib/histogram-range-utils"
 
 describe("clampRange", () => {
   it("clamps and orders values within min and max", () => {

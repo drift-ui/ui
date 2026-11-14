@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import {
   formatRange,
   timeZoneLabel,
-} from "@/registry/default/lib/date-time-range"
+} from "@/registry/default/lib/date-time-range-utils"
 import { DateTimeRangePicker } from "@/registry/default/ui/date-time-range"
 
 const TODAY = new Date(2026, 2, 9, 10, 0)

@@ -5,7 +5,7 @@ import {
   getCompletedCount,
   isItemCompleted,
   toggleItem,
-} from "@/registry/default/lib/onboarding-checklist"
+} from "@/registry/default/lib/onboarding-checklist-utils"
 
 describe("calculateProgress", () => {
   it("computes percentage and ratio text accurately", () => {

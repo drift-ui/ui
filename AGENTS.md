@@ -25,7 +25,7 @@ bun run format
 | Path                                    | What                                                    |
 | --------------------------------------- | ------------------------------------------------------- |
 | `registry/default/ui/<name>.tsx`        | Component source, the thing users install               |
-| `registry/default/lib/<name>.ts`        | Pure logic behind a component, tested without rendering |
+| `registry/default/lib/<name>-utils.ts`  | Pure logic behind a component, tested without rendering |
 | `registry/base/ui/<name>.tsx`           | Base UI version of a file that depends on Radix         |
 | `registry.json`                         | Registry manifest read by `shadcn build`                |
 | `components/preview/<name>-preview.tsx` | Live demo and usage example on the docs page            |
@@ -73,7 +73,7 @@ git switch -c <type>/<n>-<short-slug>     # e.g. feat/14-avatar-group, fix/31-st
 
 For a new component, follow every step of [Adding a component](CONTRIBUTING.md#adding-a-component) and the [component guidelines](CONTRIBUTING.md#component-guidelines). The short version:
 
-1. `registry/default/ui/<name>.tsx`, with pure logic in `registry/default/lib/<name>.ts`
+1. `registry/default/ui/<name>.tsx`, with pure logic in `registry/default/lib/<name>-utils.ts`
 2. Entry in `registry.json` with `dependencies` and `registryDependencies` (shadcn built-ins by bare name, like `button`; `@drift-ui/` prefix only for drift-only items)
 3. `components/preview/<name>-preview.tsx`, registered in `components/docs/preview-registry.tsx`
 4. Category in `lib/catalog.ts`

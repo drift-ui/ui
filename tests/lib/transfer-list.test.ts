@@ -8,7 +8,7 @@ import {
   partitionItems,
   selectRange,
   type TransferItem,
-} from "@/registry/default/lib/transfer-list"
+} from "@/registry/default/lib/transfer-list-utils"
 
 const SAMPLE_ITEMS: TransferItem[] = [
   { id: "1", label: "Admin", description: "Full access" },

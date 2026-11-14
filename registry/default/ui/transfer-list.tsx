@@ -22,7 +22,7 @@ import {
   partitionItems,
   selectRange,
   type TransferItem,
-} from "@/registry/default/lib/transfer-list.ts"
+} from "@/registry/default/lib/transfer-list-utils"
 import { Button } from "@/registry/default/ui/button"
 import { Input } from "@/registry/default/ui/input"
 

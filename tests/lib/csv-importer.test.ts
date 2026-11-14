@@ -11,7 +11,7 @@ import {
   validateRow,
   type CsvField,
   type CsvRowRecord,
-} from "@/registry/default/lib/csv-importer"
+} from "@/registry/default/lib/csv-importer-utils"
 
 describe("stripBom", () => {
   it("removes UTF-8 BOM character from start of string", () => {

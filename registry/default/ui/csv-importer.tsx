@@ -20,7 +20,7 @@ import {
   updateRowValue,
   type CsvField,
   type CsvRowRecord,
-} from "@/registry/default/lib/csv-importer.ts"
+} from "@/registry/default/lib/csv-importer-utils"
 import { cn } from "@/registry/default/lib/utils"
 import { Badge } from "@/registry/default/ui/badge"
 import { Button } from "@/registry/default/ui/button"

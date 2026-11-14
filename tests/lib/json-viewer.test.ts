@@ -13,7 +13,7 @@ import {
   rootEntries,
   searchJson,
   truncateString,
-} from "@/registry/default/lib/json-viewer"
+} from "@/registry/default/lib/json-viewer-utils"
 
 const DATA = {
   id: "evt_1",

@@ -13,7 +13,7 @@ import {
   isAllowedNumber,
   PHONE_COUNTRIES,
   resolveCountries,
-} from "@/registry/default/lib/phone-input"
+} from "@/registry/default/lib/phone-input-utils"
 
 function codesFor(query: string) {
   return filterCountries(PHONE_COUNTRIES, query).map((country) => country.code)

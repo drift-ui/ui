@@ -16,13 +16,13 @@ import {
   stepNode,
   toggleChecked,
   type NodeRow,
-} from "@/registry/default/lib/tree-view.ts"
+} from "@/registry/default/lib/tree-view-utils"
 import { cn } from "@/registry/default/lib/utils"
 import {
   rowOffsets,
   scrollTopToReveal,
   visibleRange,
-} from "@/registry/default/lib/virtual-list"
+} from "@/registry/default/lib/virtual-list-utils"
 
 type TreeNode = {
   id: string

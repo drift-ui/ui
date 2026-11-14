@@ -3,7 +3,7 @@ import { act, render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
-import type { Comment } from "@/registry/default/lib/comment-thread"
+import type { Comment } from "@/registry/default/lib/comment-thread-utils"
 import { CommentThread } from "@/registry/default/ui/comment-thread"
 
 const NOW = new Date("2026-11-04T12:00:00Z")

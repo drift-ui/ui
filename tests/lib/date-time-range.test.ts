@@ -14,7 +14,7 @@ import {
   timeOf,
   timeZoneLabel,
   withTime,
-} from "@/registry/default/lib/date-time-range"
+} from "@/registry/default/lib/date-time-range-utils"
 
 const MIN = new Date(2026, 2, 5, 8, 0)
 const MAX = new Date(2026, 2, 20, 18, 0)

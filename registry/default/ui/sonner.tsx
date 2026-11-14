@@ -31,7 +31,7 @@ import {
   trackPause,
   type PersistedToast,
   type UndoTimer,
-} from "@/registry/default/lib/toast"
+} from "@/registry/default/lib/toast-utils"
 
 type ToastMessage = Parameters<typeof sonnerToast>[0]
 
