@@ -42,7 +42,7 @@ export function CatalogBand() {
                 {row.total}
               </span>
               <span className="flex flex-col gap-1">
-                <span className="font-display text-2xl font-semibold tracking-tight underline-offset-4 group-hover:underline">
+                <span className="font-display text-2xl font-semibold tracking-tight underline-offset-4 transition-colors group-hover:text-brand">
                   {row.label}
                 </span>
                 <span className="text-sm text-muted-foreground">
@@ -56,7 +56,7 @@ export function CatalogBand() {
               </span>
               <ArrowRightIcon
                 aria-hidden
-                className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground md:block"
+                className="hidden size-4 text-muted-foreground transition-[color,translate] group-hover:translate-x-0.5 group-hover:text-brand md:block"
               />
             </Link>
           </li>

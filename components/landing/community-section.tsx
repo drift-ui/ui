@@ -56,7 +56,7 @@ function ContributorCount({ total }: { total: number }) {
     <Link
       href="/contributors"
       prefetch={false}
-      className="group flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      className="group flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-brand"
     >
       {total} people have shipped code to drift-ui
       <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" />
