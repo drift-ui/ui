@@ -38,11 +38,11 @@ export function CatalogBand() {
               prefetch={false}
               className="group grid gap-x-8 gap-y-2 py-6 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 md:grid-cols-[4rem_minmax(0,16rem)_minmax(0,1fr)_auto] md:items-baseline"
             >
-              <span className="font-mono text-sm text-muted-foreground tabular-nums">
+              <span className="font-display text-3xl leading-none font-semibold tracking-[-0.04em] text-brand tabular-nums">
                 {row.total}
               </span>
               <span className="flex flex-col gap-1">
-                <span className="font-display text-2xl font-semibold tracking-tight underline-offset-4 group-hover:underline">
+                <span className="font-display text-2xl font-semibold tracking-tight underline-offset-4 transition-colors group-hover:text-brand">
                   {row.label}
                 </span>
                 <span className="text-sm text-muted-foreground">
@@ -56,7 +56,7 @@ export function CatalogBand() {
               </span>
               <ArrowRightIcon
                 aria-hidden
-                className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground md:block"
+                className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-brand md:block"
               />
             </Link>
           </li>

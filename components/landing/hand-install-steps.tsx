@@ -39,9 +39,9 @@ export function HandInstallSteps() {
       note: "The source is now yours, in your ui folder.",
       body: (
         <code className="block min-h-10 rounded-md border bg-card/60 px-3.5 py-2 font-mono text-[13px] text-muted-foreground">
-          <span>import</span>
+          <span className="text-brand">import</span>
           <span className="text-foreground">{" { TagsInput } "}</span>
-          <span>from</span>
+          <span className="text-brand">from</span>
           <span className="text-foreground">
             {' "@/components/ui/tags-input"'}
           </span>

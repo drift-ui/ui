@@ -17,6 +17,7 @@ import { Input } from "@/registry/default/ui/input"
 import { Label } from "@/registry/default/ui/label"
 import { TagsInput } from "@/registry/default/ui/tags-input"
 import { SectionHeading } from "@/components/landing/section-heading"
+import { SlotPattern } from "@/components/landing/slot-pattern"
 import { StylePicker } from "@/components/showcase/style-picker"
 import { radiusScaleCss } from "@/components/theme-scope-style"
 import { DEFAULT_STYLE, scopeStyleCss } from "@/lib/style-tokens"
@@ -52,7 +53,11 @@ export function FitSection() {
       />
       <div className="mt-14 grid gap-8 md:mt-20 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="flex min-w-0 flex-col gap-8">
-          <StylePicker value={style} onValueChange={setStyle} />
+          <StylePicker
+            value={style}
+            onValueChange={setStyle}
+            className="[&_[aria-pressed=true]]:border-brand [&_[aria-pressed=true]]:bg-brand/10"
+          />
           <dl className="border-t text-sm">
             {FACTS.map((fact) => (
               <div
@@ -66,13 +71,14 @@ export function FitSection() {
           </dl>
           <Link
             href="/themes"
-            className="group flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="group flex w-fit items-center gap-1.5 text-sm font-medium text-brand"
           >
             Try every style with your colors
             <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
-        <div className="grid min-w-0 place-items-center rounded-3xl border bg-muted/20 p-4 sm:p-10">
+        <div className="relative isolate grid min-w-0 place-items-center overflow-hidden rounded-3xl border border-brand/25 bg-brand-solid/[0.07] p-4 sm:p-10">
+          <SlotPattern className="absolute inset-0 -z-10 size-full text-brand/15" />
           <style>
             {`${radiusScaleCss(DEMO_SCOPE)}\n${scopeStyleCss(style, DEMO_SCOPE)}`}
           </style>
