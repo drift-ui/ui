@@ -218,6 +218,96 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       ],
     },
   ],
+  "availability-grid": [
+    {
+      name: "AvailabilityGrid",
+      description:
+        "A scheduling grid of days by time slots for setting weekly working hours or booking availability. Users drag or use arrow keys and Space to select slots. Supports time zone conversion, midnight range splitting, and half-hour offsets.",
+      props: [
+        STATE_PROPS.value("AvailabilityRange[]", "weekly availability ranges"),
+        STATE_PROPS.defaultValue("AvailabilityRange[]", "an empty array"),
+        STATE_PROPS.onValueChange(
+          "(value: AvailabilityRange[]) => void",
+          "when slots are selected, cleared, or when timeZone shifts existing ranges"
+        ),
+        {
+          name: "timeZone",
+          type: "string",
+          description:
+            "IANA time zone string (e.g. 'Europe/Berlin', 'Asia/Kolkata'). Changing timeZone converts existing ranges and splits them across midnight when necessary.",
+        },
+        {
+          name: "slotMinutes",
+          type: "number",
+          default: "30",
+          description:
+            "Duration of each time slot in minutes (e.g. 15, 30, 60).",
+        },
+        {
+          name: "startHour",
+          type: "number",
+          default: "8",
+          description:
+            "Earliest hour displayed on the vertical time axis (0-23).",
+        },
+        {
+          name: "endHour",
+          type: "number",
+          default: "20",
+          description:
+            "Latest hour displayed on the vertical time axis (1-24).",
+        },
+        {
+          name: "weekdays",
+          type: "Weekday[]",
+          default: "WEEKDAYS",
+          description:
+            "Weekdays to display as columns (e.g. ['MO', 'TU', 'WE', 'TH', 'FR']).",
+        },
+        {
+          name: "referenceDate",
+          type: "Date",
+          description:
+            "Reference date used to calculate UTC offsets when converting time zones.",
+        },
+        {
+          name: "hourCycle",
+          type: "12 | 24",
+          default: "24",
+          description:
+            "Time format displayed in row headers and accessible cell labels.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables all user interaction and dims the grid.",
+        },
+        {
+          name: "readOnly",
+          type: "boolean",
+          default: "false",
+          description:
+            "Allows keyboard navigation without permitting slot changes.",
+        },
+        {
+          name: "showSummary",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to render the weekly total hours summary footer.",
+        },
+        {
+          name: "showActions",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to show the Select all and Clear action buttons.",
+        },
+      ],
+      rest: "div",
+    },
+  ],
   avatar: [
     {
       name: "Avatar",
