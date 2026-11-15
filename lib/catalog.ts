@@ -57,7 +57,6 @@ const ENTRY_LAYOUT: {
   isFlagship?: boolean
 }[] = [
   { slug: "address-input", category: "inputs" },
-  { slug: "availability-grid", category: "inputs" },
   { slug: "color-picker", category: "inputs" },
   { slug: "cron-input", category: "inputs" },
   { slug: "date-time-range", category: "inputs", isFlagship: true },
@@ -85,6 +84,7 @@ const ENTRY_LAYOUT: {
   { slug: "time-field", category: "inputs", stageClassName: "gap-8" },
   { slug: "timezone-picker", category: "inputs" },
   { slug: "unit-input", category: "inputs" },
+  { slug: "weekly-hours", category: "inputs" },
   { slug: "activity-heatmap", category: "structure" },
   { slug: "avatar-group", category: "structure" },
   { slug: "description-list", category: "structure" },
