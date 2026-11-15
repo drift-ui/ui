@@ -362,8 +362,11 @@ export function AvailabilityGrid({
         disabled && "pointer-events-none opacity-60",
         className
       )}
-      onPointerUp={handlePointerUp}
       {...props}
+      onPointerUp={(e) => {
+        handlePointerUp(e)
+        props.onPointerUp?.(e)
+      }}
     >
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}

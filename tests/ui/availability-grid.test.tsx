@@ -263,6 +263,38 @@ describe("AvailabilityGrid", () => {
     expect(onValueChange).not.toHaveBeenCalled()
   })
 
+  it("composes caller-provided onPointerUp and ends dragging", () => {
+    const onPointerUp = vi.fn()
+    const onValueChange = vi.fn()
+    const { container } = render(
+      <AvailabilityGrid
+        onPointerUp={onPointerUp}
+        onValueChange={onValueChange}
+        startHour={9}
+        endHour={11}
+        slotMinutes={60}
+      />
+    )
+
+    const cell1 = screen.getByRole("gridcell", {
+      name: "Monday, 09:00 – 10:00",
+    })
+    const cell2 = screen.getByRole("gridcell", {
+      name: "Tuesday, 09:00 – 10:00",
+    })
+
+    fireEvent.pointerDown(cell1, { button: 0 })
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+
+    const root = container.firstElementChild as HTMLElement
+    fireEvent.pointerUp(root)
+    expect(onPointerUp).toHaveBeenCalledTimes(1)
+
+    // Pointer enter should not trigger another selection because dragging has ended
+    fireEvent.pointerEnter(cell2)
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+  })
+
   it("passes axe-core accessibility checks with 0 violations", async () => {
     const { container } = render(
       <AvailabilityGrid
