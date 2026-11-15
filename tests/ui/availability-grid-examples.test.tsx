@@ -20,6 +20,11 @@ describe("AvailabilityGrid previews and examples", () => {
     fireEvent.click(resetBtn)
 
     expect(screen.getByText(/in Europe\/Berlin/i)).toBeInTheDocument()
+    expect(screen.getByText(/Schedule \(39 hrs/i)).toBeInTheDocument()
+    const mondayCell = screen.getByRole("gridcell", {
+      name: "Monday, 09:00 – 09:30",
+    })
+    expect(mondayCell).toHaveAttribute("aria-selected", "true")
   })
 
   it("renders basic example", () => {
@@ -30,7 +35,7 @@ describe("AvailabilityGrid previews and examples", () => {
 
   it("renders timezone example and changes timezone", () => {
     render(<AvailabilityGridTimezonePreview />)
-    expect(screen.getAllByText(/24 hrs/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/18 hrs/i).length).toBeGreaterThan(0)
 
     const select = screen.getByRole("combobox")
     fireEvent.change(select, { target: { value: "Europe/Berlin" } })

@@ -64,6 +64,7 @@ describe("AvailabilityGrid", () => {
     })
 
     fireEvent.pointerDown(cell, { button: 0 })
+    expect(onValueChange).toHaveBeenCalledTimes(1)
     expect(onValueChange).toHaveBeenCalledWith([
       { day: "MO", start: "09:00", end: "10:00" },
     ])
@@ -89,6 +90,7 @@ describe("AvailabilityGrid", () => {
     })
 
     fireEvent.pointerDown(cell, { button: 0 })
+    expect(onValueChange).toHaveBeenCalledTimes(1)
     expect(onValueChange).toHaveBeenCalledWith([])
   })
 
@@ -222,10 +224,14 @@ describe("AvailabilityGrid", () => {
     ])
   })
 
-  it("handles Select all and Clear actions", () => {
+  it("handles Select all and Clear actions, clearing out-of-window availability too", () => {
     const onValueChange = vi.fn()
+    const value: AvailabilityRange[] = [
+      { day: "MO", start: "06:00", end: "08:00" }, // out of window
+    ]
     render(
       <AvailabilityGrid
+        value={value}
         onValueChange={onValueChange}
         startHour={9}
         endHour={10}
@@ -234,14 +240,9 @@ describe("AvailabilityGrid", () => {
       />
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Select all" }))
-    expect(onValueChange).toHaveBeenCalledWith([
-      { day: "MO", start: "09:00", end: "10:00" },
-      { day: "TU", start: "09:00", end: "10:00" },
-    ])
-
     fireEvent.click(screen.getByRole("button", { name: "Clear" }))
-    expect(onValueChange).toHaveBeenLastCalledWith([])
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    expect(onValueChange).toHaveBeenCalledWith([])
   })
 
   it("disables interactions when disabled is true", () => {

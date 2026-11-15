@@ -312,6 +312,32 @@ describe("convertAvailabilityTimeZone", () => {
     )
     expect(converted).toEqual([{ day: "SU", start: "19:00", end: "21:00" }])
   })
+
+  it("accounts for daylight-saving time differences when using a summer reference date", () => {
+    const ranges: AvailabilityRange[] = [
+      { day: "MO", start: "09:00", end: "17:00" },
+    ]
+    const winterDate = new Date("2025-01-15T12:00:00Z")
+    const summerDate = new Date("2025-07-15T12:00:00Z")
+
+    const winter = convertAvailabilityTimeZone(
+      ranges,
+      "UTC",
+      "Europe/London",
+      winterDate
+    )
+    const summer = convertAvailabilityTimeZone(
+      ranges,
+      "UTC",
+      "Europe/London",
+      summerDate
+    )
+
+    // In January, London is GMT (UTC+0)
+    expect(winter).toEqual([{ day: "MO", start: "09:00", end: "17:00" }])
+    // In July, London is BST (UTC+1)
+    expect(summer).toEqual([{ day: "MO", start: "10:00", end: "18:00" }])
+  })
 })
 
 describe("summaries and announcements", () => {
@@ -326,6 +352,17 @@ describe("summaries and announcements", () => {
     expect(summary.daysCount).toBe(2)
   })
 
+  it("merges overlapping ranges before calculating summary", () => {
+    const ranges: AvailabilityRange[] = [
+      { day: "MO", start: "09:00", end: "12:00" }, // 3h
+      { day: "MO", start: "11:00", end: "14:00" }, // overlaps by 1h, total spans 5h
+    ]
+    const summary = getAvailabilitySummary(ranges)
+    expect(summary.totalMinutes).toBe(300)
+    expect(summary.totalHours).toBe(5)
+    expect(summary.daysCount).toBe(1)
+  })
+
   it("generates polite live region announcements", () => {
     expect(getAvailabilityAnnouncement([])).toBe("No availability selected")
 
@@ -335,5 +372,29 @@ describe("summaries and announcements", () => {
     expect(getAvailabilityAnnouncement(ranges)).toBe(
       "3 hrs 30 mins available across 1 day"
     )
+  })
+})
+
+describe("edge cases and slot validation", () => {
+  it("rejects non-positive slotMinutes without freezing", () => {
+    expect(generateTimeSlots(8, 20, 0)).toEqual([])
+    expect(generateTimeSlots(8, 20, -15)).toEqual([])
+    expect(
+      rangesToSlots([{ day: "MO", start: "09:00", end: "17:00" }], 0)
+    ).toEqual(new Set())
+    expect(slotsToRanges(["MO|09:00"], -30)).toEqual([])
+  })
+
+  it("maps off-grid intervals to overlapping slot boundaries", () => {
+    // 14:45-15:45 on a 30m grid overlaps 14:30-15:00, 15:00-15:30, and 15:30-16:00
+    const slots = rangesToSlots(
+      [{ day: "MO", start: "14:45", end: "15:45" }],
+      30
+    )
+    expect(Array.from(slots).sort()).toEqual([
+      "MO|14:30",
+      "MO|15:00",
+      "MO|15:30",
+    ])
   })
 })

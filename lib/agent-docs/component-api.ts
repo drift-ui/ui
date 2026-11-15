@@ -222,7 +222,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "AvailabilityGrid",
       description:
-        "A scheduling grid of days by time slots for setting weekly working hours or booking availability. Users drag or use arrow keys and Space to select slots. Supports time zone conversion, midnight range splitting, and half-hour offsets.",
+        "A scheduling grid of days by time slots for setting weekly working hours or booking availability. Users navigate with arrow keys, Home/End, and PageUp/PageDown, toggle slots with Space, extend selection with Shift+arrows, or drag with mouse/touch. Supports time zone conversion, midnight range splitting, and half-hour offsets.",
       props: [
         STATE_PROPS.value("AvailabilityRange[]", "weekly availability ranges"),
         STATE_PROPS.defaultValue("AvailabilityRange[]", "an empty array"),

@@ -75,20 +75,29 @@ export function AvailabilityGrid({
   })
 
   const currentRanges = ranges ?? EMPTY_RANGES
+  const prevRangesRef = React.useRef(currentRanges)
   const prevTimeZoneRef = React.useRef(timeZone)
 
   React.useEffect(() => {
     const prevZone = prevTimeZoneRef.current
+    const rangesChanged = prevRangesRef.current !== currentRanges
+    prevRangesRef.current = currentRanges
+
     if (timeZone && prevZone && prevZone !== timeZone) {
-      const converted = convertAvailabilityTimeZone(
-        currentRanges,
-        prevZone,
-        timeZone,
-        referenceDate
-      )
-      setRanges(converted)
+      prevTimeZoneRef.current = timeZone
+      if (!rangesChanged) {
+        const converted = convertAvailabilityTimeZone(
+          currentRanges,
+          prevZone,
+          timeZone,
+          referenceDate
+        )
+        setRanges(converted)
+        prevRangesRef.current = converted
+      }
+    } else {
+      prevTimeZoneRef.current = timeZone
     }
-    prevTimeZoneRef.current = timeZone
   }, [timeZone, currentRanges, referenceDate, setRanges])
 
   const timeSlots = React.useMemo(
@@ -150,10 +159,12 @@ export function AvailabilityGrid({
       anchor: [row, col],
     })
 
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId)
-    } catch {
-      // Ignore if pointer capture is not supported
+    if (e.pointerType === "touch") {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId)
+      } catch {
+        // Ignore if pointer capture is not supported
+      }
     }
   }
 
@@ -336,13 +347,7 @@ export function AvailabilityGrid({
 
   const handleClear = () => {
     if (disabled || readOnly) return
-    const allSlots: { day: Weekday; time: string }[] = []
-    for (const d of weekdays) {
-      for (const t of timeSlots) {
-        allSlots.push({ day: d, time: t })
-      }
-    }
-    setRanges(setSlotsSelected(currentRanges, allSlots, false, slotMinutes))
+    setRanges([])
   }
 
   const announcement = React.useMemo(

@@ -64,6 +64,7 @@ export function generateTimeSlots(
   endHour = 20,
   slotMinutes = 30
 ): string[] {
+  if (slotMinutes <= 0) return []
   const slots: string[] = []
   const startMin = Math.max(0, startHour * 60)
   const endMin = Math.min(1440, endHour * 60)
@@ -124,11 +125,18 @@ export function rangesToSlots(
   slotMinutes = 30
 ): Set<string> {
   const slots = new Set<string>()
+  if (slotMinutes <= 0) return slots
+
   for (const range of ranges) {
     const startMin = timeToMinutes(range.start)
     const endMin = timeToMinutes(range.end)
-    for (let min = startMin; min < endMin; min += slotMinutes) {
-      slots.add(formatSlotKey(range.day, minutesToTime(min)))
+    if (endMin <= startMin) continue
+
+    const firstSlotMin = Math.floor(startMin / slotMinutes) * slotMinutes
+    for (let min = firstSlotMin; min < endMin; min += slotMinutes) {
+      if (min + slotMinutes > startMin && min < endMin) {
+        slots.add(formatSlotKey(range.day, minutesToTime(min)))
+      }
     }
   }
   return slots
@@ -138,6 +146,7 @@ export function slotsToRanges(
   slots: Iterable<string>,
   slotMinutes = 30
 ): AvailabilityRange[] {
+  if (slotMinutes <= 0) return []
   const byDay: Partial<Record<Weekday, number[]>> = {}
 
   for (const key of slots) {
@@ -313,10 +322,11 @@ export function getAvailabilitySummary(ranges: AvailabilityRange[]): {
   totalHours: number
   daysCount: number
 } {
+  const merged = mergeRanges(ranges)
   let totalMinutes = 0
   const activeDays = new Set<Weekday>()
 
-  for (const range of ranges) {
+  for (const range of merged) {
     const s = timeToMinutes(range.start)
     const e = timeToMinutes(range.end)
     if (e > s) {
