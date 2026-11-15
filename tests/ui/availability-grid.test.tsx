@@ -240,9 +240,162 @@ describe("AvailabilityGrid", () => {
       />
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "Clear" }))
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }))
     expect(onValueChange).toHaveBeenCalledTimes(1)
-    expect(onValueChange).toHaveBeenCalledWith([])
+    expect(onValueChange).toHaveBeenCalledWith([
+      { day: "MO", start: "06:00", end: "08:00" },
+      { day: "MO", start: "09:00", end: "10:00" },
+      { day: "TU", start: "09:00", end: "10:00" },
+    ])
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear" }))
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+    expect(onValueChange).toHaveBeenLastCalledWith([])
+  })
+
+  it("navigates grid using arrow keys, Home, End, PageUp, and PageDown", () => {
+    render(
+      <AvailabilityGrid
+        startHour={8}
+        endHour={14}
+        slotMinutes={60}
+        weekdays={["MO", "TU", "WE"]}
+      />
+    )
+
+    const cell00 = screen.getByRole("gridcell", {
+      name: "Monday, 08:00 – 09:00",
+    })
+    cell00.focus()
+
+    // ArrowDown
+    fireEvent.keyDown(cell00, { key: "ArrowDown" })
+    const cell10 = screen.getByRole("gridcell", {
+      name: "Monday, 09:00 – 10:00",
+    })
+    expect(cell10).toHaveFocus()
+
+    // ArrowRight
+    fireEvent.keyDown(cell10, { key: "ArrowRight" })
+    const cell11 = screen.getByRole("gridcell", {
+      name: "Tuesday, 09:00 – 10:00",
+    })
+    expect(cell11).toHaveFocus()
+
+    // ArrowUp
+    fireEvent.keyDown(cell11, { key: "ArrowUp" })
+    const cell01 = screen.getByRole("gridcell", {
+      name: "Tuesday, 08:00 – 09:00",
+    })
+    expect(cell01).toHaveFocus()
+
+    // ArrowLeft
+    fireEvent.keyDown(cell01, { key: "ArrowLeft" })
+    expect(cell00).toHaveFocus()
+
+    // End (last column)
+    fireEvent.keyDown(cell00, { key: "End" })
+    const cell02 = screen.getByRole("gridcell", {
+      name: "Wednesday, 08:00 – 09:00",
+    })
+    expect(cell02).toHaveFocus()
+
+    // Home (first column)
+    fireEvent.keyDown(cell02, { key: "Home" })
+    expect(cell00).toHaveFocus()
+
+    // PageDown (jump 4 slots)
+    fireEvent.keyDown(cell00, { key: "PageDown" })
+    const cell40 = screen.getByRole("gridcell", {
+      name: "Monday, 12:00 – 13:00",
+    })
+    expect(cell40).toHaveFocus()
+
+    // PageUp (jump 4 slots back)
+    fireEvent.keyDown(cell40, { key: "PageUp" })
+    expect(cell00).toHaveFocus()
+
+    // Unhandled key
+    fireEvent.keyDown(cell00, { key: "a" })
+    expect(cell00).toHaveFocus()
+  })
+
+  it("prevents modifications in readOnly mode", () => {
+    const onValueChange = vi.fn()
+    render(
+      <AvailabilityGrid
+        readOnly
+        onValueChange={onValueChange}
+        startHour={9}
+        endHour={11}
+        slotMinutes={60}
+      />
+    )
+
+    const cell = screen.getByRole("gridcell", {
+      name: "Monday, 09:00 – 10:00",
+    })
+
+    fireEvent.pointerDown(cell, { button: 0 })
+    expect(onValueChange).not.toHaveBeenCalled()
+
+    fireEvent.keyDown(cell, { key: " " })
+    expect(onValueChange).not.toHaveBeenCalled()
+
+    expect(screen.queryByRole("button", { name: "Select all" })).toBeNull()
+    expect(screen.queryByRole("button", { name: "Clear" })).toBeNull()
+  })
+
+  it("supports touch dragging across cells via touch move", () => {
+    const onValueChange = vi.fn()
+    render(
+      <AvailabilityGrid
+        onValueChange={onValueChange}
+        startHour={9}
+        endHour={11}
+        slotMinutes={60}
+      />
+    )
+
+    const cell1 = screen.getByRole("gridcell", {
+      name: "Monday, 09:00 – 10:00",
+    })
+    const cell2 = screen.getByRole("gridcell", {
+      name: "Monday, 10:00 – 11:00",
+    })
+
+    cell1.setPointerCapture = vi.fn()
+    cell1.hasPointerCapture = vi.fn().mockReturnValue(true)
+    cell1.releasePointerCapture = vi.fn()
+
+    fireEvent.pointerDown(cell1, {
+      button: 0,
+      pointerType: "touch",
+      pointerId: 1,
+    })
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+
+    const originalElementFromPoint = document.elementFromPoint
+    document.elementFromPoint = vi.fn().mockReturnValue(cell2)
+
+    const table = screen.getByRole("grid")
+    // Non-touch pointer move is ignored by handleTouchMove
+    fireEvent.pointerMove(table, {
+      pointerType: "mouse",
+      clientX: 10,
+      clientY: 10,
+    })
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+
+    fireEvent.pointerMove(table, {
+      pointerType: "touch",
+      clientX: 10,
+      clientY: 10,
+    })
+    expect(onValueChange).toHaveBeenCalledTimes(2)
+
+    fireEvent.pointerUp(cell1, { pointerType: "touch", pointerId: 1 })
+    document.elementFromPoint = originalElementFromPoint
   })
 
   it("disables interactions when disabled is true", () => {

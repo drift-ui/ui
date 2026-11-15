@@ -193,15 +193,8 @@ export function AvailabilityGrid({
     }
   }
 
-  const handlePointerUp = (e: React.PointerEvent) => {
+  const handlePointerUp = () => {
     if (dragState?.isDragging) {
-      try {
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          e.currentTarget.releasePointerCapture(e.pointerId)
-        }
-      } catch {
-        // Ignore
-      }
       setDragState(null)
     }
   }
@@ -369,7 +362,7 @@ export function AvailabilityGrid({
       )}
       {...props}
       onPointerUp={(e) => {
-        handlePointerUp(e)
+        handlePointerUp()
         props.onPointerUp?.(e)
       }}
     >
