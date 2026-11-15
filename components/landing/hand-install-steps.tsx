@@ -59,11 +59,11 @@ export function HandInstallSteps() {
         label="Package manager"
         className="w-fit overflow-x-auto font-mono [&>*]:text-xs"
       />
-      <ol className="grid border-t md:grid-cols-3">
+      <ol className="grid border-t lg:grid-cols-3">
         {steps.map((step) => (
           <li
             key={step.title}
-            className="flex min-w-0 flex-col gap-4 border-b py-6 md:pr-6 md:[&+&]:border-l md:[&+&]:pl-6"
+            className="flex min-w-0 flex-col gap-4 border-b py-6 lg:pr-6 lg:[&+&]:border-l lg:[&+&]:pl-6"
           >
             <div className="flex flex-col gap-1">
               <h3 className="font-display text-xl font-semibold tracking-tight">

@@ -18,7 +18,7 @@ function FirstIssues({ issues }: { issues: FirstIssue[] }) {
   if (issues.length === 0) {
     return (
       <p className="border-y py-6 text-sm text-muted-foreground">
-        Every good first issue is taken right now.{" "}
+        No good first issues to show right now.{" "}
         <a
           href={`${siteConfig.repo}/issues`}
           className="text-foreground underline underline-offset-4"

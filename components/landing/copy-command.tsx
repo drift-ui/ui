@@ -31,6 +31,12 @@ export function CopyCommand({
     )
   }
 
+  const status = (
+    <span className="sr-only" role="status">
+      {hasCopied ? "Copied to clipboard" : ""}
+    </span>
+  )
+
   const icon = hasCopied ? (
     <CheckIcon className="size-3.5 text-emerald-400" />
   ) : (
@@ -49,6 +55,7 @@ export function CopyCommand({
         )}
       >
         {icon}
+        {status}
       </button>
     )
   }
@@ -75,6 +82,7 @@ export function CopyCommand({
       <span className="ml-auto flex size-4 items-center justify-center">
         {icon}
       </span>
+      {status}
     </button>
   )
 }

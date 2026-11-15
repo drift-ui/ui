@@ -229,6 +229,17 @@ describe("NeedFinder", () => {
     ).toHaveAttribute("href", "/components?q=field")
   })
 
+  it("keeps browse every component free of the query when all matches show", async () => {
+    const user = userEvent.setup()
+    render(<NeedFinder entries={ENTRIES} />)
+
+    await user.type(searchBox(), "tree")
+
+    expect(
+      screen.getByRole("link", { name: "Browse every component" })
+    ).toHaveAttribute("href", "/components")
+  })
+
   it("prefills the component request with the search", async () => {
     const user = userEvent.setup()
     render(<NeedFinder entries={ENTRIES} />)

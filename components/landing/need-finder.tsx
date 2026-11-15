@@ -9,6 +9,7 @@ import { ArrowRightIcon, SearchIcon } from "lucide-react"
 import { componentRequestUrl } from "@/components/docs/request-component"
 import { CopyCommand } from "@/components/landing/copy-command"
 import { useSlashFocus } from "@/hooks/use-slash-focus"
+import { matchScore, searchWords } from "@/lib/component-search"
 
 export type FinderEntry = {
   slug: string
@@ -31,35 +32,6 @@ const NeedSample = dynamic(
     loading: () => <div className="h-9 rounded-md border bg-card/40" />,
   }
 )
-
-const STOPWORDS = new Set([
-  "a",
-  "an",
-  "and",
-  "as",
-  "for",
-  "i",
-  "in",
-  "it",
-  "let",
-  "me",
-  "my",
-  "need",
-  "of",
-  "on",
-  "or",
-  "people",
-  "some",
-  "that",
-  "the",
-  "they",
-  "this",
-  "to",
-  "want",
-  "we",
-  "with",
-  "you",
-])
 
 const NEEDS = [
   {
@@ -105,28 +77,21 @@ function useIsDesktop() {
   )
 }
 
-function searchWords(query: string) {
-  return query
-    .toLowerCase()
-    .split(/[^a-z0-9-]+/)
-    .filter((word) => word && !STOPWORDS.has(word))
-}
-
 export function searchEntries(entries: FinderEntry[], query: string) {
   const words = searchWords(query)
   if (words.length === 0) return null
 
   return entries
     .map((entry) => {
-      const haystack = [
-        entry.name,
-        entry.slug,
-        entry.description,
-        NEED_BY_SLUG.get(entry.slug)?.need ?? "",
-      ]
-        .join(" ")
-        .toLowerCase()
-      const score = words.filter((word) => haystack.includes(word)).length
+      const score = matchScore(
+        [
+          entry.name,
+          entry.slug,
+          entry.description,
+          NEED_BY_SLUG.get(entry.slug)?.need ?? "",
+        ],
+        words
+      )
       return { entry, score }
     })
     .filter(({ score }) => score > 0)
@@ -264,7 +229,7 @@ export function NeedFinder({ entries }: { entries: FinderEntry[] }) {
         </span>
         <Link
           href={
-            matches
+            hasMoreMatches
               ? `/components?q=${encodeURIComponent(query.trim())}`
               : "/components"
           }

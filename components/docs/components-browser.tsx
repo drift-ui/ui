@@ -10,19 +10,17 @@ import {
 import { SearchField } from "@/components/docs/search-field"
 import { SegmentedControl } from "@/components/docs/segmented-control"
 import type { CATEGORIES } from "@/lib/catalog"
+import { matchScore, searchWords } from "@/lib/component-search"
 import { useUrlFilters } from "@/lib/use-url-filters"
 
 type Category = (typeof CATEGORIES)[number]
 
 const ALL = "all"
 
-function matchesQuery(card: CatalogCard, query: string) {
-  if (!query) return true
+function matchesQuery(card: CatalogCard, words: string[]) {
+  if (words.length === 0) return true
 
-  return [card.name, card.slug, card.description]
-    .join(" ")
-    .toLowerCase()
-    .includes(query)
+  return matchScore([card.name, card.slug, card.description], words) > 0
 }
 
 type Filters = { query: string; category: string }
@@ -58,8 +56,8 @@ export function ComponentsBrowser({
   )
   const { query, category: activeCategory } = filters
 
-  const normalizedQuery = query.trim().toLowerCase()
-  const searched = cards.filter((card) => matchesQuery(card, normalizedQuery))
+  const words = searchWords(query)
+  const searched = cards.filter((card) => matchesQuery(card, words))
   const visibleSlugs = new Set(
     searched
       .filter(

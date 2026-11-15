@@ -147,6 +147,7 @@ describe("CopyCommand", () => {
     expect(await navigator.clipboard.readText()).toBe(
       "npx shadcn add @drift-ui/rating"
     )
+    expect(screen.getByRole("status")).toHaveTextContent("Copied to clipboard")
   })
 })
 
@@ -222,7 +223,7 @@ describe("CommunitySection", () => {
   it("points at all open issues when no first issue is free", async () => {
     render(await CommunitySection())
 
-    const empty = screen.getByText(/Every good first issue is taken/)
+    const empty = screen.getByText(/No good first issues to show/)
     expect(within(empty).getByRole("link")).toHaveAttribute(
       "href",
       "https://github.com/drift-ui/ui/issues"

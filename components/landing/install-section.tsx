@@ -9,7 +9,7 @@ export function InstallSection() {
     >
       <SectionHeading
         title="Install with the shadcn CLI"
-        lead="The @drift-ui namespace is built into the shadcn CLI, so there is nothing to register. Three commands in a project you already have."
+        lead="The @drift-ui namespace is built into the shadcn CLI, so there is nothing to register. Three steps in a project you already have."
       />
       <div className="mt-12 reveal md:mt-16">
         <HandInstallSteps />
