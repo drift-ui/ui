@@ -1350,7 +1350,7 @@ export function DeployLog({ lines }: { lines: { id: string; text: string }[] }) 
   },
   "weekly-hours": {
     notes:
-      "WeeklyHours edits recurring hours as a list, one row per weekday, like the working hours screen in a booking app. Tick a day to give it defaultRange, untick it to clear it, use the plus button to add a split shift, and the copy button to apply a day's hours to every other ticked day. The value is a flat array of { day, start, end } entries sorted by weekday, with times as HH:mm, so it can be stored as is. Times use TimeField, so arrow keys step the hour and minute. A range that ends before it starts or overlaps another range on the same day shows an error under it and sets aria-invalid.",
+      "WeeklyHours edits recurring hours as a list, one row per weekday, like the working hours screen in a booking app. Tick a day to give it defaultRange, untick it to clear it, use the plus button to add a split shift, and the copy button to apply a day's hours to every other ticked day. The value is a flat array of { day, start, end } entries sorted by weekday, with times as HH:mm, so it can be stored as is. Times use TimeField: ArrowUp and ArrowDown step the focused segment (hour, minute, or AM/PM with hourCycle 12) and ArrowLeft and ArrowRight move between segments. A range that ends at or before its start, or overlaps another range on the same day, shows an error under it and sets aria-invalid. Adding another range is blocked while a day has a range with a missing time.",
     example: `"use client"
 
 import * as React from "react"

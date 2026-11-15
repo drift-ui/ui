@@ -20,6 +20,7 @@ describe("weekly hours utils", () => {
     expect(toMinutes("09:30")).toBe(570)
     expect(toMinutes("")).toBeNull()
     expect(toMinutes("24:00")).toBeNull()
+    expect(toMinutes("09:75")).toBeNull()
     expect(fromMinutes(570)).toBe("09:30")
     expect(fromMinutes(5000)).toBe("23:59")
     expect(fromMinutes(-5)).toBe("00:00")
@@ -47,10 +48,7 @@ describe("weekly hours utils", () => {
     expect(
       getNextRange([{ start: "20:00", end: "23:00" }], NINE_TO_FIVE)
     ).toBeNull()
-    expect(getNextRange([{ start: "20:00", end: "" }], NINE_TO_FIVE)).toEqual({
-      start: "01:00",
-      end: "02:00",
-    })
+    expect(getNextRange([{ start: "20:00", end: "" }], NINE_TO_FIVE)).toBeNull()
 
     const full: WeeklyHoursRange[] = [
       { day: "MO", start: "20:00", end: "23:00" },
@@ -110,5 +108,6 @@ describe("weekly hours utils", () => {
     expect(
       getRangeError([ranges[0], { start: "12:00", end: "13:00" }], 1)
     ).toBe(null)
+    expect(getRangeError([ranges[0], ranges[2]], 0)).toBe(null)
   })
 })

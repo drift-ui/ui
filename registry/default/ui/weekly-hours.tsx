@@ -64,6 +64,7 @@ function WeeklyHours({
 
   return (
     <div
+      role="group"
       data-slot="weekly-hours"
       className={cn("grid divide-y", className)}
       {...props}
@@ -73,6 +74,11 @@ function WeeklyHours({
         const dayRanges = getDayRanges(ranges, day)
         const isAvailable = dayRanges.length > 0
         const canAdd = getNextRange(dayRanges, defaultRange) !== null
+        const canCopy =
+          isAvailable &&
+          weekdays.some(
+            (other) => other !== day && getDayRanges(ranges, other).length > 0
+          )
         const checkboxId = `${id}-${day}`
 
         return (
@@ -197,7 +203,7 @@ function WeeklyHours({
                 size="icon"
                 aria-label={`Copy ${dayName} hours to every available day`}
                 title="Copy to every available day"
-                disabled={disabled || !isAvailable}
+                disabled={disabled || !canCopy}
                 onClick={() =>
                   setRanges(copyDayToAvailableDays(ranges, day, weekdays))
                 }

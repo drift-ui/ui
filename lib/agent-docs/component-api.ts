@@ -4234,7 +4234,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "WeeklyHours",
       description:
-        "One row per weekday with a checkbox to mark the day available and one or more start and end times. Days can hold split shifts, and each day's hours can be copied to every other available day. Ranges that end before they start or overlap another range on the same day are flagged.",
+        "One row per weekday with a checkbox to mark the day available and one or more start and end times. Days can hold split shifts, and each day's hours can be copied to every other available day. Ranges that end at or before their start, or overlap another range on the same day, are flagged.",
       props: [
         STATE_PROPS.value(
           "WeeklyHoursRange[]",
@@ -4243,7 +4243,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         STATE_PROPS.defaultValue("WeeklyHoursRange[]", "an empty array"),
         STATE_PROPS.onValueChange(
           "(value: WeeklyHoursRange[]) => void",
-          "when a day is turned on or off or a time changes"
+          "when hours change: a day is turned on or off, a time is edited, a range is added or removed, or a day's hours are copied"
         ),
         {
           name: "weekdays",

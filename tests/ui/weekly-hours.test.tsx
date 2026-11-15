@@ -1,9 +1,10 @@
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import axe from "axe-core"
 import * as React from "react"
 import { describe, expect, it, vi } from "vitest"
 
+import { examples } from "@/components/preview/examples/weekly-hours"
 import { WeeklyHoursShopHoursPreview } from "@/components/preview/examples/weekly-hours/shop-hours"
 import { WeeklyHoursWorkweekPreview } from "@/components/preview/examples/weekly-hours/workweek"
 import { WeeklyHoursPreview } from "@/components/preview/weekly-hours-preview"
@@ -64,7 +65,8 @@ describe("WeeklyHours", () => {
 
   it("adds a split shift, labels each range, and removes it", async () => {
     const user = userEvent.setup()
-    render(<Controlled initial={MONDAY} />)
+    const onChange = vi.fn()
+    render(<Controlled initial={MONDAY} onChange={onChange} />)
 
     await user.click(
       screen.getByRole("button", { name: "Add hours on Monday" })
@@ -76,6 +78,9 @@ describe("WeeklyHours", () => {
     await user.click(
       screen.getByRole("button", { name: "Remove Monday, range 1" })
     )
+    expect(onChange).toHaveBeenLastCalledWith([
+      { day: "MO", start: "18:00", end: "19:00" },
+    ])
     expect(screen.getAllByRole("group", { name: /^Monday/ })).toHaveLength(2)
   })
 
@@ -89,6 +94,13 @@ describe("WeeklyHours", () => {
     await user.keyboard("{ArrowUp}")
     expect(onChange).toHaveBeenLastCalledWith([
       { day: "MO", start: "09:00", end: "18:00" },
+    ])
+
+    const start = screen.getByRole("group", { name: "Monday start" })
+    await user.click(start.querySelector<HTMLElement>("[role=spinbutton]")!)
+    await user.keyboard("{ArrowDown}")
+    expect(onChange).toHaveBeenLastCalledWith([
+      { day: "MO", start: "08:00", end: "18:00" },
     ])
   })
 
@@ -136,6 +148,25 @@ describe("WeeklyHours", () => {
     ).toBeDisabled()
   })
 
+  it("disables copy when no other day has hours", () => {
+    render(<WeeklyHours defaultValue={MONDAY} aria-label="Hours" />)
+    expect(screen.getByRole("group", { name: "Hours" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", {
+        name: "Copy Monday hours to every available day",
+      })
+    ).toBeDisabled()
+  })
+
+  it("blocks adding a range while a day has a missing time", () => {
+    render(
+      <WeeklyHours defaultValue={[{ day: "MO", start: "09:00", end: "" }]} />
+    )
+    expect(
+      screen.getByRole("button", { name: "Add hours on Monday" })
+    ).toBeDisabled()
+  })
+
   it("respects weekdays, unavailableLabel and disabled", () => {
     render(
       <WeeklyHours
@@ -152,7 +183,8 @@ describe("WeeklyHours", () => {
     expect(screen.getByTestId("root")).toHaveClass("custom")
   })
 
-  it("renders the preview and examples", () => {
+  it("renders the preview and examples", async () => {
+    const user = userEvent.setup()
     render(<WeeklyHoursPreview />)
     expect(
       screen.getByRole("group", { name: "Tuesday, range 2 end" })
@@ -161,10 +193,17 @@ describe("WeeklyHours", () => {
     render(<WeeklyHoursShopHoursPreview />)
     expect(screen.getAllByText("Closed").length).toBeGreaterThan(0)
 
-    render(<WeeklyHoursWorkweekPreview />)
-    expect(
-      screen.getByText("MO 10:00–16:00, WE 10:00–16:00")
-    ).toBeInTheDocument()
+    const { getByRole, getByText } = render(<WeeklyHoursWorkweekPreview />)
+    expect(getByText("MO 10:00–16:00, WE 10:00–16:00")).toBeInTheDocument()
+    const rota = within(getByRole("group", { name: "Support rota" }))
+    await user.click(rota.getByRole("checkbox", { name: "Monday" }))
+    await user.click(rota.getByRole("checkbox", { name: "Wednesday" }))
+    expect(getByText("No hours set")).toBeInTheDocument()
+
+    expect(examples.map((example) => example.id)).toEqual([
+      "shop-hours",
+      "workweek",
+    ])
   })
 
   it("has no axe violations", async () => {

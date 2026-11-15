@@ -208,7 +208,7 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
   ],
   "weekly-hours": [
     { keys: ["Space"], action: "Turn a day on or off" },
-    { keys: UP_DOWN, action: "Change the focused hour or minute" },
-    { keys: LEFT_RIGHT, action: "Move between hour and minute" },
+    { keys: UP_DOWN, action: "Change the focused time segment" },
+    { keys: LEFT_RIGHT, action: "Move between time segments" },
   ],
 }

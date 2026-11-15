@@ -7,7 +7,7 @@ export const examples: ComponentExample[] = [
     id: "shop-hours",
     title: "Shop opening hours",
     description:
-      "The week starts on Sunday, times use a 12-hour clock, arrow keys step by 30 minutes, and days with no hours read Closed.",
+      "The week starts on Sunday, times use a 12-hour clock, ArrowUp and ArrowDown on the minutes step by 30, and days with no hours read Closed.",
     Preview: WeeklyHoursShopHoursPreview,
   },
   {

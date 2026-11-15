@@ -15,7 +15,7 @@ const LAST_MINUTE = 23 * 60 + 59
 
 export function toMinutes(time: string): number | null {
   const match = /^(\d{2}):(\d{2})$/.exec(time)
-  if (!match) return null
+  if (!match || Number(match[2]) > 59) return null
   const minutes = Number(match[1]) * 60 + Number(match[2])
   return minutes > LAST_MINUTE ? null : minutes
 }
@@ -49,9 +49,9 @@ export function getNextRange(
   defaultRange: TimeRange
 ): TimeRange | null {
   if (dayRanges.length === 0) return defaultRange
-  const latestEnd = Math.max(
-    ...dayRanges.map((range) => toMinutes(range.end) ?? 0)
-  )
+  const ends = dayRanges.map((range) => toMinutes(range.end))
+  if (ends.some((end) => end === null)) return null
+  const latestEnd = Math.max(...(ends as number[]))
   const start = latestEnd + 60
   if (start >= LAST_MINUTE) return null
   return { start: fromMinutes(start), end: fromMinutes(start + 60) }
