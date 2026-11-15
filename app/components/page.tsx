@@ -27,7 +27,7 @@ export default function ComponentsPage() {
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 pt-10 pb-24 md:px-10">
       <header className="flex flex-col gap-3">
-        <h1 className="rise text-4xl leading-[1.02] font-medium tracking-tight md:text-5xl">
+        <h1 className="rise font-display text-4xl leading-[1.02] font-semibold tracking-[-0.04em] md:text-5xl">
           Components
         </h1>
         <div className="flex flex-col gap-2 lg:flex-row lg:items-baseline lg:justify-between lg:gap-8">

@@ -38,10 +38,10 @@ export function HandInstallSteps() {
       title: "Import it",
       note: "The source is now yours, in your ui folder.",
       body: (
-        <code className="block rounded-md border bg-card/60 px-3.5 py-2.5 font-mono text-[13px] text-muted-foreground">
-          <span className="text-brand">import</span>
+        <code className="block min-h-10 rounded-md border bg-card/60 px-3.5 py-2 font-mono text-[13px] text-muted-foreground">
+          <span>import</span>
           <span className="text-foreground">{" { TagsInput } "}</span>
-          <span className="text-brand">from</span>
+          <span>from</span>
           <span className="text-foreground">
             {' "@/components/ui/tags-input"'}
           </span>
@@ -51,54 +51,30 @@ export function HandInstallSteps() {
   ]
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-3xl border bg-card/40">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
-        <div className="flex flex-col">
-          <span className="text-sm font-medium">By hand</span>
-          <span className="text-xs text-muted-foreground">
-            Three commands in a project you already have
-          </span>
-        </div>
-        <SegmentedControl
-          items={PACKAGE_MANAGER_ITEMS}
-          value={packageManager}
-          onValueChange={setPackageManager}
-          label="Package manager"
-          className="overflow-x-auto font-mono [&>*]:text-xs"
-        />
-      </div>
-      <ol className="flex flex-1 flex-col px-5 py-6">
-        {steps.map((step, index) => (
+    <div className="flex flex-col gap-6">
+      <SegmentedControl
+        items={PACKAGE_MANAGER_ITEMS}
+        value={packageManager}
+        onValueChange={setPackageManager}
+        label="Package manager"
+        className="w-fit overflow-x-auto font-mono [&>*]:text-xs"
+      />
+      <ol className="grid border-t lg:grid-cols-3">
+        {steps.map((step) => (
           <li
             key={step.title}
-            className="relative grid grid-cols-[2rem_minmax(0,1fr)] gap-x-3 pb-8 last:pb-0"
+            className="flex min-w-0 flex-col gap-4 border-b py-6 lg:pr-6 lg:[&+&]:border-l lg:[&+&]:pl-6"
           >
-            {index < steps.length - 1 && (
-              <span
-                aria-hidden
-                className="absolute top-7 bottom-1 left-[0.95rem] w-px bg-border"
-              />
-            )}
-            <span
-              aria-hidden
-              className="flex size-8 items-center justify-center rounded-full border bg-background font-mono text-[11px] text-brand tabular-nums"
-            >
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <div className="flex min-w-0 flex-col gap-2.5 pt-1">
-              <div className="flex flex-col gap-0.5">
-                <p className="text-sm font-medium">{step.title}</p>
-                <p className="text-xs text-muted-foreground">{step.note}</p>
-              </div>
-              {step.body}
+            <div className="flex flex-col gap-1">
+              <h3 className="font-display text-xl font-semibold tracking-tight">
+                {step.title}
+              </h3>
+              <p className="text-sm text-muted-foreground">{step.note}</p>
             </div>
+            <div className="mt-auto">{step.body}</div>
           </li>
         ))}
       </ol>
-      <p className="border-t px-5 py-3 text-xs text-muted-foreground">
-        The @drift-ui namespace is built into the shadcn CLI, so there is
-        nothing to register.
-      </p>
     </div>
   )
 }

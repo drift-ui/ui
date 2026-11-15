@@ -35,7 +35,7 @@ export function ComponentHeader({
         <ChevronRightIcon className="size-3 opacity-60" />
         <span>{category?.label}</span>
       </nav>
-      <h1 className="text-4xl leading-[1.05] font-medium tracking-tight md:text-5xl">
+      <h1 className="font-display text-4xl leading-[1.05] font-semibold tracking-[-0.04em] md:text-5xl">
         {entry.name}
       </h1>
       <p className="max-w-[58ch] text-lg leading-relaxed text-muted-foreground">

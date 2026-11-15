@@ -79,6 +79,16 @@ describe("ComponentsBrowser", () => {
     expect(screen.getByRole("status")).toHaveTextContent("1 component")
   })
 
+  it("matches any search word, the same way the landing finder does", async () => {
+    const user = userEvent.setup()
+    renderBrowser()
+
+    await user.type(screen.getByRole("searchbox"), "a rating for steps")
+
+    expect(rating()).toBeInTheDocument()
+    expect(stepper()).toBeInTheDocument()
+  })
+
   it("offers a reset when nothing matches", async () => {
     const user = userEvent.setup()
     renderBrowser()

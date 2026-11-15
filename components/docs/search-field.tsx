@@ -1,20 +1,10 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useRef } from "react"
 import { SearchIcon, XIcon } from "lucide-react"
 
 import { cn } from "@/registry/default/lib/utils"
-
-function isTypingTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false
-
-  return (
-    target.isContentEditable ||
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.tagName === "SELECT"
-  )
-}
+import { useSlashFocus } from "@/hooks/use-slash-focus"
 
 export function SearchField({
   value,
@@ -29,18 +19,7 @@ export function SearchField({
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== "/" || event.defaultPrevented) return
-      if (isTypingTarget(event.target)) return
-
-      event.preventDefault()
-      inputRef.current?.focus()
-    }
-
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
+  useSlashFocus(inputRef)
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key !== "Escape") return
