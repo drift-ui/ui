@@ -13,13 +13,6 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ["Enter", "Space"], action: "Select the focused day" },
     { keys: ["Escape"], action: "Dismiss the hover or focus tooltip" },
   ],
-  "availability-grid": [
-    { keys: ARROWS, action: "Move through the schedule grid" },
-    { keys: HOME_END, action: "First or last day in the row" },
-    { keys: PAGE, action: "Jump four time slots up or down" },
-    { keys: ["Space"], action: "Toggle selection of the focused time slot" },
-    { keys: ["Shift"], action: "Hold with arrow keys to extend selection" },
-  ],
   "bulk-action-bar": [
     { keys: LEFT_RIGHT, action: "Move between actions" },
     { keys: ["Escape"], action: "Clear the selection" },
@@ -212,5 +205,10 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: UP_DOWN, action: "Move between rows" },
     { keys: PAGE, action: "Move a page at a time" },
     { keys: HOME_END, action: "First or last row" },
+  ],
+  "weekly-hours": [
+    { keys: ["Space"], action: "Turn a day on or off" },
+    { keys: UP_DOWN, action: "Change the focused time segment" },
+    { keys: LEFT_RIGHT, action: "Move between time segments" },
   ],
 }

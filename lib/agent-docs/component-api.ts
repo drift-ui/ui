@@ -218,96 +218,6 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       ],
     },
   ],
-  "availability-grid": [
-    {
-      name: "AvailabilityGrid",
-      description:
-        "A scheduling grid of days by time slots for setting weekly working hours or booking availability. Users navigate with arrow keys, Home/End, and PageUp/PageDown, toggle slots with Space, extend selection with Shift+arrows, or drag with mouse/touch. Supports time zone conversion, midnight range splitting, and half-hour offsets.",
-      props: [
-        STATE_PROPS.value("AvailabilityRange[]", "weekly availability ranges"),
-        STATE_PROPS.defaultValue("AvailabilityRange[]", "an empty array"),
-        STATE_PROPS.onValueChange(
-          "(value: AvailabilityRange[]) => void",
-          "when slots are selected, cleared, or when timeZone shifts existing ranges"
-        ),
-        {
-          name: "timeZone",
-          type: "string",
-          description:
-            "IANA time zone string (e.g. 'Europe/Berlin', 'Asia/Kolkata'). Changing timeZone converts existing ranges and splits them across midnight when necessary.",
-        },
-        {
-          name: "slotMinutes",
-          type: "number",
-          default: "30",
-          description:
-            "Duration of each time slot in minutes (e.g. 15, 30, 60).",
-        },
-        {
-          name: "startHour",
-          type: "number",
-          default: "8",
-          description:
-            "Earliest hour displayed on the vertical time axis (0-23).",
-        },
-        {
-          name: "endHour",
-          type: "number",
-          default: "20",
-          description:
-            "Latest hour displayed on the vertical time axis (1-24).",
-        },
-        {
-          name: "weekdays",
-          type: "Weekday[]",
-          default: "WEEKDAYS",
-          description:
-            "Weekdays to display as columns (e.g. ['MO', 'TU', 'WE', 'TH', 'FR']).",
-        },
-        {
-          name: "referenceDate",
-          type: "Date",
-          description:
-            "Reference date used to calculate UTC offsets when converting time zones.",
-        },
-        {
-          name: "hourCycle",
-          type: "12 | 24",
-          default: "24",
-          description:
-            "Time format displayed in row headers and accessible cell labels.",
-        },
-        {
-          name: "disabled",
-          type: "boolean",
-          default: "false",
-          description: "Disables all user interaction and dims the grid.",
-        },
-        {
-          name: "readOnly",
-          type: "boolean",
-          default: "false",
-          description:
-            "Allows keyboard navigation without permitting slot changes.",
-        },
-        {
-          name: "showSummary",
-          type: "boolean",
-          default: "true",
-          description:
-            "Whether to render the weekly total hours summary footer.",
-        },
-        {
-          name: "showActions",
-          type: "boolean",
-          default: "true",
-          description:
-            "Whether to show the Select all and Clear action buttons.",
-        },
-      ],
-      rest: "div",
-    },
-  ],
   avatar: [
     {
       name: "Avatar",
@@ -4315,6 +4225,62 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           default: "index",
           description:
             "Stable identity for a row, so measured heights and focus follow it when the list changes.",
+        },
+      ],
+      rest: "<div>",
+    },
+  ],
+  "weekly-hours": [
+    {
+      name: "WeeklyHours",
+      description:
+        "One row per weekday with a checkbox to mark the day available and one or more start and end times. Days can hold split shifts, and each day's hours can be copied to every other available day. Ranges that end at or before their start, or overlap another range on the same day, are flagged.",
+      props: [
+        STATE_PROPS.value(
+          "WeeklyHoursRange[]",
+          "the hours as { day, start, end } entries, times as HH:mm"
+        ),
+        STATE_PROPS.defaultValue("WeeklyHoursRange[]", "an empty array"),
+        STATE_PROPS.onValueChange(
+          "(value: WeeklyHoursRange[]) => void",
+          "when hours change: a day is turned on or off, a time is edited, a range is added or removed, or a day's hours are copied"
+        ),
+        {
+          name: "weekdays",
+          type: "Weekday[]",
+          default: "WEEKDAYS",
+          description:
+            'Days to show, in order. Pass ["MO", "TU", "WE", "TH", "FR"] for a workweek or start with "SU".',
+        },
+        {
+          name: "defaultRange",
+          type: "{ start: string; end: string }",
+          default: '{ start: "09:00", end: "17:00" }',
+          description: "Hours given to a day when it is turned on.",
+        },
+        {
+          name: "hourCycle",
+          type: "12 | 24",
+          default: "24",
+          description: "Shows times as 24-hour or with AM and PM.",
+        },
+        {
+          name: "minuteStep",
+          type: "number",
+          default: "15",
+          description: "Minutes added or removed per arrow key press.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables every control.",
+        },
+        {
+          name: "unavailableLabel",
+          type: "ReactNode",
+          default: '"Unavailable"',
+          description: "Text shown for a day with no hours.",
         },
       ],
       rest: "<div>",
