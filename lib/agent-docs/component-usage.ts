@@ -57,6 +57,39 @@ export function ShippingAddress() {
   )
 }`,
   },
+  "availability-grid": {
+    notes:
+      "AvailabilityGrid displays a weekly scheduling matrix of days by time slots. Users can drag or use the keyboard to select or clear hours they are free. Dragging over a selected cell clears instead of adds. Follows the WAI-ARIA grid pattern with aria-selected on cells, roving tabindex, arrow key navigation, Space to toggle, and Shift+arrows to extend selection. Stored as weekly ranges ({ day, start, end }) in the specified timeZone with touching ranges merged. Changing the timeZone prop converts the ranges, splitting across midnight into adjacent days when necessary, and accurately supports half-hour offset zones like Asia/Kolkata.",
+    example: `"use client"
+
+import * as React from "react"
+
+import {
+  AvailabilityGrid,
+  type AvailabilityRange,
+} from "@/components/ui/availability-grid"
+
+export function WeeklyHours() {
+  const [schedule, setSchedule] = React.useState<AvailabilityRange[]>([
+    { day: "MO", start: "09:00", end: "17:00" },
+    { day: "TU", start: "09:00", end: "17:00" },
+    { day: "WE", start: "09:00", end: "17:00" },
+    { day: "TH", start: "09:00", end: "17:00" },
+    { day: "FR", start: "09:00", end: "16:00" },
+  ])
+
+  return (
+    <AvailabilityGrid
+      value={schedule}
+      onValueChange={setSchedule}
+      timeZone="Europe/Berlin"
+      slotMinutes={30}
+      startHour={8}
+      endHour={20}
+    />
+  )
+}`,
+  },
   avatar: {
     notes: SAME_AS_SHADCN,
     example: `import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"

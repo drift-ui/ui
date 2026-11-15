@@ -17,6 +17,7 @@ import { ToastPreview as BaseUiToastPreview } from "@/components/preview/base/to
 import { TourPreview as BaseUiTourPreview } from "@/components/preview/base/tour-preview"
 import { ActivityHeatmapPreview } from "@/components/preview/activity-heatmap-preview"
 import { AddressInputPreview } from "@/components/preview/address-input-preview"
+import { AvailabilityGridPreview } from "@/components/preview/availability-grid-preview"
 import { AvatarGroupPreview } from "@/components/preview/avatar-group-preview"
 import { AvatarPreview } from "@/components/preview/avatar-preview"
 import { BadgePreview } from "@/components/preview/badge-preview"
@@ -81,6 +82,7 @@ import { VirtualListPreview } from "@/components/preview/virtual-list-preview"
 export const PREVIEWS: Record<string, ComponentType> = {
   "activity-heatmap": ActivityHeatmapPreview,
   "address-input": AddressInputPreview,
+  "availability-grid": AvailabilityGridPreview,
   avatar: AvatarPreview,
   "avatar-group": AvatarGroupPreview,
   badge: BadgePreview,
