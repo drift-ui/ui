@@ -81,7 +81,7 @@ export function AgentsSection() {
                   </span>
                   <ArrowUpRightIcon
                     aria-hidden
-                    className="ml-auto size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+                    className="ml-auto size-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-brand"
                   />
                 </a>
               </li>

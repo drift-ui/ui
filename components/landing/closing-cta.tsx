@@ -27,8 +27,8 @@ export function ClosingCta() {
 
   return (
     <section className="mx-auto max-w-7xl px-4 pb-24 md:px-10 md:pb-36">
-      <div className="relative isolate flex reveal flex-col gap-8 overflow-hidden rounded-3xl border bg-card/40 p-8 md:flex-row md:items-end md:justify-between md:p-14">
-        <SlotPattern className="absolute inset-0 -z-10 size-full [mask-image:linear-gradient(to_left,black,transparent_70%)] text-foreground/[0.04]" />
+      <div className="relative isolate flex reveal flex-col gap-8 overflow-hidden rounded-3xl bg-brand-solid p-8 text-brand-solid-foreground md:flex-row md:items-end md:justify-between md:p-14">
+        <SlotPattern className="absolute inset-0 -z-10 size-full [mask-image:linear-gradient(to_left,black,transparent_70%)] text-brand-solid-foreground/10" />
         <h2 className="font-display text-[clamp(2.25rem,4.4vw,3.75rem)] leading-[0.95] font-semibold tracking-[-0.04em] text-balance">
           Missing a component?
           <br />
@@ -38,7 +38,7 @@ export function ClosingCta() {
           <Button
             size="lg"
             onClick={focusSearch}
-            className="h-11 px-5 active:scale-[0.98]"
+            className="h-11 bg-brand-solid-foreground px-5 text-brand-solid hover:bg-brand-solid-foreground/90 active:scale-[0.98]"
           >
             <SearchIcon />
             Search components
@@ -47,7 +47,7 @@ export function ClosingCta() {
             asChild
             size="lg"
             variant="outline"
-            className="h-11 px-5 active:scale-[0.98]"
+            className="h-11 border-brand-solid-foreground/40 bg-transparent px-5 text-brand-solid-foreground shadow-none hover:bg-brand-solid-foreground/10 hover:text-brand-solid-foreground active:scale-[0.98] dark:border-brand-solid-foreground/40 dark:bg-transparent dark:hover:bg-brand-solid-foreground/10"
           >
             <a href={componentRequestUrl()} target="_blank" rel="noreferrer">
               Request one

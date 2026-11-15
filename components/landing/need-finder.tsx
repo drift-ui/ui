@@ -131,7 +131,7 @@ export function NeedFinder({ entries }: { entries: FinderEntry[] }) {
 
   return (
     <div className="mt-10 rise [--rise-delay:200ms] md:mt-12">
-      <div className="flex h-14 items-center gap-3 rounded-2xl border bg-card/70 px-4 backdrop-blur-sm transition-[border-color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/30 md:h-[4.25rem] md:px-5">
+      <div className="flex h-14 items-center gap-3 rounded-2xl border bg-card/70 px-4 backdrop-blur-sm transition-[border-color,box-shadow] focus-within:border-brand/60 focus-within:ring-[3px] focus-within:ring-brand/20 md:h-[4.25rem] md:px-5">
         <SearchIcon
           aria-hidden
           className="size-5 shrink-0 text-muted-foreground"
@@ -170,7 +170,7 @@ export function NeedFinder({ entries }: { entries: FinderEntry[] }) {
               <div className="min-w-0">
                 <Link
                   href={`/components/${entry.slug}`}
-                  className="rounded-sm font-display text-xl font-semibold tracking-[-0.02em] underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="rounded-sm font-display text-xl font-semibold tracking-[-0.02em] underline-offset-4 outline-none hover:text-brand hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                   {title}
                 </Link>
@@ -195,7 +195,7 @@ export function NeedFinder({ entries }: { entries: FinderEntry[] }) {
                 <Link
                   href={`/components/${entry.slug}`}
                   aria-label={`Open ${entry.name}`}
-                  className="flex size-8 items-center justify-center rounded-md border border-transparent text-muted-foreground transition-colors outline-none hover:border-border hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="flex size-8 items-center justify-center rounded-md border border-transparent text-muted-foreground transition-colors outline-none hover:border-brand/40 hover:text-brand focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
                   <ArrowRightIcon className="size-3.5" />
                 </Link>
@@ -234,7 +234,7 @@ export function NeedFinder({ entries }: { entries: FinderEntry[] }) {
               : "/components"
           }
           prefetch={false}
-          className="group flex items-center gap-1.5 text-foreground"
+          className="group flex items-center gap-1.5 font-medium text-brand"
         >
           {hasMoreMatches
             ? `See all ${matches?.length} matches`
