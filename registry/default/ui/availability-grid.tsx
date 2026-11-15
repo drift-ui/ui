@@ -47,6 +47,24 @@ export type AvailabilityGridProps = Omit<
   "aria-label"?: string
 }
 
+function areRangesEqual(
+  a: AvailabilityRange[],
+  b: AvailabilityRange[]
+): boolean {
+  if (a === b) return true
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (
+      a[i].day !== b[i].day ||
+      a[i].start !== b[i].start ||
+      a[i].end !== b[i].end
+    ) {
+      return false
+    }
+  }
+  return true
+}
+
 export function AvailabilityGrid({
   value,
   defaultValue = EMPTY_RANGES,
@@ -80,7 +98,7 @@ export function AvailabilityGrid({
 
   React.useEffect(() => {
     const prevZone = prevTimeZoneRef.current
-    const rangesChanged = prevRangesRef.current !== currentRanges
+    const rangesChanged = !areRangesEqual(prevRangesRef.current, currentRanges)
     prevRangesRef.current = currentRanges
 
     if (timeZone && prevZone && prevZone !== timeZone) {
@@ -119,6 +137,17 @@ export function AvailabilityGrid({
     mode: "select" | "deselect"
     anchor: [number, number]
   } | null>(null)
+
+  React.useEffect(() => {
+    if (!dragState?.isDragging) return
+    const handleGlobalPointerUp = () => {
+      setDragState(null)
+    }
+    window.addEventListener("pointerup", handleGlobalPointerUp)
+    return () => {
+      window.removeEventListener("pointerup", handleGlobalPointerUp)
+    }
+  }, [dragState?.isDragging])
 
   const gridRef = React.useRef<HTMLTableElement>(null)
 

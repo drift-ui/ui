@@ -42,7 +42,7 @@ export function AvailabilityGridTimezonePreview() {
         timeZone={timeZone}
         startHour={0}
         endHour={24}
-        slotMinutes={60}
+        slotMinutes={30}
       />
     </div>
   )

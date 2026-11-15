@@ -253,6 +253,83 @@ describe("AvailabilityGrid", () => {
     expect(onValueChange).toHaveBeenLastCalledWith([])
   })
 
+  it("selects all displayed slots on Select all button click", () => {
+    const onValueChange = vi.fn()
+    render(
+      <AvailabilityGrid
+        onValueChange={onValueChange}
+        startHour={9}
+        endHour={11}
+        slotMinutes={60}
+        weekdays={["MO", "TU"]}
+      />
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Select all" }))
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+    expect(onValueChange).toHaveBeenCalledWith([
+      { day: "MO", start: "09:00", end: "11:00" },
+      { day: "TU", start: "09:00", end: "11:00" },
+    ])
+  })
+
+  it("clears mouse dragging state when pointerup fires on window outside grid", () => {
+    const onValueChange = vi.fn()
+    render(
+      <AvailabilityGrid
+        onValueChange={onValueChange}
+        startHour={9}
+        endHour={11}
+        slotMinutes={60}
+      />
+    )
+
+    const cell1 = screen.getByRole("gridcell", {
+      name: "Monday, 09:00 – 10:00",
+    })
+    const cell2 = screen.getByRole("gridcell", {
+      name: "Monday, 10:00 – 11:00",
+    })
+
+    fireEvent.pointerDown(cell1, { button: 0, pointerType: "mouse" })
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+
+    // Release pointer outside grid on window
+    fireEvent.pointerUp(window)
+
+    // Subsequent pointerEnter should NOT select since drag state is cleared
+    fireEvent.pointerEnter(cell2)
+    expect(onValueChange).toHaveBeenCalledTimes(1)
+  })
+
+  it("converts timezone even if parent recreates array reference with same ranges", () => {
+    const onValueChange = vi.fn()
+    function Host() {
+      const [tz, setTz] = React.useState("UTC")
+      const current = [{ day: "MO" as const, start: "09:00", end: "17:00" }]
+      return (
+        <div>
+          <button type="button" onClick={() => setTz("Europe/Berlin")}>
+            Switch
+          </button>
+          <AvailabilityGrid
+            value={current}
+            onValueChange={onValueChange}
+            timeZone={tz}
+            startHour={8}
+            endHour={20}
+          />
+        </div>
+      )
+    }
+
+    render(<Host />)
+    fireEvent.click(screen.getByRole("button", { name: "Switch" }))
+    expect(onValueChange).toHaveBeenCalledWith([
+      { day: "MO", start: "10:00", end: "18:00" },
+    ])
+  })
+
   it("navigates grid using arrow keys, Home, End, PageUp, and PageDown", () => {
     render(
       <AvailabilityGrid
