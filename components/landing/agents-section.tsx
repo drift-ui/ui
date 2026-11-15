@@ -59,7 +59,7 @@ export function AgentsSection() {
           <CopyTextButton
             text={buildAgentPrompt()}
             label="Copy prompt"
-            className="w-full bg-brand-solid text-brand-solid-foreground hover:bg-brand-solid/90"
+            className="w-full"
           />
         </AgentCard>
         <AgentCard
@@ -73,7 +73,7 @@ export function AgentsSection() {
                   href={file.href}
                   className="group flex items-center gap-3 px-3.5 py-2.5 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                  <span className="font-mono whitespace-nowrap text-brand">
+                  <span className="font-mono whitespace-nowrap">
                     {file.label}
                   </span>
                   <span className="truncate text-muted-foreground">

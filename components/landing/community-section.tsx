@@ -38,7 +38,7 @@ function FirstIssues({ issues }: { issues: FirstIssue[] }) {
             href={issue.url}
             className="group flex items-baseline gap-4 border-b py-3.5 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
-            <span className="w-12 shrink-0 font-mono text-xs text-brand tabular-nums">
+            <span className="w-12 shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
               #{issue.number}
             </span>
             <span className="underline-offset-4 group-hover:underline">
@@ -126,11 +126,7 @@ export async function CommunitySection() {
           </ul>
           <ContributorCount total={MAINTAINERS.length + community.length} />
           <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            <Button
-              asChild
-              size="lg"
-              className="h-11 bg-brand-solid px-5 text-brand-solid-foreground hover:bg-brand-solid/90 active:scale-[0.98]"
-            >
+            <Button asChild size="lg" className="h-11 px-5 active:scale-[0.98]">
               <a href={siteConfig.discord} target="_blank" rel="noreferrer">
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                   <path d={siDiscord.path} />

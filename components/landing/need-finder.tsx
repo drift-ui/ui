@@ -132,7 +132,10 @@ export function NeedFinder({ entries }: { entries: FinderEntry[] }) {
   return (
     <div className="mt-10 rise [--rise-delay:200ms] md:mt-12">
       <div className="flex h-14 items-center gap-3 rounded-2xl border bg-card/70 px-4 backdrop-blur-sm transition-[border-color,box-shadow] focus-within:border-brand/60 focus-within:ring-[3px] focus-within:ring-brand/20 md:h-[4.25rem] md:px-5">
-        <SearchIcon aria-hidden className="size-5 shrink-0 text-brand" />
+        <SearchIcon
+          aria-hidden
+          className="size-5 shrink-0 text-muted-foreground"
+        />
         <input
           ref={inputRef}
           id={NEED_FINDER_INPUT_ID}
@@ -183,7 +186,7 @@ export function NeedFinder({ entries }: { entries: FinderEntry[] }) {
               <div className="flex items-center gap-1">
                 <span className="mr-2 font-mono text-xs whitespace-nowrap text-muted-foreground">
                   @drift-ui/
-                  <span className="text-brand">{entry.slug}</span>
+                  <span className="text-foreground">{entry.slug}</span>
                 </span>
                 <CopyCommand
                   iconOnly

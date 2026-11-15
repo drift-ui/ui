@@ -38,7 +38,7 @@ export function CatalogBand() {
               prefetch={false}
               className="group grid gap-x-8 gap-y-2 py-6 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 md:grid-cols-[4rem_minmax(0,16rem)_minmax(0,1fr)_auto] md:items-baseline"
             >
-              <span className="font-display text-3xl leading-none font-semibold tracking-[-0.04em] text-brand tabular-nums">
+              <span className="font-mono text-sm text-muted-foreground tabular-nums">
                 {row.total}
               </span>
               <span className="flex flex-col gap-1">
