@@ -56,7 +56,7 @@ export function CatalogBand() {
               </span>
               <ArrowRightIcon
                 aria-hidden
-                className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-brand md:block"
+                className="hidden size-4 text-muted-foreground transition-[color,translate] group-hover:translate-x-0.5 group-hover:text-brand md:block"
               />
             </Link>
           </li>

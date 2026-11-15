@@ -47,7 +47,7 @@ export function ClosingCta() {
             asChild
             size="lg"
             variant="outline"
-            className="h-11 border-brand-solid-foreground/40 bg-transparent px-5 text-brand-solid-foreground hover:bg-brand-solid-foreground/10 hover:text-brand-solid-foreground active:scale-[0.98]"
+            className="h-11 border-brand-solid-foreground/40 bg-transparent px-5 text-brand-solid-foreground shadow-none hover:bg-brand-solid-foreground/10 hover:text-brand-solid-foreground active:scale-[0.98] dark:border-brand-solid-foreground/40 dark:bg-transparent dark:hover:bg-brand-solid-foreground/10"
           >
             <a href={componentRequestUrl()} target="_blank" rel="noreferrer">
               Request one
