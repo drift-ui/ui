@@ -30,7 +30,7 @@ const STOPWORDS = new Set([
 export function searchWords(query: string) {
   return query
     .toLowerCase()
-    .split(/[^a-z0-9-]+/)
+    .split(/[^\p{L}\p{N}-]+/u)
     .filter((word) => word && !STOPWORDS.has(word))
 }
 
