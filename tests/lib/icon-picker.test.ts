@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
   addRecent,
@@ -264,7 +264,25 @@ describe("moveCell", () => {
       moveCell(
         ROW_LENGTHS,
         SECTION_STARTS,
+        { row: 2, column: 0 },
+        "PageDown",
+        false
+      )
+    ).toEqual({ row: 2, column: 1 })
+    expect(
+      moveCell(
+        ROW_LENGTHS,
+        SECTION_STARTS,
         { row: 2, column: 1 },
+        "PageUp",
+        false
+      )
+    ).toEqual({ row: 0, column: 0 })
+    expect(
+      moveCell(
+        ROW_LENGTHS,
+        SECTION_STARTS,
+        { row: 0, column: 0 },
         "PageUp",
         false
       )
@@ -311,5 +329,17 @@ describe("preferences in localStorage", () => {
   it("reads and writes valid preferences", () => {
     writePreferences({ recent: ["folder", "star"] }, "test-key")
     expect(readPreferences("test-key")).toEqual({ recent: ["folder", "star"] })
+  })
+
+  it("handles storage write errors gracefully", () => {
+    const spy = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("QuotaExceededError")
+      })
+    expect(() =>
+      writePreferences({ recent: ["star"] }, "test-key")
+    ).not.toThrow()
+    spy.mockRestore()
   })
 })

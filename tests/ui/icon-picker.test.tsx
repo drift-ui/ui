@@ -227,6 +227,33 @@ describe("IconPicker", () => {
     expect(iconCell("star")).toHaveAttribute("aria-selected", "true")
   })
 
+  it("renders fallback for invalid icon name", () => {
+    renderPicker({ icons: ["not-a-valid-icon"] })
+    expect(iconButton("not-a-valid-icon")).toBeInTheDocument()
+  })
+
+  it("moves to previous row with ArrowUp when row > 0", async () => {
+    const user = userEvent.setup()
+    renderPicker({ columns: 3 })
+
+    await user.click(searchbox())
+    await user.keyboard("{ArrowDown}")
+    await user.keyboard("{ArrowDown}")
+    expect(iconButton("star")).toHaveFocus()
+
+    await user.keyboard("{ArrowUp}")
+    expect(iconButton("folder")).toHaveFocus()
+  })
+
+  it("safely ignores clicks or focus on non-cell elements inside grid", async () => {
+    const user = userEvent.setup()
+    renderPicker()
+    const grid = screen.getByRole("grid", { name: "Icons" })
+    await user.click(grid)
+    grid.focus()
+    expect(grid).toBeInTheDocument()
+  })
+
   it("forwards className and remaining props to root element", () => {
     renderPicker({
       className: "custom-class",
