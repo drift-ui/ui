@@ -1369,6 +1369,73 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "Pure logic helper in @/lib/histogram-range that buckets numeric data, normalizes bar heights, and calculates inRange statuses.",
     },
   ],
+  "icon-picker": [
+    {
+      name: "IconPicker",
+      description:
+        "An inline Lucide icon panel with search, roving tabindex, arrow-key navigation, tags search, and recently used icons. Icons load dynamically on demand.",
+      props: [
+        {
+          name: "value",
+          type: "string",
+          description: 'Controlled Lucide icon name (e.g. "folder-open").',
+        },
+        {
+          name: "defaultValue",
+          type: "string",
+          default: '""',
+          description: "Initial uncontrolled Lucide icon name.",
+        },
+        {
+          name: "onValueChange",
+          type: "(value: string) => void",
+          description: "Called when an icon is selected.",
+        },
+        {
+          name: "onSelect",
+          type: "(value: string) => void",
+          description: "Alias callback called when an icon is selected.",
+        },
+        {
+          name: "icons",
+          type: "(string | { name: string; tags?: string[] })[]",
+          description:
+            "Optional custom icon subset. Defaults to all Lucide icons.",
+        },
+        {
+          name: "tags",
+          type: "Record<string, string[]>",
+          description: "Additional search tags keyed by icon name.",
+        },
+        {
+          name: "columns",
+          type: "number",
+          default: "6",
+          description: "Number of columns in the icon grid.",
+        },
+        {
+          name: "maxRecent",
+          type: "number",
+          default: "16",
+          description: "Maximum number of recently used icons to preserve.",
+        },
+        {
+          name: "storageKey",
+          type: "string",
+          default: '"drift-ui:icon-picker"',
+          description: "localStorage key for persisting recently used icons.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "searchIcons",
+      signature:
+        "searchIcons(icons: IconItem[], query: string, customTags?: Record<string, string[]>): IconItem[]",
+      description:
+        "Pure logic helper in @/lib/icon-picker-utils that matches query against icon names, hyphenated segments, and tags.",
+    },
+  ],
   "image-cropper": [
     {
       name: "ImageCropper",
