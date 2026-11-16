@@ -1008,6 +1008,32 @@
       ]
     },
     {
+      "name": "snooze-picker",
+      "type": "registry:ui",
+      "title": "Snooze Picker",
+      "description": "Menu for scheduling reminders, snoozing notifications, or deferring tasks with quick presets and custom date-time picker.",
+      "dependencies": ["lucide-react", "react-day-picker"],
+      "registryDependencies": [
+        "utils",
+        "button",
+        "calendar",
+        "popover",
+        "@drift-ui/time-field",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/snooze-picker.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/snooze-picker-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "sortable-list",
       "type": "registry:ui",
       "title": "Sortable List",

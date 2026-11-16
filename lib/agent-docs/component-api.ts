@@ -3289,6 +3289,87 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<div>",
     },
   ],
+  "snooze-picker": [
+    {
+      name: "SnoozePicker",
+      description:
+        "A menu component for scheduling reminders, snoozing notifications, or deferring tasks with quick presets and an embedded custom date-time picker.",
+      props: [
+        STATE_PROPS.value("Date | null", "snooze date"),
+        STATE_PROPS.defaultValue("Date | null", "null"),
+        STATE_PROPS.onValueChange(
+          "(date: Date | null) => void",
+          "when the snooze date changes"
+        ),
+        {
+          name: "onSelect",
+          type: "(date: Date, presetId?: string) => void",
+          description: "Called when a preset or custom date is picked.",
+        },
+        {
+          name: "presets",
+          type: "SnoozePreset[]",
+          default: '["later-today", "tomorrow", "this-weekend", "next-week"]',
+          description: "List of preset identifiers or custom preset configs.",
+        },
+        {
+          name: "times",
+          type: "SnoozeTimes",
+          description:
+            "Custom target times for presets (morning, afternoon, evening, weekendDay, workweekDay).",
+        },
+        {
+          name: "timeZone",
+          type: "string",
+          description: "IANA time zone name (e.g. 'America/New_York').",
+        },
+        {
+          name: "locale",
+          type: "string",
+          default: '"en-US"',
+          description: "BCP 47 language tag for date and time formatting.",
+        },
+        {
+          name: "hourCycle",
+          type: "12 | 24",
+          default: "24",
+          description: "12-hour or 24-hour cycle for time formatting.",
+        },
+        {
+          name: "min",
+          type: "Date",
+          description: "Earliest date selectable in custom picker.",
+        },
+        {
+          name: "max",
+          type: "Date",
+          description: "Latest date selectable in custom picker.",
+        },
+        {
+          name: "now",
+          type: "Date",
+          description: "Pinned reference date instead of current time.",
+        },
+        {
+          name: "placeholder",
+          type: "string",
+          default: '"Snooze"',
+          description: "Trigger button label when no value is selected.",
+        },
+        {
+          name: "open",
+          type: "boolean",
+          description: "Controlled open state of the popover.",
+        },
+        {
+          name: "onOpenChange",
+          type: "(open: boolean) => void",
+          description: "Called when the popover opens or closes.",
+        },
+      ],
+      rest: "<button>",
+    },
+  ],
   "sortable-list": [
     {
       name: "SortableList",
