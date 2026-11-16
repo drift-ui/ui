@@ -66,15 +66,11 @@ describe("IconPicker examples", () => {
     expect(screen.getAllByText("sparkles").length).toBeGreaterThan(0)
   })
 
-  it(
-    "passes axe accessibility checks on IconPickerPreview",
-    async () => {
-      const { container } = render(<IconPickerPreview />)
-      const { violations } = await axe.run(container, {
-        rules: { region: { enabled: false } },
-      })
-      expect(violations).toEqual([])
-    },
-    15000
-  )
+  it("passes axe accessibility checks on IconPickerPreview", async () => {
+    const { container } = render(<IconPickerPreview />)
+    const { violations } = await axe.run(container, {
+      rules: { region: { enabled: false } },
+    })
+    expect(violations).toEqual([])
+  }, 15000)
 })
