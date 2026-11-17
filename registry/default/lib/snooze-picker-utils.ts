@@ -206,10 +206,25 @@ export function makeZonedDate(
     )
     offset = curUtc - targetTs
     const refinedTs = utcGuess - offset
+    const finalParts = getParts(refinedTs)
+    const targetLocalMinutes = hour * 60 + minute
+    const actualLocalMinutes = finalParts.hour * 60 + finalParts.minute
+    const diffMinutes = targetLocalMinutes - actualLocalMinutes
+    if (diffMinutes > 0 && diffMinutes <= 120) {
+      return new Date(refinedTs + diffMinutes * 60 * 1000)
+    }
     return new Date(refinedTs)
   } catch {
     return new Date(year, month, day, hour, minute, second)
   }
+}
+
+export function getCalendarDateForTimeZone(
+  instant: Date,
+  timeZone?: string
+): Date {
+  const parts = getZonedDateTimeParts(instant, timeZone)
+  return new Date(parts.year, parts.month, parts.day)
 }
 
 export function combineDateAndTime(
@@ -217,12 +232,11 @@ export function combineDateAndTime(
   timeString: string,
   timeZone?: string
 ): Date {
-  const dateParts = getZonedDateTimeParts(date, timeZone)
   const { hour, minute } = parseHourMinute(timeString)
   return makeZonedDate(
-    dateParts.year,
-    dateParts.month,
-    dateParts.day,
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
     hour,
     minute,
     0,
@@ -410,13 +424,37 @@ export function resolvePreset(
     }
 
     case "this-weekend": {
-      const weekendDay = mergedTimes.weekendDay // default 6 (Saturday)
-      // On Monday (1) through Friday (5), resolves to upcoming weekendDay
-      // On weekend (Sat or Sun), "this weekend" does not apply, so hide it
+      const weekendDay = mergedTimes.weekendDay // default 6 (Saturday), 0 = Sunday
+      if (weekendDay === 0) {
+        if (nowParts.weekday === 0) {
+          return null
+        }
+        const daysUntil = 7 - nowParts.weekday
+        const date = makeZonedDate(
+          nowParts.year,
+          nowParts.month,
+          nowParts.day + daysUntil,
+          morningHour,
+          morningMinute,
+          0,
+          timeZone
+        )
+        return {
+          id: "this-weekend",
+          label: "This weekend",
+          date,
+          timeLabel: formatPresetTime(date, now, {
+            timeZone,
+            locale,
+            hourCycle,
+          }),
+        }
+      }
+
       if (nowParts.weekday === 0 || nowParts.weekday >= weekendDay) {
         return null
       }
-      const daysUntil = (weekendDay - nowParts.weekday + 7) % 7
+      const daysUntil = weekendDay - nowParts.weekday
       const date = makeZonedDate(
         nowParts.year,
         nowParts.month,
@@ -459,9 +497,19 @@ export function resolvePreset(
 
     case "next-weekend": {
       const weekendDay = mergedTimes.weekendDay // default 6
-      let daysUntil = (weekendDay - nowParts.weekday + 7) % 7
-      if (daysUntil === 0 || nowParts.weekday < weekendDay) {
-        daysUntil += 7
+      let daysUntil: number
+      if (weekendDay === 0) {
+        daysUntil = nowParts.weekday === 0 ? 7 : 7 - nowParts.weekday + 7
+      } else {
+        if (nowParts.weekday === 0) {
+          daysUntil = weekendDay
+        } else if (nowParts.weekday === weekendDay) {
+          daysUntil = 7
+        } else if (nowParts.weekday < weekendDay) {
+          daysUntil = weekendDay - nowParts.weekday + 7
+        } else {
+          daysUntil = (weekendDay - nowParts.weekday + 7) % 7 || 7
+        }
       }
       const date = makeZonedDate(
         nowParts.year,

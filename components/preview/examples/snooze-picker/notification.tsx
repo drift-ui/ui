@@ -19,6 +19,9 @@ export function SnoozePickerNotificationPreview() {
           {snoozedAt
             ? `Snoozed until ${snoozedAt.toLocaleDateString(undefined, {
                 weekday: "short",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
                 hour: "numeric",
                 minute: "2-digit",
               })}`

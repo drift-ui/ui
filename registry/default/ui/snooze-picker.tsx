@@ -8,6 +8,7 @@ import {
   DEFAULT_SNOOZE_PRESETS,
   combineDateAndTime,
   formatPresetTime,
+  getCalendarDateForTimeZone,
   getZonedDateTimeParts,
   resolvePreset,
   resolvePresets,
@@ -90,6 +91,7 @@ function SnoozePicker({
   const menuId = React.useId()
   const triggerRef = React.useRef<HTMLButtonElement>(null)
   const menuRef = React.useRef<HTMLDivElement>(null)
+  const backBtnRef = React.useRef<HTMLButtonElement>(null)
 
   const { value, setValue } = useControllableState<Date | null>({
     value: valueProp,
@@ -122,12 +124,14 @@ function SnoozePicker({
   )
 
   const defaultNextDate = React.useMemo(() => {
-    if (value) return value
+    if (value) return getCalendarDateForTimeZone(value, timeZone)
     const tomorrow = resolvePreset("tomorrow", effectiveNow, {
       timeZone,
       times,
     })
-    return tomorrow?.date ?? effectiveNow
+    return tomorrow
+      ? getCalendarDateForTimeZone(tomorrow.date, timeZone)
+      : getCalendarDateForTimeZone(effectiveNow, timeZone)
   }, [value, effectiveNow, timeZone, times])
 
   const [customDate, setCustomDate] = React.useState<Date>(defaultNextDate)
@@ -141,10 +145,14 @@ function SnoozePicker({
       const nowTs = pinnedNow ?? new Date()
       setOpenedAt(nowTs)
       setView("presets")
-      const nextDate =
-        value ??
-        resolvePreset("tomorrow", nowTs, { timeZone, times })?.date ??
-        nowTs
+      const nextDate = value
+        ? getCalendarDateForTimeZone(value, timeZone)
+        : resolvePreset("tomorrow", nowTs, { timeZone, times })?.date
+          ? getCalendarDateForTimeZone(
+              resolvePreset("tomorrow", nowTs, { timeZone, times })!.date,
+              timeZone
+            )
+          : getCalendarDateForTimeZone(nowTs, timeZone)
       setCustomDate(nextDate)
       setCustomTime(
         value ? getTimeString(value, timeZone) : (times?.morning ?? "09:00")
@@ -161,7 +169,7 @@ function SnoozePicker({
   }
 
   function handleCustomSubmit() {
-    if (!customDate) return
+    if (!customDate || !customTime.trim()) return
     const finalDate = combineDateAndTime(customDate, customTime, timeZone)
     setValue(finalDate)
     onSelect?.(finalDate, "custom")
@@ -173,7 +181,7 @@ function SnoozePicker({
     index: number
   ) {
     const items = menuRef.current?.querySelectorAll<HTMLButtonElement>(
-      '[role="menuitem"]:not([disabled])'
+      '[role="menuitem"]:not([disabled]), [role="menuitemradio"]:not([disabled])'
     )
     if (!items || items.length === 0) return
 
@@ -216,14 +224,20 @@ function SnoozePicker({
     }
   }
 
-  // Auto-focus first item when presets view opens
+  // Auto-focus first item when presets view opens, or back button when custom view opens
   React.useEffect(() => {
     if (isOpen && view === "presets") {
       const timer = setTimeout(() => {
         const firstItem = menuRef.current?.querySelector<HTMLButtonElement>(
-          '[role="menuitem"]:not([disabled])'
+          '[role="menuitem"]:not([disabled]), [role="menuitemradio"]:not([disabled])'
         )
         firstItem?.focus()
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+    if (isOpen && view === "custom") {
+      const timer = setTimeout(() => {
+        backBtnRef.current?.focus()
       }, 0)
       return () => clearTimeout(timer)
     }
@@ -299,7 +313,8 @@ function SnoozePicker({
                   <button
                     key={preset.id}
                     type="button"
-                    role="menuitem"
+                    role="menuitemradio"
+                    aria-checked={Boolean(isSelected)}
                     data-preset={preset.id}
                     onClick={() => handleSelectPreset(preset)}
                     onKeyDown={(e) => handlePresetKeyDown(e, index)}
@@ -346,6 +361,7 @@ function SnoozePicker({
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2 border-b border-border pb-2">
                 <Button
+                  ref={backBtnRef}
                   type="button"
                   variant="ghost"
                   size="icon"
@@ -421,7 +437,7 @@ function SnoozePicker({
                 <Button
                   type="button"
                   size="sm"
-                  disabled={!customDate}
+                  disabled={!customDate || !customTime.trim()}
                   onClick={handleCustomSubmit}
                 >
                   Save
@@ -436,6 +452,7 @@ function SnoozePicker({
           type="hidden"
           name={name}
           value={value ? value.toISOString() : ""}
+          disabled={disabled}
         />
       )}
     </>

@@ -3362,6 +3362,12 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           description: "Controlled open state of the popover.",
         },
         {
+          name: "defaultOpen",
+          type: "boolean",
+          default: "false",
+          description: "Initial open state when uncontrolled.",
+        },
+        {
           name: "onOpenChange",
           type: "(open: boolean) => void",
           description: "Called when the popover opens or closes.",

@@ -130,7 +130,10 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
   ],
   "snooze-picker": [
     { keys: UP_DOWN, action: "Move through snooze presets" },
-    { keys: ["Enter", "Space"], action: "Select the focused preset" },
+    {
+      keys: ["Enter", "Space"],
+      action: "Select a preset or open the custom picker",
+    },
     { keys: ["ArrowRight"], action: "Open custom date and time picker" },
     { keys: ["Escape"], action: "Close the picker" },
   ],

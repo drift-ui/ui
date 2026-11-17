@@ -4,6 +4,7 @@ import {
   DEFAULT_SNOOZE_TIMES,
   combineDateAndTime,
   formatPresetTime,
+  getCalendarDateForTimeZone,
   getZonedDateTimeParts,
   isValidTimeZone,
   makeZonedDate,
@@ -47,6 +48,25 @@ describe("snooze-picker-utils", () => {
       // Create 2026-06-01 09:00:00 in America/New_York (EDT, UTC-4)
       const date = makeZonedDate(2026, 5, 1, 9, 0, 0, "America/New_York")
       expect(date.toISOString()).toBe("2026-06-01T13:00:00.000Z")
+    })
+
+    it("falls back to local date parts when invalid timeZone is provided", () => {
+      const date = new Date(2026, 4, 15, 12, 30, 0)
+      const parts = getZonedDateTimeParts(date, "Invalid/TimeZone")
+      expect(parts.year).toBe(2026)
+      expect(parts.month).toBe(4)
+      expect(parts.day).toBe(15)
+      expect(parts.hour).toBe(12)
+      expect(parts.minute).toBe(30)
+    })
+
+    it("falls back to local Date in makeZonedDate when invalid timeZone is provided", () => {
+      const date = makeZonedDate(2026, 4, 15, 12, 30, 0, "Invalid/TimeZone")
+      expect(date.getFullYear()).toBe(2026)
+      expect(date.getMonth()).toBe(4)
+      expect(date.getDate()).toBe(15)
+      expect(date.getHours()).toBe(12)
+      expect(date.getMinutes()).toBe(30)
     })
   })
 
@@ -128,8 +148,10 @@ describe("snooze-picker-utils", () => {
     })
 
     it("hides later-today when at or past cutoff (>= 17:00)", () => {
-      const resolved = resolvePreset("later-today", mondayLate)
-      expect(resolved).toBeNull()
+      expect(
+        resolvePreset("later-today", new Date(2026, 4, 11, 17, 0, 0))
+      ).toBeNull()
+      expect(resolvePreset("later-today", mondayLate)).toBeNull()
     })
 
     it("resolves this-evening when before 18:00", () => {
@@ -188,11 +210,101 @@ describe("snooze-picker-utils", () => {
       expect(resolvedSun?.date.getDate()).toBe(18)
     })
 
-    it("resolves next-weekend", () => {
+    it("resolves this-weekend with Sunday target (weekendDay: 0)", () => {
+      const resolvedMon = resolvePreset("this-weekend", mondayMorning, {
+        times: { weekendDay: 0 },
+      })
+      expect(resolvedMon).not.toBeNull()
+      expect(resolvedMon?.date.getDay()).toBe(0) // Sunday
+      expect(resolvedMon?.date.getDate()).toBe(17)
+
+      // On Sunday, this-weekend with weekendDay: 0 returns null
+      expect(
+        resolvePreset("this-weekend", sundayMorning, {
+          times: { weekendDay: 0 },
+        })
+      ).toBeNull()
+    })
+
+    it("resolves next-weekend on Saturday and Sunday", () => {
+      // On Saturday, next weekend is next Saturday
       const resolvedSat = resolvePreset("next-weekend", saturdayMorning)
       expect(resolvedSat).not.toBeNull()
       expect(resolvedSat?.date.getDay()).toBe(6)
       expect(resolvedSat?.date.getDate()).toBe(23)
+
+      // On Sunday, current weekend ended, so next weekend is the upcoming Saturday
+      const resolvedSun = resolvePreset("next-weekend", sundayMorning)
+      expect(resolvedSun).not.toBeNull()
+      expect(resolvedSun?.date.getDay()).toBe(6)
+      expect(resolvedSun?.date.getDate()).toBe(23)
+
+      // With weekendDay: 0 (Sunday) on Monday, next weekend is Sunday next week
+      const resolvedMonSunTarget = resolvePreset(
+        "next-weekend",
+        mondayMorning,
+        {
+          times: { weekendDay: 0 },
+        }
+      )
+      expect(resolvedMonSunTarget?.date.getDay()).toBe(0)
+      expect(resolvedMonSunTarget?.date.getDate()).toBe(24)
+
+      // With weekendDay: 0 on Sunday, next weekend is next Sunday
+      const resolvedSunSunTarget = resolvePreset(
+        "next-weekend",
+        sundayMorning,
+        {
+          times: { weekendDay: 0 },
+        }
+      )
+      expect(resolvedSunSunTarget?.date.getDay()).toBe(0)
+      expect(resolvedSunSunTarget?.date.getDate()).toBe(24)
+
+      // On Wednesday (weekday 3 < weekendDay 6), next weekend is Saturday after next
+      const wednesdayMorning = new Date(2026, 4, 13, 10, 0, 0)
+      const resolvedWed = resolvePreset("next-weekend", wednesdayMorning)
+      expect(resolvedWed?.date.getDay()).toBe(6)
+      expect(resolvedWed?.date.getDate()).toBe(23)
+
+      // On Friday (weekday 5 > weekendDay 4), next weekend is next Thursday
+      const fridayMorning = new Date(2026, 4, 15, 10, 0, 0)
+      const resolvedFriCustom = resolvePreset("next-weekend", fridayMorning, {
+        times: { weekendDay: 4 },
+      })
+      expect(resolvedFriCustom?.date.getDay()).toBe(4)
+      expect(resolvedFriCustom?.date.getDate()).toBe(21)
+    })
+
+    it("normalizes forward for spring-forward nonexistent times in makeZonedDate", () => {
+      // 2026-03-08 in America/New_York jumps from 02:00 to 03:00 EST -> EDT
+      const date = makeZonedDate(2026, 2, 8, 2, 30, 0, "America/New_York")
+      const parts = getZonedDateTimeParts(date, "America/New_York")
+      expect(parts.hour).toBe(3)
+      expect(parts.minute).toBe(30)
+    })
+
+    it("gets calendar date for timezone", () => {
+      // 2026-05-15 01:00 UTC is May 14 in America/New_York (EDT)
+      const instant = new Date("2026-05-15T01:00:00.000Z")
+      const calDate = getCalendarDateForTimeZone(instant, "America/New_York")
+      expect(calDate.getFullYear()).toBe(2026)
+      expect(calDate.getMonth()).toBe(4) // May
+      expect(calDate.getDate()).toBe(14)
+    })
+
+    it("returns null for unknown preset or invalid config", () => {
+      // @ts-expect-error test unknown string
+      expect(resolvePreset("unknown-preset", mondayMorning)).toBeNull()
+      expect(
+        resolvePreset({ id: "custom", label: "Custom" }, mondayMorning)
+      ).toBeNull()
+      expect(
+        resolvePreset(
+          { id: "custom", label: "Custom", resolve: () => null },
+          mondayMorning
+        )
+      ).toBeNull()
     })
 
     it("handles custom preset with static date", () => {
