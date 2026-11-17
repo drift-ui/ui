@@ -62,6 +62,7 @@ import { SecretFieldPreview } from "@/components/preview/secret-field-preview"
 import { ShortcutCheatsheetPreview } from "@/components/preview/shortcut-cheatsheet-preview"
 import { ShortcutRecorderPreview } from "@/components/preview/shortcut-recorder-preview"
 import { SignaturePadPreview } from "@/components/preview/signature-pad-preview"
+import { SnoozePickerPreview } from "@/components/preview/snooze-picker-preview"
 import { SortableListPreview } from "@/components/preview/sortable-list-preview"
 import { StepperPreview } from "@/components/preview/stepper-preview"
 import { TagsInputPreview } from "@/components/preview/tags-input-preview"
@@ -127,6 +128,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "shortcut-cheatsheet": ShortcutCheatsheetPreview,
   "shortcut-recorder": ShortcutRecorderPreview,
   "signature-pad": SignaturePadPreview,
+  "snooze-picker": SnoozePickerPreview,
   "sortable-list": SortableListPreview,
   stepper: StepperPreview,
   "tags-input": TagsInputPreview,
