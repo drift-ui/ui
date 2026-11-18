@@ -129,11 +129,13 @@ function RegexInput({
   const internalInputRef = React.useRef<HTMLInputElement | null>(null)
   React.useImperativeHandle(
     inputRef,
-    () => internalInputRef.current as HTMLInputElement
+    () => internalInputRef.current as HTMLInputElement,
+    []
   )
   React.useImperativeHandle(
     inputProps?.ref,
-    () => internalInputRef.current as HTMLInputElement
+    () => internalInputRef.current as HTMLInputElement,
+    []
   )
 
   // Validate pattern

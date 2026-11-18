@@ -1,5 +1,5 @@
 import * as React from "react"
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -213,6 +213,19 @@ describe("RegexInput", () => {
     expect(inputRef.current).toBe(input)
     expect(input.value).toBe("abc")
     expect(input).toHaveAttribute("autocomplete", "off")
+
+    fireEvent.focus(input)
+    expect(handleFocus).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not repeatedly re-invoke consumer ref on re-render", () => {
+    const refCallback = vi.fn()
+    const { rerender } = render(
+      <RegexInput value="a" inputProps={{ ref: refCallback }} />
+    )
+    const initialCalls = refCallback.mock.calls.length
+    rerender(<RegexInput value="ab" inputProps={{ ref: refCallback }} />)
+    expect(refCallback.mock.calls.length).toBe(initialCalls)
   })
 
   it("renders readOnly input when readOnly is true", () => {

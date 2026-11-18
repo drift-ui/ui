@@ -270,9 +270,7 @@ export function findRegexMatches(
     })
 
     if (matches.length >= maxMatches) {
-      if (matches.length < effectiveSample.length) {
-        truncated = true
-      }
+      truncated = true
       break
     }
 

@@ -206,22 +206,45 @@ describe("regex-input-utils", () => {
     })
 
     it("handles environments without regex indices fallback gracefully", () => {
-      const origExec = RegExp.prototype.exec
-      RegExp.prototype.exec = function (this: RegExp, str: string) {
-        const res = origExec.call(this, str)
-        if (res) {
-          delete (res as unknown as Record<string, unknown>).indices
+      const OrigRegExp = globalThis.RegExp
+      class MockRegExp extends OrigRegExp {
+        constructor(pattern: string | RegExp, flags?: string) {
+          if (flags && typeof flags === "string" && flags.includes("d")) {
+            throw new SyntaxError("Invalid flags: d not supported")
+          }
+          super(pattern, flags)
         }
-        return res
       }
+      globalThis.RegExp = MockRegExp as unknown as RegExpConstructor
+
       try {
         const res = findRegexMatches("(?<user>\\w+)", "", "alice")
+        expect(res.error).toBeNull()
         expect(res.matches).toHaveLength(1)
-        expect(res.matches[0].groups[0].name).toBe("user")
-        expect(res.matches[0].groups[0].start).toBe(0)
+        expect(res.matches[0].match).toBe("alice")
+        expect(res.matches[0].groups).toHaveLength(1)
+        expect(res.matches[0].groups[0]).toEqual({
+          number: 1,
+          name: "user",
+          value: "alice",
+          start: 0,
+          end: 5,
+        })
       } finally {
-        RegExp.prototype.exec = origExec
+        globalThis.RegExp = OrigRegExp
       }
+    })
+
+    it("marks result truncated when maxMatches cap is reached", () => {
+      const res = findRegexMatches("[a-z]", "", "abcdef", { maxMatches: 3 })
+      expect(res.matches).toHaveLength(3)
+      expect(res.truncated).toBe(true)
+    })
+
+    it("marks result truncated when zero-length matches reach maxMatches", () => {
+      const res = findRegexMatches("b*", "", "bbb", { maxMatches: 2 })
+      expect(res.matches).toHaveLength(2)
+      expect(res.truncated).toBe(true)
     })
   })
 
