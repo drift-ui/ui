@@ -872,6 +872,29 @@
       ]
     },
     {
+      "name": "regex-input",
+      "type": "registry:ui",
+      "title": "Regex Input",
+      "description": "Validate regular expressions live with flags toggles, error feedback, and match previews.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "utils",
+        "badge",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/regex-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/regex-input-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "saved-views",
       "type": "registry:ui",
       "title": "Saved Views",
