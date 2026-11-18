@@ -14,7 +14,7 @@ export const examples: ComponentExample[] = [
   {
     id: "capture-groups",
     title: "Capture groups",
-    description: "Inspect named and numbered capture groups per match.",
+    description: "Inspect named capture groups per match.",
     Preview: RegexInputCaptureGroupsPreview,
   },
   {

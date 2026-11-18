@@ -37,6 +37,11 @@ describe("regex-input-utils", () => {
       expect(toggleFlag("ims", "m")).toBe("is")
       expect(toggleFlag("i", "i")).toBe("")
     })
+
+    it("rejects invalid flag characters", () => {
+      expect(toggleFlag("i", "x")).toBe("i")
+      expect(toggleFlag("im", "1")).toBe("im")
+    })
   })
 
   describe("validateRegex", () => {
@@ -148,23 +153,75 @@ describe("regex-input-utils", () => {
       expect(res.truncated).toBe(true)
     })
 
-    it("safely limits catastrophic backtracking (ReDoS safeguard)", () => {
-      // Potentially exponential backtracking pattern
-      const evilPattern = "(a+)+$"
-      const evilSample = "aaaaaaaaaaaaaaaaaaaaX"
-      const res = findRegexMatches(evilPattern, "", evilSample, {
+    it("sets truncated to true when iteration or timeout limits are reached", () => {
+      const sample = "a".repeat(500)
+      const res = findRegexMatches("a", "", sample, {
+        maxIterations: 10,
         timeoutMs: 50,
-        maxIterations: 100,
       })
       expect(res.error).toBeNull()
-      // Either 0 matches or safely aborted within timeout
-      expect(res.executionTimeMs).toBeDefined()
+      expect(res.truncated).toBe(true)
+      expect(res.matches.length).toBeLessThanOrEqual(10)
+    })
+
+    it("handles non-positive maxMatches by returning empty matches", () => {
+      const res = findRegexMatches("a", "", "aaa", { maxMatches: 0 })
+      expect(res.matches).toHaveLength(0)
+      expect(res.matchCount).toBe(0)
+      expect(res.truncated).toBe(false)
+    })
+
+    it("advances astral code points with unicode semantics on zero-length matches", () => {
+      const sample = "𠮷abc"
+      const res = findRegexMatches("b*", "u", sample)
+      expect(res.matches.length).toBeGreaterThan(0)
+      expect(res.matches[0].index).toBe(0)
+      expect(res.matches[1].index).toBe(2)
+    })
+
+    it("accurately attributes capture group ranges and names even with duplicate values", () => {
+      const res = findRegexMatches(
+        "(?<left>\\w+)-(?<right>\\w+)",
+        "",
+        "same-same"
+      )
+      expect(res.matches).toHaveLength(1)
+      const groups = res.matches[0].groups
+      expect(groups).toHaveLength(2)
+      expect(groups[0].name).toBe("left")
+      expect(groups[0].value).toBe("same")
+      expect(groups[0].start).toBe(0)
+      expect(groups[0].end).toBe(4)
+
+      expect(groups[1].name).toBe("right")
+      expect(groups[1].value).toBe("same")
+      expect(groups[1].start).toBe(5)
+      expect(groups[1].end).toBe(9)
     })
 
     it("returns error for invalid pattern", () => {
       const res = findRegexMatches("[a-z", "", "test")
       expect(res.error).toBeTruthy()
       expect(res.matches).toHaveLength(0)
+    })
+
+    it("handles environments without regex indices fallback gracefully", () => {
+      const origExec = RegExp.prototype.exec
+      RegExp.prototype.exec = function (this: RegExp, str: string) {
+        const res = origExec.call(this, str)
+        if (res) {
+          delete (res as unknown as Record<string, unknown>).indices
+        }
+        return res
+      }
+      try {
+        const res = findRegexMatches("(?<user>\\w+)", "", "alice")
+        expect(res.matches).toHaveLength(1)
+        expect(res.matches[0].groups[0].name).toBe("user")
+        expect(res.matches[0].groups[0].start).toBe(0)
+      } finally {
+        RegExp.prototype.exec = origExec
+      }
     })
   })
 

@@ -2934,7 +2934,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "RegexInput",
       description:
-        "A live regular expression pattern input with flags toggles, syntax error feedback, ReDoS protection, sample text match highlights, and capture groups inspection.",
+        "A live regular expression pattern input with flags toggles, syntax error feedback, configurable match limits, sample text match highlights, and capture groups inspection.",
       props: [
         {
           name: "value",
@@ -2983,6 +2983,30 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
             "Sample text to test the pattern against and highlight matches.",
         },
         {
+          name: "placeholder",
+          type: "string",
+          default: '"pattern"',
+          description: "Placeholder text for the pattern input.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables the pattern input and flag toggles.",
+        },
+        {
+          name: "readOnly",
+          type: "boolean",
+          default: "false",
+          description: "Makes the pattern input and flag toggles read-only.",
+        },
+        {
+          name: "name",
+          type: "string",
+          description:
+            "Form field name for submitting the pattern through a hidden input.",
+        },
+        {
           name: "showDelimiters",
           type: "boolean",
           default: "true",
@@ -3028,7 +3052,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         },
         {
           name: "inputProps",
-          type: 'ComponentProps<"input">',
+          type: 'Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "disabled" | "readOnly">',
           description:
             "Additional props forwarded to the underlying text input element.",
         },
@@ -3040,7 +3064,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       signature:
         "validateRegex(pattern: string, flags?: string): RegexValidationResult; findRegexMatches(pattern: string, flags: string, sample: string, options?: RegexMatchOptions): RegexMatchResult; highlightSampleText(sample: string, matches: RegexMatch[]): RegexSegment[]; toggleFlag(flags: string, flag: string): string; normalizeFlags(flags: string): string",
       description:
-        "Pure logic functions for validating patterns, safe regex execution with ReDoS protection, sample text segmenting, and flag manipulation. Import from @/lib/regex-input-utils.",
+        "Pure logic functions for validating patterns, safe regex execution with length and match caps, sample text segmenting, and flag manipulation. Import from @/lib/regex-input-utils.",
     },
   ],
   "saved-views": [

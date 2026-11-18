@@ -131,6 +131,10 @@ function RegexInput({
     inputRef,
     () => internalInputRef.current as HTMLInputElement
   )
+  React.useImperativeHandle(
+    inputProps?.ref,
+    () => internalInputRef.current as HTMLInputElement
+  )
 
   // Validate pattern
   const validation = React.useMemo(
@@ -157,6 +161,8 @@ function RegexInput({
     () => highlightSampleText(sample ?? "", matches),
     [sample, matches]
   )
+
+  const { className: inputPropsClassName, ...restInputProps } = inputProps ?? {}
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPattern(e.target.value)
@@ -195,6 +201,7 @@ function RegexInput({
         )}
 
         <input
+          {...restInputProps}
           ref={internalInputRef}
           id={inputProps?.id ?? inputId}
           type="text"
@@ -220,10 +227,9 @@ function RegexInput({
               inputProps?.["aria-describedby"]
             ) || undefined
           }
-          {...inputProps}
           className={cn(
             "flex-1 bg-transparent font-mono text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed",
-            inputProps?.className
+            inputPropsClassName
           )}
         />
 

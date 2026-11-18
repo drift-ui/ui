@@ -146,10 +146,20 @@ describe("RegexInput", () => {
     expect(screen.getByText('"202"')).toBeInTheDocument()
   })
 
-  it("hides delimiters when showDelimiters is false", () => {
-    const { container } = render(<RegexInput showDelimiters={false} />)
-    const slashes = container.querySelectorAll('[aria-hidden="true"]')
-    expect(slashes).toHaveLength(0)
+  it("shows delimiters by default and hides them when showDelimiters is false", () => {
+    const { container: defaultContainer } = render(<RegexInput />)
+    const defaultSlashes = Array.from(
+      defaultContainer.querySelectorAll('[aria-hidden="true"]')
+    ).filter((el) => el.textContent === "/")
+    expect(defaultSlashes).toHaveLength(2)
+
+    const { container: hiddenContainer } = render(
+      <RegexInput showDelimiters={false} />
+    )
+    const hiddenSlashes = Array.from(
+      hiddenContainer.querySelectorAll('[aria-hidden="true"]')
+    ).filter((el) => el.textContent === "/")
+    expect(hiddenSlashes).toHaveLength(0)
   })
 
   it("hides flags when showFlags is false", () => {
@@ -166,14 +176,43 @@ describe("RegexInput", () => {
     expect(screen.queryByText("Test Sample")).not.toBeInTheDocument()
   })
 
-  it("disables pattern input and flag buttons when disabled is true", () => {
-    render(<RegexInput disabled name="pattern_field" value="test" />)
+  it("disables pattern input, flag buttons, and form hidden input when disabled is true", () => {
+    const { container } = render(
+      <RegexInput disabled name="pattern_field" value="test" />
+    )
 
     expect(screen.getByRole("textbox")).toBeDisabled()
     const flagBtns = screen.getAllByRole("button")
     for (const btn of flagBtns) {
       expect(btn).toBeDisabled()
     }
+    const hiddenInput = container.querySelector<HTMLInputElement>(
+      'input[type="hidden"][name="pattern_field"]'
+    )
+    expect(hiddenInput).toBeDisabled()
+  })
+
+  it("merges inputProps safely without overriding component-owned attributes", () => {
+    const inputRef = React.createRef<HTMLInputElement>()
+    const handleFocus = vi.fn()
+
+    render(
+      <RegexInput
+        value="abc"
+        inputProps={{
+          ref: inputRef,
+          onFocus: handleFocus,
+          id: "custom-input-id",
+          autoComplete: "off",
+        }}
+      />
+    )
+
+    const input = document.getElementById("custom-input-id") as HTMLInputElement
+    expect(input).toBeInTheDocument()
+    expect(inputRef.current).toBe(input)
+    expect(input.value).toBe("abc")
+    expect(input).toHaveAttribute("autocomplete", "off")
   })
 
   it("renders readOnly input when readOnly is true", () => {

@@ -93,8 +93,12 @@ export function normalizeFlags(flags: string): string {
 
 /**
  * Toggles a flag in the current flags string.
+ * Rejects invalid flag characters.
  */
 export function toggleFlag(currentFlags: string, flag: string): string {
+  if (!/^[dgimsuyv]$/.test(flag)) {
+    return normalizeFlags(currentFlags)
+  }
   const norm = normalizeFlags(currentFlags)
   const set = new Set(norm)
   if (set.has(flag)) {
@@ -127,9 +131,15 @@ export function validateRegex(
   }
 }
 
+type RegExpExecWithIndices = RegExpExecArray & {
+  indices?: Array<[number, number] | undefined> & {
+    groups?: Record<string, [number, number] | undefined>
+  }
+}
+
 /**
  * Finds all matches and capture groups safely within sample text.
- * Enforces execution limits to mitigate catastrophic backtracking (ReDoS).
+ * Enforces execution limits (sample length cap, match cap, iteration cap, zero-length loop guard).
  */
 export function findRegexMatches(
   pattern: string,
@@ -142,7 +152,7 @@ export function findRegexMatches(
   const maxIterations = options?.maxIterations ?? 5000
   const timeoutMs = options?.timeoutMs ?? 150
 
-  if (!pattern || !sample) {
+  if (!pattern || !sample || maxMatches <= 0) {
     return {
       matches: [],
       matchCount: 0,
@@ -156,20 +166,32 @@ export function findRegexMatches(
     sample.length > maxSampleLength ? sample.slice(0, maxSampleLength) : sample
   const truncatedByLength = sample.length > maxSampleLength
 
-  // Compile regex with global flag to iterate matches
+  // Compile regex with global flag to iterate matches and 'd' flag for accurate capture indices
   const baseFlags = normalizeFlags(flags)
-  const searchFlags = baseFlags.includes("g") ? baseFlags : baseFlags + "g"
+  const flagSet = new Set(baseFlags.split(""))
+  flagSet.add("g")
+  flagSet.add("d")
+  const searchFlagsWithIndices = Array.from(flagSet).join("")
 
   let regex: RegExp
   try {
-    regex = new RegExp(pattern, searchFlags)
-  } catch (err) {
-    return {
-      matches: [],
-      matchCount: 0,
-      truncated: false,
-      executionTimeMs: 0,
-      error: err instanceof Error ? err.message : "Invalid regular expression",
+    regex = new RegExp(pattern, searchFlagsWithIndices)
+  } catch {
+    // Fallback if 'd' flag is not supported
+    try {
+      regex = new RegExp(
+        pattern,
+        baseFlags.includes("g") ? baseFlags : baseFlags + "g"
+      )
+    } catch (err) {
+      return {
+        matches: [],
+        matchCount: 0,
+        truncated: false,
+        executionTimeMs: 0,
+        error:
+          err instanceof Error ? err.message : "Invalid regular expression",
+      }
     }
   }
 
@@ -187,34 +209,55 @@ export function findRegexMatches(
     const matchText = execResult[0]
     const matchIndex = execResult.index
 
-    // Extract capture groups
+    // Extract capture groups using indices when available
     const groups: RegexCaptureGroup[] = []
+    const execWithIndices = execResult as RegExpExecWithIndices
+    const indices = execWithIndices.indices
+    const namedIndices = indices?.groups
     const namedGroups = execResult.groups ?? {}
 
     // In RegExpExecArray, index 0 is full match, 1..n are capture groups
     for (let i = 1; i < execResult.length; i++) {
       const val = execResult[i]
       if (val !== undefined) {
-        // Find if this group has a name in namedGroups
+        const range = indices?.[i]
+        let start = range ? range[0] : -1
+        let end = range ? range[1] : -1
+
         let groupName: string | undefined
-        for (const [name, gVal] of Object.entries(namedGroups)) {
-          if (gVal === val && !groups.some((g) => g.name === name)) {
-            groupName = name
-            break
+        if (namedIndices) {
+          for (const [name, gRange] of Object.entries(namedIndices)) {
+            if (
+              gRange &&
+              gRange[0] === start &&
+              gRange[1] === end &&
+              !groups.some((g) => g.name === name)
+            ) {
+              groupName = name
+              break
+            }
+          }
+        } else {
+          for (const [name, gVal] of Object.entries(namedGroups)) {
+            if (gVal === val && !groups.some((g) => g.name === name)) {
+              groupName = name
+              break
+            }
           }
         }
 
-        // Approximate group position within the match
-        const groupStart = matchText.indexOf(val)
+        if (start === -1) {
+          const groupStart = matchText.indexOf(val)
+          start = groupStart >= 0 ? matchIndex + groupStart : matchIndex
+          end = start + val.length
+        }
+
         groups.push({
           number: i,
           name: groupName,
           value: val,
-          start: groupStart >= 0 ? matchIndex + groupStart : matchIndex,
-          end:
-            groupStart >= 0
-              ? matchIndex + groupStart + val.length
-              : matchIndex + val.length,
+          start,
+          end,
         })
       }
     }
@@ -227,13 +270,19 @@ export function findRegexMatches(
     })
 
     if (matches.length >= maxMatches) {
-      truncated = true
+      if (matches.length < effectiveSample.length) {
+        truncated = true
+      }
       break
     }
 
     // Guard against zero-length matches (e.g. ^, a*, (?=...)) creating infinite loops
+    // Advance with Unicode code-point semantics when u or v flag is present
     if (matchText.length === 0) {
-      regex.lastIndex = matchIndex + 1
+      const isUnicode = baseFlags.includes("u") || baseFlags.includes("v")
+      const codePoint = effectiveSample.codePointAt(matchIndex) ?? 0
+      const step = isUnicode && codePoint > 0xffff ? 2 : 1
+      regex.lastIndex = matchIndex + step
       if (regex.lastIndex > effectiveSample.length) {
         break
       }

@@ -891,14 +891,14 @@ export function StandupRepeat({ start }: { start: Date }) {
   },
   "regex-input": {
     notes:
-      "RegexInput is an interactive regular expression pattern field with flags toggles, syntax validation, ReDoS protection, and sample text match highlights. It supports controlled and uncontrolled use for both pattern (value/defaultValue/onValueChange) and flags (flags/defaultFlags/onFlagsChange). Invalid patterns set aria-invalid and show constructor error messages with role=alert. Flags buttons toggle with Space/Enter or click. When a sample string is provided, matches are highlighted in a pre-wrap preview with match count badges and capture groups inspection ($name or Group n). Pure logic functions live in @/lib/regex-input-utils: validateRegex, findRegexMatches, highlightSampleText, toggleFlag, and normalizeFlags. Installs badge.",
+      "RegexInput is an interactive regular expression pattern field with flags toggles, syntax validation, match execution limits (length, iteration and count caps), and sample text match highlights. It supports controlled and uncontrolled use for both pattern (value/defaultValue/onValueChange) and flags (flags/defaultFlags/onFlagsChange). Invalid patterns set aria-invalid and show constructor error messages with role=alert. Flags buttons toggle with Space/Enter or click. When a sample string is provided, matches are highlighted in a pre-wrap preview with match count badges and capture groups inspection ($name or Group n). Pure logic functions live in @/lib/regex-input-utils: validateRegex, findRegexMatches, highlightSampleText, toggleFlag, and normalizeFlags. Installs badge.",
     example: `"use client"
 
 import { useState } from "react"
 import { RegexInput } from "@/components/ui/regex-input"
 
 export function LogPatternFilter() {
-  const [pattern, setPattern] = useState("\\[(ERROR|WARN)\\]\\s+(?<message>.*)")
+  const [pattern, setPattern] = useState("\\\\[(ERROR|WARN)\\\\]\\\\s+(?<message>.*)")
   const [flags, setFlags] = useState("i")
 
   return (
