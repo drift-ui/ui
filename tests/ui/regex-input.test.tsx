@@ -223,7 +223,10 @@ describe("RegexInput", () => {
     const { rerender } = render(
       <RegexInput value="a" inputProps={{ ref: refCallback }} />
     )
+    const input = screen.getByRole("textbox")
+    expect(refCallback).toHaveBeenCalledWith(input)
     const initialCalls = refCallback.mock.calls.length
+    expect(initialCalls).toBeGreaterThan(0)
     rerender(<RegexInput value="ab" inputProps={{ ref: refCallback }} />)
     expect(refCallback.mock.calls.length).toBe(initialCalls)
   })
