@@ -114,6 +114,13 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ARROWS, action: "Change by one step" },
     { keys: HOME_END, action: "Lowest or highest score" },
   ],
+  "regex-input": [
+    { keys: ["Space", "Enter"], action: "Toggle the focused flag button" },
+    {
+      keys: ["Tab"],
+      action: "Move focus between pattern input and flag buttons",
+    },
+  ],
   "saved-views": [
     { keys: LEFT_RIGHT, action: "Move between views" },
     { keys: HOME_END, action: "First or last view" },

@@ -57,6 +57,7 @@ import { QueryInputPreview } from "@/components/preview/query-input-preview"
 import { PhoneInputPreview } from "@/components/preview/phone-input-preview"
 import { RatingPreview } from "@/components/preview/rating-preview"
 import { RecurrenceEditorPreview } from "@/components/preview/recurrence-editor-preview"
+import { RegexInputPreview } from "@/components/preview/regex-input-preview"
 import { SavedViewsPreview } from "@/components/preview/saved-views-preview"
 import { SecretFieldPreview } from "@/components/preview/secret-field-preview"
 import { ShortcutCheatsheetPreview } from "@/components/preview/shortcut-cheatsheet-preview"
@@ -122,6 +123,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "query-input": QueryInputPreview,
   rating: RatingPreview,
   "recurrence-editor": RecurrenceEditorPreview,
+  "regex-input": RegexInputPreview,
   "saved-views": SavedViewsPreview,
   "secret-field": SecretFieldPreview,
   "shortcut-cheatsheet": ShortcutCheatsheetPreview,
