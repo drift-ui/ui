@@ -49,6 +49,7 @@ function LocalePicker({
   name,
   showTag = true,
   className,
+  onKeyDown,
   ...props
 }: LocalePickerProps) {
   const listId = React.useId()
@@ -134,8 +135,9 @@ function LocalePicker({
           aria-controls={isOpen ? listId : undefined}
           disabled={disabled}
           data-slot="locale-picker"
+          {...props}
           onKeyDown={(event) => {
-            props.onKeyDown?.(event)
+            onKeyDown?.(event)
             if (
               !event.defaultPrevented &&
               !isOpen &&
@@ -149,7 +151,6 @@ function LocalePicker({
             "flex h-control w-full min-w-0 items-center gap-2 rounded-control border border-input bg-transparent px-3 text-left text-sm shadow-control outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
             className
           )}
-          {...props}
         >
           {currentOption ? (
             <>

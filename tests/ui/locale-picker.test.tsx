@@ -77,6 +77,26 @@ describe("LocalePicker", () => {
     )
   })
 
+  it("calls caller-supplied onKeyDown and preserves trigger keyboard opening", async () => {
+    const user = userEvent.setup()
+    const handleKeyDown = vi.fn()
+    render(
+      <LocalePicker
+        aria-label="Locale"
+        locales={TEST_LOCALES}
+        onKeyDown={handleKeyDown}
+      />
+    )
+
+    await user.tab()
+    await user.keyboard("{ArrowDown}")
+
+    expect(handleKeyDown).toHaveBeenCalled()
+    expect(
+      await screen.findByRole("combobox", { name: "Search locales" })
+    ).toBeInTheDocument()
+  })
+
   it("wraps arrow keys through the list and updates aria-activedescendant", async () => {
     const user = userEvent.setup()
     render(<LocalePicker aria-label="Locale" locales={TEST_LOCALES} />)
