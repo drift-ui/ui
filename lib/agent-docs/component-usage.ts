@@ -541,6 +541,27 @@ export function NameField() {
   )
 }`,
   },
+  "locale-picker": {
+    notes:
+      'LocalePicker holds a BCP 47 language tag such as "ja-JP" or "de" through value/defaultValue and onValueChange; an empty string shows the placeholder. Language and region names come from Intl.DisplayNames, so no locale dictionary ships in the bundle. Each option displays its native name and its name in the display language ("Deutsch · German"). Options with 2-letter ISO country regions display the regional country flag emoji. Search matches both names, the BCP 47 tag, and the region code. locales limits the list to specified tags. name renders a hidden input for form submission. Remaining props go to the trigger button, so label it with a Label and id or with aria-label.',
+    example: `"use client"
+
+import { useState } from "react"
+import { LocalePicker } from "@/components/ui/locale-picker"
+
+export function LanguageSetting() {
+  const [locale, setLocale] = useState("en-US")
+
+  return (
+    <LocalePicker
+      aria-label="Language"
+      value={locale}
+      onValueChange={setLocale}
+      locales={["en-US", "de-DE", "ja-JP", "pt-BR"]}
+    />
+  )
+}`,
+  },
   "log-viewer": {
     notes:
       "High-throughput virtualized log viewer with ANSI color parsing, search, level filtering, and tail auto-scroll. lines is an array of LogLine ({ id, message, timestamp?, level?, lineNumber? }). parseAnsi converts ANSI escape sequences into styled text spans safely without dangerouslySetInnerHTML. Follow mode auto-scrolls to new lines when at the bottom; scrolling up automatically pauses follow, and clicking the floating Jump to latest button resumes it. Search filters across stripped log messages, levels, and formatted timestamps. Level filter buttons isolate lines by log severity (e.g. error, warn, info, debug) while preserving original line numbers in the gutter. Long messages scroll sideways in one shared viewport with the line numbers pinned; the Wrap toggle (wrap/defaultWrap/onWrapChange) wraps them onto extra lines instead. VirtualList ensures smooth 60fps rendering even with tens of thousands of lines.",

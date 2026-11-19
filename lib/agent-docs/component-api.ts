@@ -1664,6 +1664,74 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<label>",
     },
   ],
+  "locale-picker": [
+    {
+      name: "LocalePicker",
+      description:
+        "A button that opens a searchable list of BCP 47 locales, showing native names, display language names, and country flags. Arrow keys navigate, Enter selects, and Escape closes the popover.",
+      props: [
+        STATE_PROPS.value("string", "BCP 47 language tag"),
+        STATE_PROPS.defaultValue("string", '""'),
+        STATE_PROPS.onValueChange(
+          "(value: string) => void",
+          "when a locale is picked"
+        ),
+        {
+          name: "locales",
+          type: "string[]",
+          default: "DEFAULT_LOCALES",
+          description:
+            "Limits the list to these BCP 47 language tags. Defaults to 34 common global locales.",
+        },
+        {
+          name: "displayLocale",
+          type: "string",
+          default: '"en"',
+          description:
+            "Language used to format the secondary name in each option via Intl.DisplayNames.",
+        },
+        {
+          name: "placeholder",
+          type: "string",
+          default: '"Select a locale"',
+          description: "Shown while no locale is selected.",
+        },
+        {
+          name: "searchPlaceholder",
+          type: "string",
+          default: '"Search locales"',
+          description: "Placeholder for the search input.",
+        },
+        {
+          name: "showTag",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to show the monospace BCP 47 tag badge next to the names.",
+        },
+        {
+          name: "name",
+          type: "string",
+          description:
+            "Name for the hidden form input that submits the selected locale value.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables the trigger button and hidden form input.",
+        },
+      ],
+      rest: "<button>",
+    },
+    {
+      name: "locale-picker-utils",
+      signature:
+        "isValidLocale(tag: string): boolean; normalizeLocale(tag: string): string; getLocaleFlag(tag: string): string | null; formatLocaleNames(tag: string, displayLocale?: string): { nativeName: string; currentName: string; label: string }; listLocales(tags?: string[], displayLocale?: string): LocaleOption[]; filterLocales(options: LocaleOption[], query: string): LocaleOption[]",
+      description:
+        "Pure logic functions for BCP 47 tag validation, canonical normalization, country flag derivation, Intl.DisplayNames formatting, and search filtering. Import from @/lib/locale-picker-utils.",
+    },
+  ],
   "log-viewer": [
     {
       name: "LogViewer",

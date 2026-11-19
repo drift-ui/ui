@@ -543,6 +543,33 @@
       ]
     },
     {
+      "name": "locale-picker",
+      "type": "registry:ui",
+      "title": "Locale Picker",
+      "description": "Combobox for picking a BCP 47 locale with native names, English names and country flags.",
+      "dependencies": ["lucide-react", "radix-ui"],
+      "registryDependencies": [
+        "utils",
+        "popover",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/locale-picker.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/locale-picker-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/countries.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "log-viewer",
       "type": "registry:ui",
       "title": "Log Viewer",
