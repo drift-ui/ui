@@ -67,8 +67,9 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ["Mod+Shift+C"], action: "Copy the path" },
   ],
   "locale-picker": [
-    { keys: UP_DOWN, action: "Move through locales" },
+    { keys: UP_DOWN, action: "Open, then move through locales" },
     { keys: ["Enter"], action: "Pick the locale" },
+    { keys: ["Escape"], action: "Close the picker" },
   ],
   "log-viewer": [
     { keys: UP_DOWN, action: "Scroll through log lines" },

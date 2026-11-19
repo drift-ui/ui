@@ -1,4 +1,4 @@
-import { countryFlag } from "@/registry/default/lib/countries"
+import { COUNTRY_CODES, countryFlag } from "@/registry/default/lib/countries"
 
 export interface LocaleOption {
   value: string
@@ -47,7 +47,11 @@ export const DEFAULT_LOCALES: string[] = [
 ]
 
 const validityCache = new Map<string, boolean>()
+const countryCodeSet = new Set(COUNTRY_CODES)
 
+/**
+ * Validates whether a string is a syntactically valid BCP 47 language tag using `Intl.Locale`.
+ */
 export function isValidLocale(tag: string): boolean {
   if (!tag || typeof tag !== "string") return false
   let valid = validityCache.get(tag)
@@ -66,7 +70,7 @@ export function isValidLocale(tag: string): boolean {
 export function normalizeLocale(tag: string): string {
   try {
     const cleaned = tag.trim().replaceAll("_", "-")
-    return new Intl.Locale(cleaned).baseName
+    return new Intl.Locale(cleaned).toString()
   } catch {
     return tag.trim()
   }
@@ -78,7 +82,7 @@ export function getLocaleFlag(tag: string): string | null {
     if (
       locale.region &&
       locale.region.length === 2 &&
-      /^[A-Za-z]{2}$/.test(locale.region)
+      countryCodeSet.has(locale.region.toUpperCase())
     ) {
       return countryFlag(locale.region)
     }
@@ -113,12 +117,19 @@ export function formatLocaleNames(
   displayLocale = "en"
 ): { nativeName: string; currentName: string; label: string } {
   const normalized = normalizeLocale(tag)
+  let lookupTag = normalized
+  try {
+    lookupTag = new Intl.Locale(normalized).baseName
+  } catch {
+    // Fallback to normalized
+  }
+
   let nativeName = normalized
   let currentName = normalized
 
   try {
-    const nativeDn = getDisplayNames(normalized)
-    const rawNative = nativeDn.of(normalized)
+    const nativeDn = getDisplayNames(lookupTag)
+    const rawNative = nativeDn.of(lookupTag)
     if (rawNative) nativeName = capitalize(rawNative)
   } catch {
     // Fallback to tag
@@ -126,7 +137,7 @@ export function formatLocaleNames(
 
   try {
     const currentDn = getDisplayNames(displayLocale)
-    const rawCurrent = currentDn.of(normalized)
+    const rawCurrent = currentDn.of(lookupTag)
     if (rawCurrent) currentName = capitalize(rawCurrent)
   } catch {
     // Fallback to tag
@@ -179,7 +190,11 @@ export function listLocales(
 }
 
 function normalize(text: string) {
-  return text.toLowerCase().trim()
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
 }
 
 export function filterLocales(

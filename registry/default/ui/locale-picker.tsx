@@ -134,6 +134,17 @@ function LocalePicker({
           aria-controls={isOpen ? listId : undefined}
           disabled={disabled}
           data-slot="locale-picker"
+          onKeyDown={(event) => {
+            props.onKeyDown?.(event)
+            if (
+              !event.defaultPrevented &&
+              !isOpen &&
+              (event.key === "ArrowDown" || event.key === "ArrowUp")
+            ) {
+              event.preventDefault()
+              setIsOpen(true)
+            }
+          }}
           className={cn(
             "flex h-control w-full min-w-0 items-center gap-2 rounded-control border border-input bg-transparent px-3 text-left text-sm shadow-control outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
             className

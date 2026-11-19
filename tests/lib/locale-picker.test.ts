@@ -41,6 +41,10 @@ describe("locale-picker-utils", () => {
       expect(normalizeLocale("ja_jp")).toBe("ja-JP")
     })
 
+    it("preserves canonical Unicode extensions", () => {
+      expect(normalizeLocale("en-US-u-ca-gregory")).toBe("en-US-u-ca-gregory")
+    })
+
     it("returns trimmed tag if invalid", () => {
       expect(normalizeLocale("  bad--tag  ")).toBe("bad--tag")
     })
@@ -60,7 +64,8 @@ describe("locale-picker-utils", () => {
       expect(getLocaleFlag("fr")).toBeNull()
     })
 
-    it("returns null for numeric M.49 regions and invalid tags", () => {
+    it("returns null for non-ISO regions, numeric M.49 regions, and invalid tags", () => {
+      expect(getLocaleFlag("en-QQ")).toBeNull()
       expect(getLocaleFlag("es-419")).toBeNull()
       expect(getLocaleFlag("invalid-tag")).toBeNull()
     })
@@ -150,6 +155,19 @@ describe("locale-picker-utils", () => {
     it("matches by country region code", () => {
       const res = filterLocales(options, "us")
       expect(res.map((o) => o.value)).toEqual(["en-US"])
+    })
+
+    it("matches regardless of diacritics or accents", () => {
+      const accentedOptions = listLocales(["fr-FR", "es-ES", "tr-TR"])
+      expect(
+        filterLocales(accentedOptions, "francais").map((o) => o.value)
+      ).toEqual(["fr-FR"])
+      expect(
+        filterLocales(accentedOptions, "espanol").map((o) => o.value)
+      ).toEqual(["es-ES"])
+      expect(
+        filterLocales(accentedOptions, "turkce").map((o) => o.value)
+      ).toEqual(["tr-TR"])
     })
 
     it("returns empty array when nothing matches", () => {

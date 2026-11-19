@@ -543,7 +543,7 @@ export function NameField() {
   },
   "locale-picker": {
     notes:
-      'LocalePicker holds a BCP 47 language tag such as "ja-JP" or "de" through value/defaultValue and onValueChange; an empty string shows the placeholder. Language and region names come from Intl.DisplayNames, so no locale dictionary ships in the bundle. Each option displays its native name and its name in the display language ("Deutsch · German"). Options with 2-letter ISO country regions display the regional country flag emoji. Search matches both names, the BCP 47 tag, and the region code. locales limits the list to specified tags. name renders a hidden input for form submission. Remaining props go to the trigger button, so label it with a Label and id or with aria-label.',
+      'LocalePicker holds a BCP 47 language tag such as "ja-JP" or "de" through value/defaultValue and onValueChange; an empty string shows the placeholder. Language names come from Intl.DisplayNames, so no locale dictionary ships in the bundle. Each option displays its native name and, when different, its name in the display language ("Deutsch (Deutschland) · German (Germany)"). Options with 2-letter ISO country regions display the regional country flag emoji. Search matches both names, the BCP 47 tag, and the region code. locales limits the list to specified tags. name renders a hidden input for form submission. Remaining props go to the trigger button, so label it with a Label and id or with aria-label.',
     example: `"use client"
 
 import { useState } from "react"

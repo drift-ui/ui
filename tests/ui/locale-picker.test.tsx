@@ -58,6 +58,25 @@ describe("LocalePicker", () => {
     )
   })
 
+  it("opens when ArrowDown is pressed on the focused trigger button and closes on Escape", async () => {
+    const user = userEvent.setup()
+    render(<LocalePicker aria-label="Locale" locales={TEST_LOCALES} />)
+
+    await user.tab()
+    expect(trigger()).toHaveFocus()
+
+    await user.keyboard("{ArrowDown}")
+    expect(
+      await screen.findByRole("combobox", { name: "Search locales" })
+    ).toBeInTheDocument()
+    expect(trigger()).toHaveAttribute("aria-expanded", "true")
+
+    await user.keyboard("{Escape}")
+    await waitFor(() =>
+      expect(screen.queryByRole("listbox")).not.toBeInTheDocument()
+    )
+  })
+
   it("wraps arrow keys through the list and updates aria-activedescendant", async () => {
     const user = userEvent.setup()
     render(<LocalePicker aria-label="Locale" locales={TEST_LOCALES} />)
