@@ -1595,6 +1595,80 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<div>",
     },
   ],
+  "kanban-board": [
+    {
+      name: "KanbanBoard",
+      description:
+        "Multi-column task board for moving cards between workflow stages with keyboard and HTML5 drag-and-drop support. Space picks up a card, arrow keys move it within or across columns, Space drops it, and Escape cancels.",
+      props: [
+        {
+          name: "columns",
+          type: "KanbanColumn[]",
+          required: true,
+          description:
+            "List of columns with id, title, and optional description.",
+        },
+        STATE_PROPS.value(
+          "Record<string, T[]>",
+          "map of column ids to card arrays"
+        ),
+        STATE_PROPS.defaultValue("Record<string, T[]>", "{}"),
+        STATE_PROPS.onValueChange(
+          "(value: Record<string, T[]>) => void",
+          "when any card is moved or reordered"
+        ),
+        {
+          name: "onMove",
+          type: "(card: T, fromColumnId: string, toColumnId: string, toIndex: number) => void",
+          description:
+            "Fires when a card is moved between columns or reordered within a column, reporting the specific transition.",
+        },
+        {
+          name: "renderCard",
+          type: "(card: T, info: { columnId: string; index: number; isGrabbed: boolean }) => ReactNode",
+          description: "Render function for each card.",
+        },
+        {
+          name: "renderColumnHeader",
+          type: "(column: KanbanColumn, cards: T[]) => ReactNode",
+          description: "Custom render function for column headers.",
+        },
+        {
+          name: "renderEmptyColumn",
+          type: "(column: KanbanColumn) => ReactNode",
+          description:
+            "Custom placeholder rendered when a column has no cards.",
+        },
+        {
+          name: "getCardId",
+          type: "(card: T, index: number) => string",
+          default: "getDefaultCardId",
+          description: "Returns a unique key for each card.",
+        },
+        {
+          name: "getCardLabel",
+          type: "(card: T, index: number) => string",
+          default: "getDefaultCardLabel",
+          description:
+            "Returns accessible label for screen readers and live region announcements.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables drag-and-drop and keyboard grabbing.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "kanban-board-utils",
+      signature:
+        "moveCard<T>(board: Record<string, readonly T[]>, cardId: string, toColumnId: string, toIndex: number, getCardId?: (card: T) => string): MoveCardResult<T>; findCardLocation<T>(board: Record<string, readonly T[]>, cardId: string): KanbanCardLocation<T> | null; reorderCardInColumn<T>(cards: readonly T[], fromIndex: number, toIndex: number): T[]; getPickupAnnouncement(cardLabel: string, columnTitle: string, index: number, total: number): string; getMoveAnnouncement(cardLabel: string, columnTitle: string, index: number, total: number): string; getDropAnnouncement(cardLabel: string, columnTitle: string, index: number, total: number): string; getCancelAnnouncement(cardLabel: string, originalColumnTitle: string, originalIndex: number, total: number): string",
+      description:
+        "Pure logic functions for moving cards between columns, finding card locations, and formatting ARIA live region announcements. Import from @/lib/kanban-board-utils.",
+    },
+  ],
   "key-value-editor": [
     {
       name: "KeyValueEditor",
