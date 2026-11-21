@@ -400,23 +400,29 @@ describe("KanbanBoard", () => {
       toJSON: () => {},
     })
 
-    // Drag over top half (clientY = 110 < midpoint 130)
+    const task2Item = task2.closest('[role="listitem"]')!
+
+    // Drag over top half (clientY = 110 < midpoint 130) -> indicator renders above task2
     const topEvent = createEvent.dragOver(task2)
     Object.defineProperty(topEvent, "clientY", { value: 110 })
     Object.defineProperty(topEvent, "dataTransfer", { value: dataTransfer })
     fireEvent(task2, topEvent)
-    expect(
-      document.querySelector('[data-slot="kanban-drop-indicator"]')
-    ).toBeInTheDocument()
+    const topIndicator = document.querySelector(
+      '[data-slot="kanban-drop-indicator"]'
+    )
+    expect(topIndicator).toBeInTheDocument()
+    expect(task2Item.previousElementSibling).toBe(topIndicator)
 
-    // Drag over bottom half (clientY = 150 > midpoint 130)
+    // Drag over bottom half (clientY = 150 > midpoint 130) -> indicator renders below task2
     const bottomEvent = createEvent.dragOver(task2)
     Object.defineProperty(bottomEvent, "clientY", { value: 150 })
     Object.defineProperty(bottomEvent, "dataTransfer", { value: dataTransfer })
     fireEvent(task2, bottomEvent)
-    expect(
-      document.querySelector('[data-slot="kanban-drop-indicator"]')
-    ).toBeInTheDocument()
+    const bottomIndicator = document.querySelector(
+      '[data-slot="kanban-drop-indicator"]'
+    )
+    expect(bottomIndicator).toBeInTheDocument()
+    expect(task2Item.nextElementSibling).toBe(bottomIndicator)
 
     // Drag end cleans up
     fireEvent.dragEnd(task1)
