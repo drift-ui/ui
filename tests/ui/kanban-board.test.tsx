@@ -756,8 +756,9 @@ describe("KanbanBoard", () => {
     )!
     fireEvent.dragOver(todoCol, { dataTransfer: { dropEffect: "" } })
 
-    expect(
-      container.querySelectorAll('[data-slot="kanban-drop-indicator"]')
-    ).toHaveLength(1)
+    const task2Item = cards[1].closest('[role="listitem"]')!
+    expect(task2Item.nextElementSibling).toBe(
+      container.querySelector('[data-slot="kanban-drop-indicator"]')
+    )
   })
 })
