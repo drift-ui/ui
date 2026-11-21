@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { createEvent, fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -6,6 +6,7 @@ import {
   KanbanBoard,
   type KanbanColumn,
 } from "@/registry/default/ui/kanban-board"
+import { KanbanBoardOnMovePreview } from "@/components/preview/examples/kanban-board/on-move"
 
 interface Task {
   id: string
@@ -359,5 +360,211 @@ describe("KanbanBoard", () => {
       in_progress: [{ id: "t3", title: "Task 3" }],
       done: [],
     })
+  })
+
+  it("handles card dragOver midpoint targets and dragEnd cleanup", () => {
+    const onMove = vi.fn()
+    render(
+      <KanbanBoard
+        columns={COLUMNS}
+        defaultValue={INITIAL_BOARD}
+        onMove={onMove}
+      />
+    )
+
+    const cards = screen.getAllByRole("button")
+    const task1 = cards[0]
+    const task2 = cards[1]
+
+    const dataTransfer = {
+      data: {} as Record<string, string>,
+      setData: vi.fn((format: string, val: string) => {
+        dataTransfer.data[format] = val
+      }),
+      getData: vi.fn((format: string) => dataTransfer.data[format] ?? ""),
+      effectAllowed: "move",
+      dropEffect: "none",
+    }
+
+    fireEvent.dragStart(task1, { dataTransfer })
+
+    vi.spyOn(task2, "getBoundingClientRect").mockReturnValue({
+      top: 100,
+      height: 60,
+      bottom: 160,
+      left: 0,
+      right: 100,
+      width: 100,
+      x: 0,
+      y: 100,
+      toJSON: () => {},
+    })
+
+    // Drag over top half (clientY = 110 < midpoint 130)
+    const topEvent = createEvent.dragOver(task2)
+    Object.defineProperty(topEvent, "clientY", { value: 110 })
+    Object.defineProperty(topEvent, "dataTransfer", { value: dataTransfer })
+    fireEvent(task2, topEvent)
+    expect(
+      document.querySelector('[data-slot="kanban-drop-indicator"]')
+    ).toBeInTheDocument()
+
+    // Drag over bottom half (clientY = 150 > midpoint 130)
+    const bottomEvent = createEvent.dragOver(task2)
+    Object.defineProperty(bottomEvent, "clientY", { value: 150 })
+    Object.defineProperty(bottomEvent, "dataTransfer", { value: dataTransfer })
+    fireEvent(task2, bottomEvent)
+    expect(
+      document.querySelector('[data-slot="kanban-drop-indicator"]')
+    ).toBeInTheDocument()
+
+    // Drag end cleans up
+    fireEvent.dragEnd(task1)
+    expect(
+      document.querySelector('[data-slot="kanban-drop-indicator"]')
+    ).not.toBeInTheDocument()
+  })
+
+  it("does not call onMove when pointer drops card back into its own position", () => {
+    const onMove = vi.fn()
+    render(
+      <KanbanBoard
+        columns={COLUMNS}
+        defaultValue={INITIAL_BOARD}
+        onMove={onMove}
+      />
+    )
+    const cards = screen.getAllByRole("button")
+    const task1 = cards[0]
+    const todoSection = screen
+      .getByRole("list", { name: "To Do" })
+      .closest("section")!
+
+    const dataTransfer = {
+      data: { "text/plain": "t1" },
+      setData: vi.fn(),
+      getData: vi.fn(() => "t1"),
+      effectAllowed: "move",
+      dropEffect: "none",
+    }
+    fireEvent.dragStart(task1, { dataTransfer })
+    // Drag over task 1 directly (targets index 0)
+    fireEvent.dragOver(task1, { dataTransfer })
+    fireEvent.drop(todoSection, { dataTransfer })
+    expect(onMove).not.toHaveBeenCalled()
+  })
+
+  it("ignores drag events when not dragging or when disabled", () => {
+    const onMove = vi.fn()
+    render(
+      <KanbanBoard
+        columns={COLUMNS}
+        defaultValue={INITIAL_BOARD}
+        onMove={onMove}
+      />
+    )
+    const todoSection = screen
+      .getByRole("list", { name: "To Do" })
+      .closest("section")!
+    const cards = screen.getAllByRole("button")
+
+    fireEvent.dragOver(todoSection)
+    fireEvent.dragOver(cards[0])
+    fireEvent.drop(todoSection)
+    expect(onMove).not.toHaveBeenCalled()
+  })
+
+  it("ignores navigation at boundary edges when grabbed or roving", async () => {
+    const user = userEvent.setup()
+    render(<KanbanBoard columns={COLUMNS} defaultValue={INITIAL_BOARD} />)
+
+    const getTask1 = () =>
+      screen.getByText("Task 1").closest<HTMLElement>('[role="button"]')!
+    getTask1().focus()
+
+    // Up when at index 0 (not grabbed)
+    await user.keyboard("{ArrowUp}")
+    expect(getTask1()).toHaveFocus()
+
+    // Left when at col 0 (not grabbed)
+    await user.keyboard("{ArrowLeft}")
+    expect(getTask1()).toHaveFocus()
+
+    // Pick up
+    await user.keyboard(" ")
+    // Up when at index 0 (grabbed)
+    await user.keyboard("{ArrowUp}")
+    // Left when at col 0 (grabbed)
+    await user.keyboard("{ArrowLeft}")
+    expect(getTask1()).toHaveAttribute("aria-grabbed", "true")
+
+    // Drop
+    await user.keyboard(" ")
+    expect(getTask1()).toHaveAttribute("aria-grabbed", "false")
+  })
+
+  it("cancels grab when Escape is pressed at board container level", async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <KanbanBoard columns={COLUMNS} defaultValue={INITIAL_BOARD} />
+    )
+    const getTask1 = () =>
+      screen.getByText("Task 1").closest<HTMLElement>('[role="button"]')!
+    getTask1().focus()
+
+    await user.keyboard(" ")
+    expect(getTask1()).toHaveAttribute("aria-grabbed", "true")
+
+    const board = container.querySelector('[data-slot="kanban-board"]')!
+    fireEvent.keyDown(board, { key: "Escape" })
+    expect(getTask1()).toHaveAttribute("aria-grabbed", "false")
+  })
+
+  it("supports column description and custom card identifier functions", () => {
+    const columnsWithDesc: KanbanColumn[] = [
+      { id: "col1", title: "Backlog", description: "Tasks pending review" },
+    ]
+    const customBoard = {
+      col1: [{ key: "k-1", name: "Custom Card" }],
+    }
+    render(
+      <KanbanBoard
+        columns={columnsWithDesc}
+        defaultValue={customBoard}
+        getCardId={(card) => (card as { key: string }).key}
+        getCardLabel={(card) => (card as { name: string }).name}
+      />
+    )
+    expect(screen.getByText("Tasks pending review")).toBeInTheDocument()
+    expect(screen.getByText("Custom Card")).toBeInTheDocument()
+  })
+
+  it("supports roving focus to bottom and right boundaries", async () => {
+    const user = userEvent.setup()
+    render(<KanbanBoard columns={COLUMNS} defaultValue={INITIAL_BOARD} />)
+
+    const cards = screen.getAllByRole("button")
+    cards[1].focus() // Task 2 (bottom of To Do)
+    await user.keyboard("{ArrowDown}")
+    expect(cards[1]).toHaveFocus()
+
+    cards[2].focus() // Task 3 (In Progress)
+    await user.keyboard("{ArrowRight}") // to Done (empty)
+    expect(cards[2]).toHaveFocus()
+  })
+
+  it("renders on-move example and updates status on card move", async () => {
+    const user = userEvent.setup()
+    render(<KanbanBoardOnMovePreview />)
+
+    const cards = screen.getAllByRole("button")
+    cards[0].focus()
+    await user.keyboard(" ")
+    await user.keyboard("{ArrowDown}")
+    await user.keyboard(" ")
+
+    expect(
+      screen.getByText(/Moved "Alex Chen" from lead to lead/i)
+    ).toBeInTheDocument()
   })
 })

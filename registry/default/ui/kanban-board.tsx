@@ -95,6 +95,7 @@ export function KanbanBoard<T = Record<string, unknown>>({
   )
   const [dragCardId, setDragCardId] = React.useState<string | null>(null)
   const [dropTarget, setDropTarget] = React.useState<DragTarget | null>(null)
+  const dropTargetRef = React.useRef<DragTarget | null>(null)
 
   const cardElementsRef = React.useRef<Map<string, HTMLElement>>(new Map())
 
@@ -304,6 +305,7 @@ export function KanbanBoard<T = Record<string, unknown>>({
   function handleDragEnd() {
     setDragCardId(null)
     setDropTarget(null)
+    dropTargetRef.current = null
   }
 
   function handleColumnDragOver(
@@ -315,8 +317,10 @@ export function KanbanBoard<T = Record<string, unknown>>({
     event.dataTransfer.dropEffect = "move"
 
     const cards = board[columnId] ?? []
-    if (dropTarget?.columnId !== columnId) {
-      setDropTarget({ columnId, index: cards.length })
+    if (dropTargetRef.current?.columnId !== columnId) {
+      const nextTarget = { columnId, index: cards.length }
+      dropTargetRef.current = nextTarget
+      setDropTarget(nextTarget)
     }
   }
 
@@ -332,13 +336,20 @@ export function KanbanBoard<T = Record<string, unknown>>({
 
     const rect = event.currentTarget.getBoundingClientRect()
     const midpoint = rect.top + rect.height / 2
-    const targetIndex = event.clientY < midpoint ? cardIndex : cardIndex + 1
+    const targetIndex =
+      typeof event.clientY === "number" && rect.height > 0
+        ? event.clientY < midpoint
+          ? cardIndex
+          : cardIndex + 1
+        : cardIndex
 
     if (
-      dropTarget?.columnId !== columnId ||
-      dropTarget?.index !== targetIndex
+      dropTargetRef.current?.columnId !== columnId ||
+      dropTargetRef.current?.index !== targetIndex
     ) {
-      setDropTarget({ columnId, index: targetIndex })
+      const nextTarget = { columnId, index: targetIndex }
+      dropTargetRef.current = nextTarget
+      setDropTarget(nextTarget)
     }
   }
 
@@ -350,9 +361,10 @@ export function KanbanBoard<T = Record<string, unknown>>({
     event.preventDefault()
     event.stopPropagation()
 
+    const currentDropTarget = dropTargetRef.current
     const targetIndex =
-      dropTarget?.columnId === targetColumnId
-        ? dropTarget.index
+      currentDropTarget?.columnId === targetColumnId
+        ? currentDropTarget.index
         : (board[targetColumnId] ?? []).length
 
     const loc = findCardLocation(board, dragCardId, getCardId)
@@ -372,6 +384,7 @@ export function KanbanBoard<T = Record<string, unknown>>({
 
     setDragCardId(null)
     setDropTarget(null)
+    dropTargetRef.current = null
   }
 
   return (
