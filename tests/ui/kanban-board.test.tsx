@@ -567,4 +567,191 @@ describe("KanbanBoard", () => {
       screen.getByText(/Moved "Alex Chen" from lead to lead/i)
     ).toBeInTheDocument()
   })
+
+  it("enforces roving tabindex across cards", () => {
+    const { rerender } = render(
+      <KanbanBoard columns={COLUMNS} defaultValue={INITIAL_BOARD} />
+    )
+
+    const cards = screen.getAllByRole("button")
+    // Only the first card in the first non-empty column should have tabIndex = 0
+    expect(cards[0]).toHaveAttribute("tabindex", "0")
+    expect(cards[1]).toHaveAttribute("tabindex", "-1")
+    expect(cards[2]).toHaveAttribute("tabindex", "-1")
+
+    // Focusing card 1 moves the active tab stop
+    fireEvent.focus(cards[1])
+    expect(cards[0]).toHaveAttribute("tabindex", "-1")
+    expect(cards[1]).toHaveAttribute("tabindex", "0")
+    expect(cards[2]).toHaveAttribute("tabindex", "-1")
+
+    // Disabled board gives all cards tabIndex = -1
+    rerender(
+      <KanbanBoard columns={COLUMNS} defaultValue={INITIAL_BOARD} disabled />
+    )
+    const disabledCards = screen.getAllByRole("button")
+    expect(disabledCards[0]).toHaveAttribute("tabindex", "-1")
+    expect(disabledCards[1]).toHaveAttribute("tabindex", "-1")
+    expect(disabledCards[2]).toHaveAttribute("tabindex", "-1")
+  })
+
+  it("ignores keydown events on nested interactive elements inside renderCard", () => {
+    render(
+      <KanbanBoard
+        columns={COLUMNS}
+        defaultValue={INITIAL_BOARD}
+        renderCard={(card) => (
+          <div>
+            <span>{(card as Task).title}</span>
+            <button type="button" data-testid={`action-${(card as Task).id}`}>
+              Action
+            </button>
+            <input data-testid={`input-${(card as Task).id}`} />
+          </div>
+        )}
+      />
+    )
+
+    const actionButton = screen.getByTestId("action-t1")
+    const cardContainer = actionButton.closest<HTMLElement>(
+      '[data-slot="kanban-card"]'
+    )!
+
+    fireEvent.keyDown(actionButton, { key: " " })
+    expect(cardContainer).toHaveAttribute("aria-grabbed", "false")
+
+    const input = screen.getByTestId("input-t1")
+    fireEvent.keyDown(input, { key: "ArrowDown" })
+    expect(cardContainer).toHaveAttribute("aria-grabbed", "false")
+  })
+
+  it("announces pickup, drop, and cancel for pointer drag-and-drop", () => {
+    const onMove = vi.fn()
+    render(
+      <KanbanBoard
+        columns={COLUMNS}
+        defaultValue={INITIAL_BOARD}
+        onMove={onMove}
+      />
+    )
+
+    const cards = screen.getAllByRole("button")
+    const status = screen.getByRole("status")
+
+    // Drag start on Task 1
+    const dataTransfer = { setData: vi.fn(), effectAllowed: "" }
+    fireEvent.dragStart(cards[0], { dataTransfer })
+    expect(status).toHaveTextContent(
+      "Picked up Task 1, position 1 of 2 in To Do."
+    )
+
+    // Drag over column 2 and drop
+    const inProgressList = screen.getByRole("list", { name: "In Progress" })
+    const inProgressCol = inProgressList.closest<HTMLElement>(
+      '[data-slot="kanban-column"]'
+    )!
+    fireEvent.dragOver(inProgressCol, {
+      dataTransfer: { dropEffect: "" },
+    })
+
+    fireEvent.drop(inProgressCol)
+    expect(status).toHaveTextContent(
+      "Dropped Task 1, final position 2 of 2 in In Progress."
+    )
+    expect(onMove).toHaveBeenCalledWith(
+      { id: "t1", title: "Task 1" },
+      "todo",
+      "in_progress",
+      1
+    )
+
+    // Test drag cancel
+    fireEvent.dragStart(cards[1], { dataTransfer })
+    expect(status).toHaveTextContent(
+      "Picked up Task 2, position 1 of 1 in To Do."
+    )
+    fireEvent.dragEnd(cards[1])
+    expect(status).toHaveTextContent(
+      "Move cancelled. Task 2 returned to position 1 of 1 in To Do."
+    )
+  })
+
+  it("handles same-column pointer drop back in place without triggering onMove", () => {
+    const onMove = vi.fn()
+    render(
+      <KanbanBoard
+        columns={COLUMNS}
+        defaultValue={INITIAL_BOARD}
+        onMove={onMove}
+      />
+    )
+
+    const cards = screen.getAllByRole("button")
+    const status = screen.getByRole("status")
+    const dataTransfer = { setData: vi.fn(), effectAllowed: "" }
+
+    // Drag Task 1 and hover upper half of itself
+    fireEvent.dragStart(cards[0], { dataTransfer })
+    const todoCol = cards[0].closest<HTMLElement>(
+      '[data-slot="kanban-column"]'
+    )!
+
+    const dragOverSelf = createEvent.dragOver(cards[0])
+    Object.defineProperty(dragOverSelf, "clientY", { value: 10 })
+    cards[0].getBoundingClientRect = vi.fn(() => ({
+      top: 0,
+      height: 100,
+      bottom: 100,
+      left: 0,
+      right: 100,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    }))
+    fireEvent(cards[0], dragOverSelf)
+
+    // Drop on same column
+    fireEvent.drop(todoCol)
+    expect(onMove).not.toHaveBeenCalled()
+    expect(status).toHaveTextContent(
+      "Dropped Task 1, final position 1 of 2 in To Do."
+    )
+  })
+
+  it("updates drop target to end of column when dragging over column padding", () => {
+    const { container } = render(
+      <KanbanBoard columns={COLUMNS} defaultValue={INITIAL_BOARD} />
+    )
+
+    const cards = screen.getAllByRole("button")
+    const dataTransfer = { setData: vi.fn(), effectAllowed: "" }
+    fireEvent.dragStart(cards[0], { dataTransfer })
+
+    // Hover over card 1 first
+    const dragOverCard = createEvent.dragOver(cards[1])
+    Object.defineProperty(dragOverCard, "clientY", { value: 10 })
+    cards[1].getBoundingClientRect = vi.fn(() => ({
+      top: 0,
+      height: 100,
+      bottom: 100,
+      left: 0,
+      right: 100,
+      width: 100,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    }))
+    fireEvent(cards[1], dragOverCard)
+
+    // Now hover over column container (padding)
+    const todoCol = cards[0].closest<HTMLElement>(
+      '[data-slot="kanban-column"]'
+    )!
+    fireEvent.dragOver(todoCol, { dataTransfer: { dropEffect: "" } })
+
+    expect(
+      container.querySelectorAll('[data-slot="kanban-drop-indicator"]')
+    ).toHaveLength(1)
+  })
 })

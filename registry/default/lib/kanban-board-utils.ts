@@ -19,11 +19,26 @@ export interface MoveCardResult<T> {
   toIndex: number
 }
 
+const fallbackCardIds = new WeakMap<object, string>()
+let fallbackIdCounter = 0
+
 export function getDefaultCardId(card: unknown, index: number): string {
   if (typeof card === "string" || typeof card === "number") return String(card)
-  if (typeof card === "object" && card !== null && "id" in card) {
-    const { id } = card as { id: unknown }
-    if (typeof id === "string" || typeof id === "number") return String(id)
+  if (typeof card === "object" && card !== null) {
+    if ("id" in card) {
+      const { id } = card as { id: unknown }
+      if (typeof id === "string" || typeof id === "number") return String(id)
+    }
+    if ("key" in card) {
+      const { key } = card as { key: unknown }
+      if (typeof key === "string" || typeof key === "number") return String(key)
+    }
+    let fallback = fallbackCardIds.get(card)
+    if (!fallback) {
+      fallback = `card-${++fallbackIdCounter}`
+      fallbackCardIds.set(card, fallback)
+    }
+    return fallback
   }
   return String(index)
 }

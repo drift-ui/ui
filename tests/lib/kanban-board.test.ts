@@ -26,9 +26,20 @@ describe("kanban-board-utils", () => {
       expect(getDefaultCardId({ id: 99 }, 0)).toBe("99")
     })
 
-    it("falls back to the stringified index when id is missing or non-primitive", () => {
-      expect(getDefaultCardId({ title: "No ID" }, 3)).toBe("3")
-      expect(getDefaultCardId({ id: {} }, 5)).toBe("5")
+    it("reads a key property when id is not present", () => {
+      expect(getDefaultCardId({ key: "k-123" }, 0)).toBe("k-123")
+      expect(getDefaultCardId({ key: 456 }, 0)).toBe("456")
+    })
+
+    it("generates a stable unique id for objects without an id or key", () => {
+      const card = { title: "No ID" }
+      const id1 = getDefaultCardId(card, 3)
+      const id2 = getDefaultCardId(card, 0)
+      expect(id1).toBe(id2)
+      expect(id1).toMatch(/^card-\d+$/)
+    })
+
+    it("falls back to the stringified index for null or undefined", () => {
       expect(getDefaultCardId(null, 2)).toBe("2")
       expect(getDefaultCardId(undefined, 4)).toBe("4")
     })
@@ -294,6 +305,13 @@ describe("kanban-board-utils", () => {
       ).toEqual({
         targetColumnId: "col-1",
         targetIndex: 0,
+      })
+      // col-3 index 2 to col-2 (which has 1 card): clamped to index 1
+      expect(
+        getKeyboardMoveTarget("ArrowLeft", "col-3", 2, columns, board)
+      ).toEqual({
+        targetColumnId: "col-2",
+        targetIndex: 1,
       })
     })
 

@@ -96,6 +96,29 @@ export function KanbanBoard<T = Record<string, unknown>>({
   const [dragCardId, setDragCardId] = React.useState<string | null>(null)
   const [dropTarget, setDropTarget] = React.useState<DragTarget | null>(null)
   const dropTargetRef = React.useRef<DragTarget | null>(null)
+  const isDroppedRef = React.useRef(false)
+  const [focusedCardId, setFocusedCardId] = React.useState<string | null>(null)
+
+  let activeTabStopId: string | null = null
+  if (focusedCardId) {
+    const exists = columns.some((col) =>
+      (board[col.id] ?? []).some(
+        (card, idx) => getCardId(card, idx) === focusedCardId
+      )
+    )
+    if (exists) {
+      activeTabStopId = focusedCardId
+    }
+  }
+  if (!activeTabStopId) {
+    for (const col of columns) {
+      const cards = board[col.id] ?? []
+      if (cards.length > 0) {
+        activeTabStopId = getCardId(cards[0], 0)
+        break
+      }
+    }
+  }
 
   const cardElementsRef = React.useRef<Map<string, HTMLElement>>(new Map())
 
@@ -150,6 +173,7 @@ export function KanbanBoard<T = Record<string, unknown>>({
     index: number
   ) {
     if (disabled) return
+    if (event.target !== event.currentTarget) return
     const cardId = getCardId(card, index)
     const cardLabel = getCardLabel(card, index)
     const colObj = columns.find((c) => c.id === columnId)
@@ -254,7 +278,9 @@ export function KanbanBoard<T = Record<string, unknown>>({
         event.preventDefault()
         const prevCard = board[columnId]?.[index - 1]
         if (prevCard) {
-          cardElementsRef.current.get(getCardId(prevCard, index - 1))?.focus()
+          const id = getCardId(prevCard, index - 1)
+          setFocusedCardId(id)
+          cardElementsRef.current.get(id)?.focus()
         }
       } else if (
         event.key === "ArrowDown" &&
@@ -263,7 +289,9 @@ export function KanbanBoard<T = Record<string, unknown>>({
         event.preventDefault()
         const nextCard = board[columnId]?.[index + 1]
         if (nextCard) {
-          cardElementsRef.current.get(getCardId(nextCard, index + 1))?.focus()
+          const id = getCardId(nextCard, index + 1)
+          setFocusedCardId(id)
+          cardElementsRef.current.get(id)?.focus()
         }
       } else if (event.key === "ArrowLeft" && colIdx > 0) {
         event.preventDefault()
@@ -271,9 +299,9 @@ export function KanbanBoard<T = Record<string, unknown>>({
         const prevCards = board[prevCol.id] ?? []
         if (prevCards.length > 0) {
           const targetIdx = Math.min(index, prevCards.length - 1)
-          cardElementsRef.current
-            .get(getCardId(prevCards[targetIdx], targetIdx))
-            ?.focus()
+          const id = getCardId(prevCards[targetIdx], targetIdx)
+          setFocusedCardId(id)
+          cardElementsRef.current.get(id)?.focus()
         }
       } else if (event.key === "ArrowRight" && colIdx < columns.length - 1) {
         event.preventDefault()
@@ -281,9 +309,9 @@ export function KanbanBoard<T = Record<string, unknown>>({
         const nextCards = board[nextCol.id] ?? []
         if (nextCards.length > 0) {
           const targetIdx = Math.min(index, nextCards.length - 1)
-          cardElementsRef.current
-            .get(getCardId(nextCards[targetIdx], targetIdx))
-            ?.focus()
+          const id = getCardId(nextCards[targetIdx], targetIdx)
+          setFocusedCardId(id)
+          cardElementsRef.current.get(id)?.focus()
         }
       }
     }
@@ -297,12 +325,34 @@ export function KanbanBoard<T = Record<string, unknown>>({
   ) {
     if (disabled) return
     const cardId = getCardId(card, index)
-    event.dataTransfer.setData("text/plain", cardId)
-    event.dataTransfer.effectAllowed = "move"
+    if (event.dataTransfer) {
+      event.dataTransfer.setData("text/plain", cardId)
+      event.dataTransfer.effectAllowed = "move"
+    }
+    isDroppedRef.current = false
     setDragCardId(cardId)
+
+    const cardLabel = getCardLabel(card, index)
+    const colObj = columns.find((c) => c.id === columnId)
+    const colTitle = colObj?.title ?? columnId
+    const total = (board[columnId] ?? []).length
+    setAnnouncement(getPickupAnnouncement(cardLabel, colTitle, index, total))
   }
 
   function handleDragEnd() {
+    if (!isDroppedRef.current && dragCardId) {
+      const loc = findCardLocation(board, dragCardId, getCardId)
+      if (loc) {
+        const colObj = columns.find((c) => c.id === loc.columnId)
+        const colTitle = colObj?.title ?? loc.columnId
+        const total = (board[loc.columnId] ?? []).length
+        const cardLabel = getCardLabel(loc.card, loc.index)
+        setAnnouncement(
+          getCancelAnnouncement(cardLabel, colTitle, loc.index, total)
+        )
+      }
+    }
+    isDroppedRef.current = false
     setDragCardId(null)
     setDropTarget(null)
     dropTargetRef.current = null
@@ -314,10 +364,15 @@ export function KanbanBoard<T = Record<string, unknown>>({
   ) {
     if (disabled || !dragCardId) return
     event.preventDefault()
-    event.dataTransfer.dropEffect = "move"
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "move"
+    }
 
     const cards = board[columnId] ?? []
-    if (dropTargetRef.current?.columnId !== columnId) {
+    if (
+      dropTargetRef.current?.columnId !== columnId ||
+      dropTargetRef.current?.index !== cards.length
+    ) {
       const nextTarget = { columnId, index: cards.length }
       dropTargetRef.current = nextTarget
       setDropTarget(nextTarget)
@@ -332,7 +387,9 @@ export function KanbanBoard<T = Record<string, unknown>>({
     if (disabled || !dragCardId) return
     event.preventDefault()
     event.stopPropagation()
-    event.dataTransfer.dropEffect = "move"
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "move"
+    }
 
     const rect = event.currentTarget.getBoundingClientRect()
     const midpoint = rect.top + rect.height / 2
@@ -361,6 +418,7 @@ export function KanbanBoard<T = Record<string, unknown>>({
     event.preventDefault()
     event.stopPropagation()
 
+    isDroppedRef.current = true
     const currentDropTarget = dropTargetRef.current
     const targetIndex =
       currentDropTarget?.columnId === targetColumnId
@@ -369,15 +427,36 @@ export function KanbanBoard<T = Record<string, unknown>>({
 
     const loc = findCardLocation(board, dragCardId, getCardId)
     if (loc) {
-      const res = moveCard(
-        board,
-        dragCardId,
-        targetColumnId,
-        targetIndex,
-        getCardId
-      )
-      setBoard(res.nextBoard)
-      if (loc.columnId !== targetColumnId || loc.index !== res.toIndex) {
+      let finalTargetIndex = targetIndex
+      if (loc.columnId === targetColumnId && loc.index < targetIndex) {
+        finalTargetIndex = targetIndex - 1
+      }
+
+      if (loc.columnId === targetColumnId && loc.index === finalTargetIndex) {
+        // Dropped back in place - announce drop without moving
+        const colObj = columns.find((c) => c.id === targetColumnId)
+        const colTitle = colObj?.title ?? targetColumnId
+        const cardLabel = getCardLabel(loc.card, loc.index)
+        const total = (board[targetColumnId] ?? []).length
+        setAnnouncement(
+          getDropAnnouncement(cardLabel, colTitle, loc.index, total)
+        )
+      } else {
+        const res = moveCard(
+          board,
+          dragCardId,
+          targetColumnId,
+          finalTargetIndex,
+          getCardId
+        )
+        setBoard(res.nextBoard)
+        const targetCol = columns.find((c) => c.id === targetColumnId)
+        const targetTitle = targetCol?.title ?? targetColumnId
+        const targetCount = (res.nextBoard[targetColumnId] ?? []).length
+        const cardLabel = getCardLabel(loc.card, res.toIndex)
+        setAnnouncement(
+          getDropAnnouncement(cardLabel, targetTitle, res.toIndex, targetCount)
+        )
         onMove?.(loc.card, loc.columnId, targetColumnId, res.toIndex)
       }
     }
@@ -430,7 +509,7 @@ export function KanbanBoard<T = Record<string, unknown>>({
             key={column.id}
             data-slot="kanban-column"
             data-column-id={column.id}
-            aria-labelledby={`kanban-col-title-${column.id}`}
+            aria-label={column.title}
             className="flex w-72 shrink-0 snap-start flex-col gap-3 rounded-lg border border-border bg-muted/40 p-3 shadow-xs"
             onDragOver={(e) => handleColumnDragOver(e, column.id)}
             onDrop={(e) => handleDrop(e, column.id)}
@@ -440,10 +519,7 @@ export function KanbanBoard<T = Record<string, unknown>>({
                 renderColumnHeader(column, cards)
               ) : (
                 <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-                  <h3
-                    id={`kanban-col-title-${column.id}`}
-                    className="truncate text-sm font-semibold text-foreground"
-                  >
+                  <h3 className="truncate text-sm font-semibold text-foreground">
                     {column.title}
                   </h3>
                   <Badge variant="secondary" className="shrink-0 text-xs">
@@ -509,7 +585,9 @@ export function KanbanBoard<T = Record<string, unknown>>({
                         <div
                           ref={(el) => registerCardElement(cardId, el)}
                           role="button"
-                          tabIndex={disabled ? -1 : 0}
+                          tabIndex={
+                            disabled ? -1 : activeTabStopId === cardId ? 0 : -1
+                          }
                           aria-roledescription="kanban card"
                           aria-grabbed={isGrabbed}
                           aria-describedby={instructionsId}
@@ -517,6 +595,11 @@ export function KanbanBoard<T = Record<string, unknown>>({
                           data-slot="kanban-card"
                           data-card-id={cardId}
                           data-grabbed={isGrabbed ? "" : undefined}
+                          onFocus={() => {
+                            if (!disabled) {
+                              setFocusedCardId(cardId)
+                            }
+                          }}
                           onKeyDown={(e) =>
                             handleCardKeyDown(e, card, column.id, idx)
                           }
