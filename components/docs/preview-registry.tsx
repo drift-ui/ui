@@ -77,6 +77,7 @@ import { TransferListPreview } from "@/components/preview/transfer-list-preview"
 import { TreeViewPreview } from "@/components/preview/tree-view-preview"
 import { UnitInputPreview } from "@/components/preview/unit-input-preview"
 import { UptimeBarPreview } from "@/components/preview/uptime-bar-preview"
+import { UsageMeterPreview } from "@/components/preview/usage-meter-preview"
 import { VirtualListPreview } from "@/components/preview/virtual-list-preview"
 import { WeeklyHoursPreview } from "@/components/preview/weekly-hours-preview"
 
@@ -143,6 +144,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "tree-view": TreeViewPreview,
   "unit-input": UnitInputPreview,
   "uptime-bar": UptimeBarPreview,
+  "usage-meter": UsageMeterPreview,
   "virtual-list": VirtualListPreview,
   "weekly-hours": WeeklyHoursPreview,
 }

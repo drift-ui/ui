@@ -1377,6 +1377,24 @@
       ]
     },
     {
+      "name": "usage-meter",
+      "type": "registry:ui",
+      "title": "Usage Meter",
+      "description": "Progress meter for storage, seats, and rate limits with thresholds, segmented breakdown, and overage tracking.",
+      "dependencies": [],
+      "registryDependencies": ["badge", "utils"],
+      "files": [
+        {
+          "path": "registry/default/ui/usage-meter.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/usage-meter-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "use-controllable-state",
       "type": "registry:hook",
       "title": "useControllableState",

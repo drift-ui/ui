@@ -4261,6 +4261,140 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<div>",
     },
   ],
+  "usage-meter": [
+    {
+      name: "UsageMeter",
+      description:
+        "Progress meter for storage, seats, rate limits and quota tracking with thresholds, segmented categories and overage support.",
+      props: [
+        {
+          name: "value",
+          type: "number",
+          description: "Current numeric usage value in single-value mode.",
+        },
+        {
+          name: "max",
+          type: "number",
+          default: "100",
+          description: "Maximum capacity or quota limit.",
+        },
+        {
+          name: "min",
+          type: "number",
+          default: "0",
+          description: "Minimum value.",
+        },
+        {
+          name: "unit",
+          type: "string",
+          description:
+            "Unit label appended to values, e.g. 'GB', 'seats', 'calls', '%'.",
+        },
+        {
+          name: "warningAt",
+          type: "number",
+          default: "0.8",
+          description:
+            "Threshold (ratio 0-1 or absolute number) where warning state is triggered.",
+        },
+        {
+          name: "dangerAt",
+          type: "number",
+          default: "1.0",
+          description:
+            "Threshold (ratio 0-1 or absolute number) where danger or overage state is triggered.",
+        },
+        {
+          name: "segments",
+          type: "UsageMeterSegment[]",
+          description: "Array of category segments for stacked breakdown.",
+        },
+        {
+          name: "label",
+          type: "ReactNode",
+          description: "Primary header label displayed above the meter.",
+        },
+        {
+          name: "description",
+          type: "ReactNode",
+          description: "Secondary helper text displayed below the label.",
+        },
+        {
+          name: "showValue",
+          type: "boolean",
+          default: "true",
+          description: "Shows current and maximum formatted values.",
+        },
+        {
+          name: "showLegend",
+          type: "boolean",
+          default: "true when segments provided",
+          description: "Displays the segment legend below the meter track.",
+        },
+        {
+          name: "showStatusBadge",
+          type: "boolean",
+          default: "true",
+          description: "Displays warning or overage badges.",
+        },
+        {
+          name: "size",
+          type: '"sm" | "md" | "lg"',
+          default: '"md"',
+          description: "Height size variant of the meter track.",
+        },
+        {
+          name: "locale",
+          type: "string",
+          default: '"en-US"',
+          description: "Locale for number formatting.",
+        },
+        {
+          name: "decimals",
+          type: "number",
+          description: "Explicit decimal places for formatted numbers.",
+        },
+        {
+          name: "renderValue",
+          type: "(value: number, max: number, percentage: number) => ReactNode",
+          description: "Custom value formatter function.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "UsageMeterLegend",
+      description:
+        "List of colored category segments with labels and formatted amounts.",
+      props: [
+        {
+          name: "segments",
+          type: "CalculatedSegment[]",
+          required: true,
+          description: "Calculated segments to display in the legend.",
+        },
+        {
+          name: "unit",
+          type: "string",
+          description: "Unit label appended to values.",
+        },
+        {
+          name: "locale",
+          type: "string",
+          default: '"en-US"',
+          description: "Locale for number formatting.",
+        },
+      ],
+      rest: "<ul>",
+    },
+    {
+      name: "usage-meter-utils",
+      signature:
+        "calculateMeterStatus(options: MeterStatusOptions): UsageMeterStatus; calculatePercentage(value: number, max: number, decimals?: number): number; calculateSegments(segments: readonly UsageMeterSegment[], max: number, colors?: readonly string[]): CalculatedSegment[]; formatUsageValue(value: number, options?: FormatUsageOptions): string; getUsageAriaValueText(options: AriaValueTextOptions): string",
+      description:
+        "Pure utility functions for status determination, segment calculation, and Intl formatting. Import from @/lib/usage-meter-utils.",
+    },
+  ],
   "virtual-list": [
     {
       name: "VirtualList",
