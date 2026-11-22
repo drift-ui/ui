@@ -123,14 +123,14 @@ describe("UsageMeter", () => {
     )
 
     const meter = screen.getByRole("meter")
-    expect(meter).toHaveAttribute("aria-valuenow", "12")
+    expect(meter).toHaveAttribute("aria-valuenow", "10")
     expect(meter).toHaveAttribute("data-status", "danger")
 
     const marker = container.querySelector(
       '[data-slot="usage-meter-limit-marker"]'
     )
     expect(marker).toBeInTheDocument()
-    expect(marker).toHaveStyle({ left: "83.3333%" })
+    expect(marker).toHaveStyle({ left: "83.33%" })
     expect(screen.getByText("2 GB over limit")).toBeInTheDocument()
   })
 
@@ -177,5 +177,88 @@ describe("UsageMeter", () => {
       container.querySelector('[data-slot="usage-meter-legend"]')
     ).not.toBeInTheDocument()
     expect(screen.queryByText(/9/)).not.toBeInTheDocument()
+  })
+
+  it("supports custom min range and calculates bar width relative to range", () => {
+    const { container } = render(
+      <UsageMeter min={50} max={100} value={75} unit="GB" />
+    )
+    const meter = screen.getByRole("meter")
+    expect(meter).toHaveAttribute("aria-valuemin", "50")
+    expect(meter).toHaveAttribute("aria-valuemax", "100")
+    expect(meter).toHaveAttribute("aria-valuenow", "75")
+
+    const bar = container.querySelector('[data-slot="usage-meter-bar"]')!
+    expect(bar).toHaveStyle({ width: "50%" })
+  })
+
+  it("links description to aria-describedby", () => {
+    render(
+      <UsageMeter
+        value={5}
+        max={10}
+        label="Disk Space"
+        description="Encrypted volume"
+      />
+    )
+    const meter = screen.getByRole("meter")
+    const desc = screen.getByText("Encrypted volume")
+    expect(desc).toHaveAttribute("id")
+    expect(meter).toHaveAttribute("aria-describedby", desc.getAttribute("id")!)
+  })
+
+  it("keeps external aria-labelledby distinct from internal label id", () => {
+    render(
+      <div>
+        <span id="external-heading">External Heading</span>
+        <UsageMeter
+          aria-labelledby="external-heading"
+          label="Internal Label"
+          value={3}
+          max={10}
+        />
+      </div>
+    )
+    const meter = screen.getByRole("meter")
+    expect(meter).toHaveAttribute("aria-labelledby", "external-heading")
+    const internal = screen.getByText("Internal Label")
+    expect(internal.id).not.toBe("external-heading")
+  })
+
+  it("handles zero quota with overage badge and 100% bar width", () => {
+    const { container } = render(<UsageMeter value={5} max={0} unit="calls" />)
+    const meter = screen.getByRole("meter")
+    expect(meter).toHaveAttribute("aria-valuenow", "0")
+    expect(meter).toHaveAttribute("data-status", "danger")
+
+    const bar = container.querySelector('[data-slot="usage-meter-bar"]')!
+    expect(bar).toHaveStyle({ width: "100%" })
+    expect(screen.getByText("5 calls over limit")).toBeInTheDocument()
+  })
+
+  it("renders header when only description is provided", () => {
+    render(
+      <UsageMeter
+        value={5}
+        max={10}
+        description="Helper without main label"
+        showValue={false}
+      />
+    )
+    expect(screen.getByText("Helper without main label")).toBeInTheDocument()
+  })
+
+  it("handles negative values by clamping to 0", () => {
+    const { container } = render(<UsageMeter value={-5} max={10} />)
+    const meter = screen.getByRole("meter")
+    expect(meter).toHaveAttribute("aria-valuenow", "0")
+    const bar = container.querySelector('[data-slot="usage-meter-bar"]')!
+    expect(bar).toHaveStyle({ width: "0%" })
+  })
+
+  it("defaults to 0 when value is undefined", () => {
+    render(<UsageMeter max={10} />)
+    const meter = screen.getByRole("meter")
+    expect(meter).toHaveAttribute("aria-valuenow", "0")
   })
 })

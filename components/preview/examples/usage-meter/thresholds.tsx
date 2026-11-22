@@ -18,11 +18,12 @@ export function UsageMeterThresholdsPreview() {
 
       <UsageMeter
         label="Monthly API Requests"
-        description="Warning triggered at 80,000 of 100,000 quota"
-        value={85000}
+        description="Warning at 80,000 and danger at 95,000 of 100,000 quota"
+        value={96000}
         max={100000}
         unit="calls"
         warningAt={80000}
+        dangerAt={95000}
       />
     </div>
   )

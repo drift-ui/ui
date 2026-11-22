@@ -28,6 +28,11 @@ describe("usage-meter-utils", () => {
       expect(resolveThreshold(85, 100, 0.8)).toBe(85)
       expect(resolveThreshold(15, 20, 0.8)).toBe(15)
     })
+
+    it("supports min offset in threshold calculations", () => {
+      expect(resolveThreshold(undefined, 100, 0.8, 50)).toBe(90)
+      expect(resolveThreshold(0.5, 100, 0.8, 50)).toBe(75)
+    })
   })
 
   describe("calculateMeterStatus", () => {
@@ -81,6 +86,18 @@ describe("usage-meter-utils", () => {
       expect(calculateMeterStatus({ value: 5, max: 0 })).toBe("danger")
       expect(calculateMeterStatus({ value: -1, max: -5 })).toBe("normal")
     })
+
+    it("respects custom min parameter", () => {
+      expect(
+        calculateMeterStatus({ value: 50, max: 100, min: 50, warningAt: 0.8 })
+      ).toBe("normal")
+      expect(
+        calculateMeterStatus({ value: 90, max: 100, min: 50, warningAt: 0.8 })
+      ).toBe("warning")
+      expect(
+        calculateMeterStatus({ value: 105, max: 100, min: 50, warningAt: 0.8 })
+      ).toBe("danger")
+    })
   })
 
   describe("calculatePercentage", () => {
@@ -95,9 +112,16 @@ describe("usage-meter-utils", () => {
       expect(calculatePercentage(25, 20, 0)).toBe(125)
     })
 
-    it("returns 0 when max is 0 or negative", () => {
-      expect(calculatePercentage(5, 0)).toBe(0)
-      expect(calculatePercentage(5, -10)).toBe(0)
+    it("returns 0 when max is 0 or negative and value < max, or 100 when value >= max", () => {
+      expect(calculatePercentage(5, 0)).toBe(100)
+      expect(calculatePercentage(-5, 0)).toBe(0)
+      expect(calculatePercentage(5, -10)).toBe(100)
+    })
+
+    it("calculates percentage relative to min", () => {
+      expect(calculatePercentage(50, 100, 1, 50)).toBe(0)
+      expect(calculatePercentage(75, 100, 1, 50)).toBe(50)
+      expect(calculatePercentage(100, 100, 1, 50)).toBe(100)
     })
   })
 
@@ -136,6 +160,12 @@ describe("usage-meter-utils", () => {
       expect(result[0].color).toBe("bg-emerald-500")
     })
 
+    it("falls back to default colors when custom palette is empty", () => {
+      const custom: UsageMeterSegment[] = [{ label: "Doc", value: 2 }]
+      const result = calculateSegments(custom, 10, [])
+      expect(result[0].color).toBe("bg-chart-1")
+    })
+
     it("cycles through default colors if segments exceed palette size", () => {
       const many: UsageMeterSegment[] = [
         { label: "1", value: 1 },
@@ -165,6 +195,13 @@ describe("usage-meter-utils", () => {
     it("handles empty segments gracefully", () => {
       expect(calculateSegments([], 10)).toEqual([])
     })
+
+    it("handles zero range and zero total in segments", () => {
+      const segs: UsageMeterSegment[] = [{ label: "Zero", value: 0 }]
+      const result = calculateSegments(segs, 0)
+      expect(result[0].percentage).toBe(0)
+      expect(result[0].share).toBe(0)
+    })
   })
 
   describe("formatUsageValue", () => {
@@ -188,10 +225,16 @@ describe("usage-meter-utils", () => {
       )
     })
 
-    it("respects locale", () => {
+    it("respects locale and formatOptions", () => {
       expect(formatUsageValue(1500.5, { unit: "MB", locale: "de-DE" })).toBe(
         "1.500,5 MB"
       )
+      expect(
+        formatUsageValue(1000000, {
+          unit: "calls",
+          formatOptions: { notation: "compact" },
+        })
+      ).toBe("1M calls")
     })
   })
 
@@ -218,6 +261,16 @@ describe("usage-meter-utils", () => {
       ).toBe("12 GB of 10 GB, 120% (2 GB over limit)")
     })
 
+    it("handles zero-capacity overage text correctly", () => {
+      expect(
+        getUsageAriaValueText({
+          value: 5,
+          max: 0,
+          unit: "GB",
+        })
+      ).toBe("5 GB of 0 GB, 100% (5 GB over limit)")
+    })
+
     it("handles meter without unit", () => {
       expect(
         getUsageAriaValueText({
@@ -225,6 +278,25 @@ describe("usage-meter-utils", () => {
           max: 20,
         })
       ).toBe("18 of 20, 90%")
+    })
+
+    it("respects min parameter and formatOptions", () => {
+      expect(
+        getUsageAriaValueText({
+          value: 75,
+          max: 100,
+          min: 50,
+          unit: "GB",
+        })
+      ).toBe("75 GB of 100 GB, 50%")
+      expect(
+        getUsageAriaValueText({
+          value: 1500000,
+          max: 2000000,
+          unit: "calls",
+          formatOptions: { notation: "compact" },
+        })
+      ).toBe("1.5M calls of 2M calls, 75%")
     })
   })
 })

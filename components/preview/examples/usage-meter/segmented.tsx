@@ -17,8 +17,8 @@ export function UsageMeterSegmentedPreview() {
   return (
     <div className="w-full max-w-md rounded-lg border bg-card p-4 text-card-foreground shadow-xs">
       <UsageMeter
-        label="Database Storage"
-        description="Managed cluster allocation by database engine"
+        label="Infrastructure Storage"
+        description="Managed storage allocation by resource type"
         max={10}
         unit="GB"
         segments={MEDIA_SEGMENTS}

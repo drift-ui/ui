@@ -86,26 +86,27 @@ export function UsageMeter({
 
   const calculatedSegments = React.useMemo(() => {
     if (!hasSegments) return []
-    return calculateSegments(segments, max)
-  }, [hasSegments, segments, max])
+    return calculateSegments(segments, max, undefined, min)
+  }, [hasSegments, segments, max, min])
 
   const status = React.useMemo(
     () =>
       calculateMeterStatus({
         value: totalValue,
         max,
+        min,
         warningAt,
         dangerAt,
       }),
-    [totalValue, max, warningAt, dangerAt]
+    [totalValue, max, min, warningAt, dangerAt]
   )
 
   const percentage = React.useMemo(
-    () => calculatePercentage(totalValue, max, decimals ?? 1),
-    [totalValue, max, decimals]
+    () => calculatePercentage(totalValue, max, decimals ?? 1, min),
+    [totalValue, max, decimals, min]
   )
 
-  const isOverLimit = max > 0 && totalValue > max
+  const isOverLimit = totalValue > max
   const overage = isOverLimit
     ? Math.round((totalValue - max) * 10000) / 10000
     : 0
@@ -115,11 +116,13 @@ export function UsageMeter({
       getUsageAriaValueText({
         value: totalValue,
         max,
+        min,
         unit,
         locale,
         decimals,
+        formatOptions,
       }),
-    [totalValue, max, unit, locale, decimals]
+    [totalValue, max, min, unit, locale, decimals, formatOptions]
   )
 
   const formattedCurrent = React.useMemo(
@@ -157,10 +160,24 @@ export function UsageMeter({
 
   const shouldShowLegend = showLegend ?? hasSegments
   const generatedId = React.useId()
+  const internalLabelId = `usage-meter-label-${generatedId}`
   const labelId =
-    props["aria-labelledby"] ??
-    (label ? `usage-meter-label-${generatedId}` : undefined)
+    props["aria-labelledby"] ?? (label ? internalLabelId : undefined)
+  const descriptionId = description
+    ? `usage-meter-desc-${generatedId}`
+    : undefined
+  const ariaDescribedBy = props["aria-describedby"] ?? descriptionId
   const ariaLabel = props["aria-label"] ?? (labelId ? undefined : "Usage")
+
+  const hasStatusBadge =
+    showStatusBadge && (isOverLimit || (!isOverLimit && status === "warning"))
+  const hasHeader = Boolean(label || description || showValue || hasStatusBadge)
+
+  const ariaValueNow = Math.min(max, Math.max(min, totalValue))
+  const limitMarkerPercent =
+    totalValue > min
+      ? Math.round(((max - min) / (totalValue - min)) * 10000) / 100
+      : 0
 
   return (
     <div
@@ -168,19 +185,22 @@ export function UsageMeter({
       className={cn("flex w-full flex-col gap-2", className)}
       {...props}
     >
-      {(label || showValue) && (
+      {hasHeader && (
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <div className="flex min-w-0 flex-col">
             {label && (
               <span
-                id={labelId}
+                id={internalLabelId}
                 className="text-sm font-medium text-foreground"
               >
                 {label}
               </span>
             )}
             {description && (
-              <span className="text-xs text-muted-foreground">
+              <span
+                id={descriptionId}
+                className="text-xs text-muted-foreground"
+              >
                 {description}
               </span>
             )}
@@ -225,7 +245,8 @@ export function UsageMeter({
         tabIndex={0}
         aria-label={ariaLabel}
         aria-labelledby={labelId}
-        aria-valuenow={totalValue}
+        aria-describedby={ariaDescribedBy}
+        aria-valuenow={ariaValueNow}
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuetext={ariaValueText}
@@ -252,14 +273,14 @@ export function UsageMeter({
                       "h-full transition-[width] duration-300",
                       seg.color
                     )}
-                    title={`${seg.label}: ${formatUsageValue(seg.value, { unit, locale, decimals })}`}
+                    title={`${seg.label}: ${formatUsageValue(seg.value, { unit, locale, decimals, formatOptions })}`}
                   />
                 )
               })}
               {/* Limit Marker Line */}
               <div
                 data-slot="usage-meter-limit-marker"
-                style={{ left: `${(max / totalValue) * 100}%` }}
+                style={{ left: `${limitMarkerPercent}%` }}
                 className="absolute top-0 bottom-0 z-10 w-0.5 -translate-x-1/2 bg-foreground/80 shadow-xs"
                 title={`Limit: ${formattedMax}`}
               />
@@ -275,7 +296,7 @@ export function UsageMeter({
                   "h-full transition-[width] duration-300",
                   seg.color
                 )}
-                title={`${seg.label}: ${formatUsageValue(seg.value, { unit, locale, decimals })}`}
+                title={`${seg.label}: ${formatUsageValue(seg.value, { unit, locale, decimals, formatOptions })}`}
               />
             ))
           )
@@ -283,7 +304,11 @@ export function UsageMeter({
           // Single value mode
           <div
             data-slot="usage-meter-bar"
-            style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
+            style={{
+              width: isOverLimit
+                ? "100%"
+                : `${Math.min(100, Math.max(0, percentage))}%`,
+            }}
             className={cn(
               "h-full rounded-full transition-[width,background-color] duration-300",
               STATUS_BAR_COLORS[status]

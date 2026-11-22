@@ -4355,6 +4355,11 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           description: "Explicit decimal places for formatted numbers.",
         },
         {
+          name: "formatOptions",
+          type: "Intl.NumberFormatOptions",
+          description: "Custom Intl.NumberFormat formatting options.",
+        },
+        {
           name: "renderValue",
           type: "(value: number, max: number, percentage: number) => ReactNode",
           description: "Custom value formatter function.",
@@ -4384,13 +4389,23 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           default: '"en-US"',
           description: "Locale for number formatting.",
         },
+        {
+          name: "decimals",
+          type: "number",
+          description: "Explicit decimal places for formatted numbers.",
+        },
+        {
+          name: "formatOptions",
+          type: "Intl.NumberFormatOptions",
+          description: "Custom Intl.NumberFormat formatting options.",
+        },
       ],
       rest: "<ul>",
     },
     {
       name: "usage-meter-utils",
       signature:
-        "calculateMeterStatus(options: MeterStatusOptions): UsageMeterStatus; calculatePercentage(value: number, max: number, decimals?: number): number; calculateSegments(segments: readonly UsageMeterSegment[], max: number, colors?: readonly string[]): CalculatedSegment[]; formatUsageValue(value: number, options?: FormatUsageOptions): string; getUsageAriaValueText(options: AriaValueTextOptions): string",
+        "resolveThreshold(threshold: number | undefined, max: number, defaultRatio: number, min?: number): number; calculateMeterStatus(options: MeterStatusOptions): UsageMeterStatus; calculatePercentage(value: number, max: number, decimals?: number, min?: number): number; calculateSegments(segments: readonly UsageMeterSegment[], max: number, colors?: readonly string[], min?: number): CalculatedSegment[]; formatUsageValue(value: number, options?: FormatUsageOptions): string; getUsageAriaValueText(options: AriaValueTextOptions): string",
       description:
         "Pure utility functions for status determination, segment calculation, and Intl formatting. Import from @/lib/usage-meter-utils.",
     },

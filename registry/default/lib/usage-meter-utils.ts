@@ -24,6 +24,7 @@ export const DEFAULT_SEGMENT_COLORS: readonly string[] = [
 export interface MeterStatusOptions {
   value: number
   max: number
+  min?: number
   warningAt?: number
   dangerAt?: number
 }
@@ -31,21 +32,24 @@ export interface MeterStatusOptions {
 export function resolveThreshold(
   threshold: number | undefined,
   max: number,
-  defaultRatio: number
+  defaultRatio: number,
+  min = 0
 ): number {
-  if (threshold === undefined) return max * defaultRatio
-  return threshold <= 1 && threshold >= 0 ? max * threshold : threshold
+  const range = max - min
+  if (threshold === undefined) return min + range * defaultRatio
+  return threshold <= 1 && threshold >= 0 ? min + range * threshold : threshold
 }
 
 export function calculateMeterStatus({
   value,
   max,
+  min = 0,
   warningAt = 0.8,
   dangerAt = 1.0,
 }: MeterStatusOptions): UsageMeterStatus {
-  if (max <= 0) return value > 0 ? "danger" : "normal"
-  const warningValue = resolveThreshold(warningAt, max, 0.8)
-  const dangerValue = resolveThreshold(dangerAt, max, 1.0)
+  if (max <= min) return value > min ? "danger" : "normal"
+  const warningValue = resolveThreshold(warningAt, max, 0.8, min)
+  const dangerValue = resolveThreshold(dangerAt, max, 1.0, min)
 
   if (value > dangerValue) {
     return "danger"
@@ -59,10 +63,12 @@ export function calculateMeterStatus({
 export function calculatePercentage(
   value: number,
   max: number,
-  decimals = 1
+  decimals = 1,
+  min = 0
 ): number {
-  if (max <= 0) return 0
-  const ratio = (value / max) * 100
+  const range = max - min
+  if (range <= 0) return value >= max ? 100 : 0
+  const ratio = ((value - min) / range) * 100
   const factor = 10 ** decimals
   return Math.round(ratio * factor) / factor
 }
@@ -70,15 +76,18 @@ export function calculatePercentage(
 export function calculateSegments(
   segments: readonly UsageMeterSegment[],
   max: number,
-  colors: readonly string[] = DEFAULT_SEGMENT_COLORS
+  colors: readonly string[] = DEFAULT_SEGMENT_COLORS,
+  min = 0
 ): CalculatedSegment[] {
+  const range = max - min
+  const palette = colors && colors.length > 0 ? colors : DEFAULT_SEGMENT_COLORS
   const total = segments.reduce((acc, s) => acc + Math.max(0, s.value), 0)
 
   return segments.map((seg, idx) => {
     const val = Math.max(0, seg.value)
-    const percentage = max > 0 ? calculatePercentage(val, max, 2) : 0
-    const share = total > 0 ? calculatePercentage(val, total, 2) : 0
-    const color = seg.color ?? colors[idx % colors.length]
+    const percentage = range > 0 ? calculatePercentage(val, range, 2, 0) : 0
+    const share = total > 0 ? calculatePercentage(val, total, 2, 0) : 0
+    const color = seg.color ?? palette[idx % palette.length]
 
     return {
       ...seg,
@@ -128,28 +137,43 @@ export function formatUsageValue(
 export interface AriaValueTextOptions {
   value: number
   max: number
+  min?: number
   unit?: string
   locale?: string
+  formatOptions?: Intl.NumberFormatOptions
   decimals?: number
 }
 
 export function getUsageAriaValueText({
   value,
   max,
+  min = 0,
   unit,
   locale = "en-US",
+  formatOptions,
   decimals,
 }: AriaValueTextOptions): string {
-  const formattedVal = formatUsageValue(value, { unit, locale, decimals })
-  const formattedMax = formatUsageValue(max, { unit, locale, decimals })
-  const percentage = calculatePercentage(value, max, 0)
+  const formattedVal = formatUsageValue(value, {
+    unit,
+    locale,
+    decimals,
+    formatOptions,
+  })
+  const formattedMax = formatUsageValue(max, {
+    unit,
+    locale,
+    decimals,
+    formatOptions,
+  })
+  const percentage = calculatePercentage(value, max, 0, min)
 
-  if (max > 0 && value > max) {
+  if (value > max) {
     const overage = value - max
     const formattedOverage = formatUsageValue(overage, {
       unit,
       locale,
       decimals,
+      formatOptions,
     })
     return `${formattedVal} of ${formattedMax}, ${percentage}% (${formattedOverage} over limit)`
   }

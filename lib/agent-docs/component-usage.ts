@@ -1356,7 +1356,7 @@ export function ServiceHealth() {
   },
   "usage-meter": {
     notes:
-      "UsageMeter displays resource quotas such as disk storage, user seats, or rate limits. It supports both single numeric values with warning and danger thresholds and segmented multi-category breakdowns with automatic legend formatting. When usage exceeds 100% capacity, the meter does not clip; instead, it renders the overage with a limit boundary marker and an overage badge. Complies with WAI-ARIA role='meter' using aria-valuenow, aria-valuemin, aria-valuemax, and descriptive aria-valuetext.",
+      "UsageMeter displays resource quotas such as disk storage, user seats, or rate limits. It supports both single numeric values with warning and danger thresholds and segmented multi-category breakdowns with automatic legend formatting. When usage exceeds capacity, it displays an overage badge, and segmented mode additionally renders a limit boundary marker showing the quota threshold. Complies with WAI-ARIA role='meter' using aria-valuenow (clamped to min and max), aria-valuemin, aria-valuemax, and descriptive aria-valuetext.",
     example: `"use client"
 
 import { UsageMeter } from "@/components/ui/usage-meter"
