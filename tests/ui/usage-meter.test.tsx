@@ -261,4 +261,16 @@ describe("UsageMeter", () => {
     const meter = screen.getByRole("meter")
     expect(meter).toHaveAttribute("aria-valuenow", "0")
   })
+
+  it("normalizes inverted or negative min/max bounds", () => {
+    const { rerender } = render(<UsageMeter min={50} max={20} value={30} />)
+    const meter = screen.getByRole("meter")
+    expect(meter).toHaveAttribute("aria-valuemin", "50")
+    expect(meter).toHaveAttribute("aria-valuemax", "50")
+
+    rerender(<UsageMeter max={-5} value={0} />)
+    expect(meter).toHaveAttribute("aria-valuemin", "0")
+    expect(meter).toHaveAttribute("aria-valuemax", "0")
+    expect(screen.queryByText(/over limit/)).not.toBeInTheDocument()
+  })
 })

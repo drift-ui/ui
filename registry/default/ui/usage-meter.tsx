@@ -74,6 +74,9 @@ export function UsageMeter({
   className,
   ...props
 }: UsageMeterProps) {
+  const safeMin = Math.max(0, min)
+  const safeMax = Math.max(safeMin, max)
+
   const hasSegments = Array.isArray(segments) && segments.length > 0
 
   const totalValue = React.useMemo(() => {
@@ -86,43 +89,43 @@ export function UsageMeter({
 
   const calculatedSegments = React.useMemo(() => {
     if (!hasSegments) return []
-    return calculateSegments(segments, max, undefined, min)
-  }, [hasSegments, segments, max, min])
+    return calculateSegments(segments, safeMax, undefined, safeMin)
+  }, [hasSegments, segments, safeMax, safeMin])
 
   const status = React.useMemo(
     () =>
       calculateMeterStatus({
         value: totalValue,
-        max,
-        min,
+        max: safeMax,
+        min: safeMin,
         warningAt,
         dangerAt,
       }),
-    [totalValue, max, min, warningAt, dangerAt]
+    [totalValue, safeMax, safeMin, warningAt, dangerAt]
   )
 
   const percentage = React.useMemo(
-    () => calculatePercentage(totalValue, max, decimals ?? 1, min),
-    [totalValue, max, decimals, min]
+    () => calculatePercentage(totalValue, safeMax, decimals ?? 1, safeMin),
+    [totalValue, safeMax, decimals, safeMin]
   )
 
-  const isOverLimit = totalValue > max
+  const isOverLimit = totalValue > safeMax
   const overage = isOverLimit
-    ? Math.round((totalValue - max) * 10000) / 10000
+    ? Math.round((totalValue - safeMax) * 10000) / 10000
     : 0
 
   const ariaValueText = React.useMemo(
     () =>
       getUsageAriaValueText({
         value: totalValue,
-        max,
-        min,
+        max: safeMax,
+        min: safeMin,
         unit,
         locale,
         decimals,
         formatOptions,
       }),
-    [totalValue, max, min, unit, locale, decimals, formatOptions]
+    [totalValue, safeMax, safeMin, unit, locale, decimals, formatOptions]
   )
 
   const formattedCurrent = React.useMemo(
@@ -138,13 +141,13 @@ export function UsageMeter({
 
   const formattedMax = React.useMemo(
     () =>
-      formatUsageValue(max, {
+      formatUsageValue(safeMax, {
         unit,
         locale,
         decimals,
         formatOptions,
       }),
-    [max, unit, locale, decimals, formatOptions]
+    [safeMax, unit, locale, decimals, formatOptions]
   )
 
   const formattedOverage = React.useMemo(
@@ -173,10 +176,10 @@ export function UsageMeter({
     showStatusBadge && (isOverLimit || (!isOverLimit && status === "warning"))
   const hasHeader = Boolean(label || description || showValue || hasStatusBadge)
 
-  const ariaValueNow = Math.min(max, Math.max(min, totalValue))
+  const ariaValueNow = Math.min(safeMax, Math.max(safeMin, totalValue))
   const limitMarkerPercent =
-    totalValue > min
-      ? Math.round(((max - min) / (totalValue - min)) * 10000) / 100
+    totalValue > safeMin
+      ? Math.round(((safeMax - safeMin) / (totalValue - safeMin)) * 10000) / 100
       : 0
 
   return (
@@ -224,7 +227,7 @@ export function UsageMeter({
             {showValue && (
               <span className="shrink-0 text-xs text-muted-foreground">
                 {renderValue ? (
-                  renderValue(totalValue, max, percentage)
+                  renderValue(totalValue, safeMax, percentage)
                 ) : (
                   <>
                     <span className="font-semibold text-foreground">
@@ -247,8 +250,8 @@ export function UsageMeter({
         aria-labelledby={labelId}
         aria-describedby={ariaDescribedBy}
         aria-valuenow={ariaValueNow}
-        aria-valuemin={min}
-        aria-valuemax={max}
+        aria-valuemin={safeMin}
+        aria-valuemax={safeMax}
         aria-valuetext={ariaValueText}
         data-slot="usage-meter-track"
         data-status={status}
