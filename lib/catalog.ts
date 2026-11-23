@@ -92,6 +92,7 @@ const ENTRY_LAYOUT: {
   { slug: "json-viewer", category: "structure" },
   { slug: "kanban-board", category: "structure" },
   { slug: "log-viewer", category: "structure" },
+  { slug: "request-inspector", category: "structure" },
   { slug: "sortable-list", category: "structure" },
   { slug: "stepper", category: "structure" },
   { slug: "timeline", category: "structure" },

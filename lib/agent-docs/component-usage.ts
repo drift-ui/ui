@@ -926,6 +926,46 @@ export function StandupRepeat({ start }: { start: Date }) {
   return <RecurrenceEditor aria-label="Repeat" value={rule} onValueChange={setRule} start={start} showPreview={3} />
 }`,
   },
+  "request-inspector": {
+    notes:
+      "RequestInspector displays HTTP request and response details with tabs for Request, Response, Headers, and Timing. JSON request and response bodies render automatically with json-viewer (including search and collapsible trees); non-JSON bodies render with a wrap toggle like log-viewer. The summary bar shows the HTTP method badge, URL with copy button, response status badge with theme token color classes (2xx chart-2, 3xx chart-4, 4xx chart-5, 5xx destructive), duration, and a 'Copy as cURL' button. In the Headers tab, sensitive headers (Authorization, Cookie, Set-Cookie, X-Api-Key, Api-Key, Proxy-Authorization) are masked by default and revealable via secret-field; pass sensitiveHeaders to customize or extend the list. Pure utilities including shell-quoted cURL generation live in @/lib/request-inspector-utils. Installs badge, button, json-viewer, and secret-field.",
+    example: `"use client"
+
+import { RequestInspector } from "@/components/ui/request-inspector"
+
+export function ApiLogDetail() {
+  return (
+    <RequestInspector
+      request={{
+        method: "POST",
+        url: "https://api.example.com/v1/orders",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer sec_test_token123",
+        },
+        body: {
+          items: [{ sku: "DRIFT-TSHIRT", quantity: 2 }],
+          currency: "usd",
+        },
+      }}
+      response={{
+        status: 201,
+        statusText: "Created",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Request-Id": "req_8849b2",
+        },
+        body: {
+          id: "ord_91823",
+          status: "confirmed",
+          total: 5800,
+        },
+        durationMs: 142,
+      }}
+    />
+  )
+}`,
+  },
   "saved-views": {
     notes:
       "SavedViews manages named combinations of filters, sorting and columns on table and list screens. View data should be structured-cloneable, since Duplicate copies it with structuredClone. Pass currentData and the component works out isDirty by comparing it with the active view's data: plain objects compare deeply with key order and undefined fields ignored, arrays keep their order, dates compare by time, regular expressions compare by source and flags, Set members and Map values compare deeply, Map keys compare by identity, and cyclic data is safe. A view with no data is never dirty. Other class instances, such as Temporal or URL objects, need an isEqual of your own. Pass isEqual to change the rule (for filter-builder data, compare serializeFilters output so filter ids don't count), or pass isDirty to override it, which also skips the compare. Save writes currentData to the active view; Discard calls onReset so you can restore view.data. To keep the active view in the URL, pass activeId={readViewParam(searchParams, views)} and write it in onActiveChange with writeViewParam(searchParams, id). A missing or unknown id resolves to the current default view, or the first view when none is the default. Because the active view can change without onActiveChange (browser back and forward, or a new default while the URL has no param), derive the working data from activeId as the example does rather than setting it only in onActiveChange. The component itself has no router code. For server storage, return a Promise (or any thenable) from onCreate, onRename, onDuplicate, onDelete, onSetDefault or onSave. The change shows at once and the view is marked aria-busy, its options menu and rename are blocked until the request settles, and a rejected Promise (or a callback that throws) undoes only that change, shows an inline role=alert message and calls onError(error, action), or logs the error with console.error when there is no onError. Only one set default request runs at a time. Rename works with F2 or double click; delete is blocked for locked views and for the last view that is not still being created. variant='select' gives a compact dropdown. Scale limit, measured in Chrome on a dev build at 4x CPU throttle: moving between tabs takes about 60 ms with 100 views, 115 ms with 200 and 230 ms with 500, and comparing currentData with 2,000 filters takes about 2.5 ms. Keep lists to about 100 views. Pure helpers live in @/lib/saved-views-utils. Installs button, input, badge, and popover.",

@@ -11,6 +11,7 @@ import { MentionTextareaPreview as BaseUiMentionTextareaPreview } from "@/compon
 import { MultiSelectPreview as BaseUiMultiSelectPreview } from "@/components/preview/base/multi-select-preview"
 import { PopoverPreview as BaseUiPopoverPreview } from "@/components/preview/base/popover-preview"
 import { QueryInputPreview as BaseUiQueryInputPreview } from "@/components/preview/base/query-input-preview"
+import { RequestInspectorPreview as BaseUiRequestInspectorPreview } from "@/components/preview/base/request-inspector-preview"
 import { StepperPreview as BaseUiStepperPreview } from "@/components/preview/base/stepper-preview"
 import { TemplateInputPreview as BaseUiTemplateInputPreview } from "@/components/preview/base/template-input-preview"
 import { ToastPreview as BaseUiToastPreview } from "@/components/preview/base/toast-preview"
@@ -58,6 +59,7 @@ import { QueryInputPreview } from "@/components/preview/query-input-preview"
 import { PhoneInputPreview } from "@/components/preview/phone-input-preview"
 import { RatingPreview } from "@/components/preview/rating-preview"
 import { RecurrenceEditorPreview } from "@/components/preview/recurrence-editor-preview"
+import { RequestInspectorPreview } from "@/components/preview/request-inspector-preview"
 import { SavedViewsPreview } from "@/components/preview/saved-views-preview"
 import { SecretFieldPreview } from "@/components/preview/secret-field-preview"
 import { ShortcutCheatsheetPreview } from "@/components/preview/shortcut-cheatsheet-preview"
@@ -124,6 +126,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "query-input": QueryInputPreview,
   rating: RatingPreview,
   "recurrence-editor": RecurrenceEditorPreview,
+  "request-inspector": RequestInspectorPreview,
   "saved-views": SavedViewsPreview,
   "secret-field": SecretFieldPreview,
   "shortcut-cheatsheet": ShortcutCheatsheetPreview,
@@ -159,6 +162,7 @@ export const BASE_UI_PREVIEWS: Record<string, ComponentType> = {
   "multi-select": BaseUiMultiSelectPreview,
   popover: BaseUiPopoverPreview,
   "query-input": BaseUiQueryInputPreview,
+  "request-inspector": BaseUiRequestInspectorPreview,
   stepper: BaseUiStepperPreview,
   "template-input": BaseUiTemplateInputPreview,
   toast: BaseUiToastPreview,
