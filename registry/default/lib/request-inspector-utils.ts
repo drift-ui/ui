@@ -1,29 +1,31 @@
+export interface RequestInspectorHeaders {
+  [key: string]: string | string[] | undefined
+}
+
 export type HttpMethod =
   | "GET"
   | "POST"
   | "PUT"
-  | "DELETE"
   | "PATCH"
+  | "DELETE"
   | "HEAD"
   | "OPTIONS"
   | (string & {})
 
-export type RequestInspectorHeaders =
-  Record<string, string | string[] | undefined> | [string, string][]
-
-export type RequestInspectorRequest = {
-  method: HttpMethod
+export interface RequestInspectorRequest {
+  method: HttpMethod | string
   url: string
-  headers?: RequestInspectorHeaders
+  headers?: RequestInspectorHeaders | [string, string][]
   body?: unknown
 }
 
-export type RequestInspectorResponse = {
+export interface RequestInspectorResponse {
   status: number
   statusText?: string
-  headers?: RequestInspectorHeaders
+  headers?: RequestInspectorHeaders | [string, string][]
   body?: unknown
   durationMs?: number
+  timestamp?: number | string | Date
 }
 
 export const DEFAULT_SENSITIVE_HEADERS = [
@@ -33,37 +35,73 @@ export const DEFAULT_SENSITIVE_HEADERS = [
   "x-api-key",
   "api-key",
   "proxy-authorization",
+  "x-auth-token",
+  "x-access-token",
 ]
 
 const STATUS_TEXT_MAP: Record<number, string> = {
   100: "Continue",
   101: "Switching Protocols",
+  102: "Processing",
+  103: "Early Hints",
   200: "OK",
   201: "Created",
   202: "Accepted",
+  203: "Non-Authoritative Information",
   204: "No Content",
+  205: "Reset Content",
+  206: "Partial Content",
+  207: "Multi-Status",
+  208: "Already Reported",
+  226: "IM Used",
+  300: "Multiple Choices",
   301: "Moved Permanently",
   302: "Found",
+  303: "See Other",
   304: "Not Modified",
+  305: "Use Proxy",
   307: "Temporary Redirect",
   308: "Permanent Redirect",
   400: "Bad Request",
   401: "Unauthorized",
+  402: "Payment Required",
   403: "Forbidden",
   404: "Not Found",
   405: "Method Not Allowed",
+  406: "Not Acceptable",
+  407: "Proxy Authentication Required",
   408: "Request Timeout",
   409: "Conflict",
   410: "Gone",
+  411: "Length Required",
+  412: "Precondition Failed",
   413: "Payload Too Large",
+  414: "URI Too Long",
   415: "Unsupported Media Type",
+  416: "Range Not Satisfiable",
+  417: "Expectation Failed",
+  418: "I'm a teapot",
+  421: "Misdirected Request",
   422: "Unprocessable Entity",
+  423: "Locked",
+  424: "Failed Dependency",
+  425: "Too Early",
+  426: "Upgrade Required",
+  428: "Precondition Required",
   429: "Too Many Requests",
+  431: "Request Header Fields Too Large",
+  451: "Unavailable For Legal Reasons",
   500: "Internal Server Error",
   501: "Not Implemented",
   502: "Bad Gateway",
   503: "Service Unavailable",
   504: "Gateway Timeout",
+  505: "HTTP Version Not Supported",
+  506: "Variant Also Negotiates",
+  507: "Insufficient Storage",
+  508: "Loop Detected",
+  510: "Not Extended",
+  511: "Network Authentication Required",
 }
 
 export function quoteShell(arg: string): string {
@@ -74,12 +112,14 @@ export function isSensitiveHeader(
   name: string,
   sensitiveHeaders: string[] = DEFAULT_SENSITIVE_HEADERS
 ): boolean {
-  const lower = name.toLowerCase()
-  return sensitiveHeaders.some((header) => header.toLowerCase() === lower)
+  const lower = name.trim().toLowerCase()
+  return sensitiveHeaders.some(
+    (header) => header.trim().toLowerCase() === lower
+  )
 }
 
 export function normalizeHeaders(
-  headers?: RequestInspectorHeaders
+  headers?: RequestInspectorHeaders | [string, string][]
 ): [string, string][] {
   if (!headers) return []
   if (Array.isArray(headers)) return headers
@@ -99,6 +139,7 @@ export function normalizeHeaders(
 }
 
 export function parseQueryParams(url: string): [string, string][] {
+  if (!url) return []
   try {
     const parsed = new URL(url, "https://drift-ui.dev")
     const entries: [string, string][] = []
@@ -121,31 +162,31 @@ export function parseBody(body: unknown): {
   }
 
   if (typeof body === "object") {
-    return {
-      isJson: true,
-      jsonValue: body,
-      text: JSON.stringify(body, null, 2),
+    try {
+      const jsonText = JSON.stringify(body, null, 2)
+      return {
+        isJson: true,
+        jsonValue: body,
+        text: jsonText,
+      }
+    } catch {
+      return { isJson: false, text: String(body) }
     }
   }
 
   if (typeof body === "string") {
     const trimmed = body.trim()
-    if (
-      (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-      (trimmed.startsWith("[") && trimmed.endsWith("]"))
-    ) {
-      try {
-        const parsed = JSON.parse(body)
-        if (typeof parsed === "object" && parsed !== null) {
-          return {
-            isJson: true,
-            jsonValue: parsed,
-            text: body,
-          }
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (typeof parsed === "object" && parsed !== null) {
+        return {
+          isJson: true,
+          jsonValue: parsed,
+          text: JSON.stringify(parsed, null, 2),
         }
-      } catch {
-        // Not JSON
       }
+    } catch {
+      // not valid object/array JSON
     }
     return { isJson: false, text: body }
   }
@@ -163,9 +204,9 @@ export function formatDuration(ms?: number): string {
   if (ms < 1) {
     return "< 1 ms"
   }
-  if (ms < 1000) {
-    const rounded = Number.isInteger(ms) ? ms : Number(ms.toFixed(1))
-    return `${rounded} ms`
+  const roundedMs = Number.isInteger(ms) ? ms : Number(ms.toFixed(1))
+  if (roundedMs < 1000) {
+    return `${roundedMs} ms`
   }
   const sec = Number((ms / 1000).toFixed(2))
   return `${sec} s`
@@ -215,22 +256,35 @@ export function getStatusBadgeClass(status: number): {
   }
 }
 
-export function buildCurlCommand(request: RequestInspectorRequest): string {
+export function buildCurlCommand(
+  request: RequestInspectorRequest,
+  options?: {
+    maskSensitive?: boolean
+    sensitiveHeaders?: string[]
+  }
+): string {
   const parts: string[] = ["curl"]
-  const method = (request.method || "GET").toUpperCase()
+  const rawMethod = request.method ? request.method.trim() : "GET"
+  const upperMethod = rawMethod.toUpperCase()
 
   parts.push(quoteShell(request.url))
 
   const hasBody =
     request.body !== undefined && request.body !== null && request.body !== ""
 
-  if (method !== "GET" || hasBody) {
-    parts.push(`-X ${method}`)
+  if (upperMethod === "HEAD") {
+    parts.push("-I")
+  } else if (upperMethod !== "GET" || hasBody) {
+    parts.push(`-X ${quoteShell(rawMethod)}`)
   }
 
+  const mask = options?.maskSensitive ?? false
+  const sensitiveList = options?.sensitiveHeaders ?? DEFAULT_SENSITIVE_HEADERS
   const headers = normalizeHeaders(request.headers)
   for (const [key, value] of headers) {
-    parts.push(`-H ${quoteShell(`${key}: ${value}`)}`)
+    const val =
+      mask && isSensitiveHeader(key, sensitiveList) ? "[REDACTED]" : value
+    parts.push(`-H ${quoteShell(`${key}: ${val}`)}`)
   }
 
   if (hasBody) {
@@ -238,7 +292,11 @@ export function buildCurlCommand(request: RequestInspectorRequest): string {
     if (typeof request.body === "string") {
       bodyString = request.body
     } else {
-      bodyString = JSON.stringify(request.body, null, 2)
+      try {
+        bodyString = JSON.stringify(request.body, null, 2)
+      } catch {
+        bodyString = String(request.body)
+      }
     }
     parts.push(`--data-raw ${quoteShell(bodyString)}`)
   }

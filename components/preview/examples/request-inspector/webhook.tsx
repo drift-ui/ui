@@ -1,17 +1,11 @@
+import { DEFAULT_SENSITIVE_HEADERS } from "@/registry/default/lib/request-inspector-utils"
 import { RequestInspector } from "@/registry/default/ui/request-inspector"
 
 export function RequestInspectorWebhookPreview() {
   return (
     <RequestInspector
       className="w-full max-w-xl"
-      sensitiveHeaders={[
-        "authorization",
-        "cookie",
-        "set-cookie",
-        "x-api-key",
-        "api-key",
-        "x-hub-signature-256",
-      ]}
+      sensitiveHeaders={[...DEFAULT_SENSITIVE_HEADERS, "x-hub-signature-256"]}
       request={{
         method: "POST",
         url: "https://api.example.com/webhooks/stripe",

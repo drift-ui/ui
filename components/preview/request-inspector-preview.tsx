@@ -9,7 +9,7 @@ export function RequestInspectorPreview() {
         url: "https://api.drift-ui.dev/v1/deployments?env=production",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer dft_live_98a72b6c1e34",
+          Authorization: "Bearer dft_test_example",
           "User-Agent": "drift-cli/1.4.0",
         },
         body: {

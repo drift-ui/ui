@@ -182,7 +182,7 @@ function RequestInspector({
     ? getStatusBadgeClass(response.status)
     : { className: "", label: "" }
   const statusText = response
-    ? (response.statusText ?? getStatusText(response.status))
+    ? response.statusText?.trim() || getStatusText(response.status)
     : ""
 
   const totalHeadersCount = requestHeaders.length + responseHeaders.length
@@ -259,7 +259,7 @@ function RequestInspector({
               ) : (
                 <TerminalIcon className="size-3.5" />
               )}
-              <span className="xs:inline hidden">
+              <span className="hidden sm:inline">
                 {copied === "curl" ? "Copied" : "Copy as cURL"}
               </span>
             </Button>

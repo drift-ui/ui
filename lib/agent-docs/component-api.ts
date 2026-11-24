@@ -3044,7 +3044,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           type: "string[]",
           default: "DEFAULT_SENSITIVE_HEADERS",
           description:
-            "List of header names to mask by default and reveal with secret-field.",
+            "List of header names to mask by default and reveal with secret-field. Passing this replaces defaults; spread DEFAULT_SENSITIVE_HEADERS to retain them.",
         },
         {
           name: "hideCurl",
@@ -3058,7 +3058,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
     {
       name: "buildCurlCommand, quoteShell, isSensitiveHeader, normalizeHeaders, parseQueryParams, parseBody, formatDuration, getStatusBadgeClass, getStatusText",
       signature:
-        "buildCurlCommand(request: RequestInspectorRequest): string; quoteShell(arg: string): string; isSensitiveHeader(name: string, sensitiveHeaders?: string[]): boolean; normalizeHeaders(headers?: RequestInspectorHeaders): [string, string][]; parseQueryParams(url: string): [string, string][]; parseBody(body: unknown): { isJson: boolean; jsonValue?: unknown; text: string }; formatDuration(ms?: number): string; getStatusBadgeClass(status: number): { className: string; label: string }; getStatusText(status: number): string",
+        "buildCurlCommand(request: RequestInspectorRequest, options?: { maskSensitive?: boolean; sensitiveHeaders?: string[] }): string; quoteShell(arg: string): string; isSensitiveHeader(name: string, sensitiveHeaders?: string[]): boolean; normalizeHeaders(headers?: RequestInspectorHeaders | [string, string][]): [string, string][]; parseQueryParams(url: string): [string, string][]; parseBody(body: unknown): { isJson: boolean; jsonValue?: unknown; text: string }; formatDuration(ms?: number): string; getStatusBadgeClass(status: number): { className: string; label: string }; getStatusText(status: number): string",
       description:
         "Pure logic helpers imported from @/lib/request-inspector-utils.",
     },

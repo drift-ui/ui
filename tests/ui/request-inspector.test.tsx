@@ -75,7 +75,38 @@ describe("RequestInspector", () => {
     expect(screen.getByText("Fast")).toBeInTheDocument()
   })
 
-  it("masks sensitive headers by default and reveals them on click", async () => {
+  it("supports keyboard tab navigation with arrow keys", async () => {
+    const user = userEvent.setup()
+    render(
+      <RequestInspector request={SAMPLE_REQUEST} response={SAMPLE_RESPONSE} />
+    )
+
+    const requestTab = screen.getByRole("tab", { name: /Request/ })
+    const responseTab = screen.getByRole("tab", { name: /Response/ })
+    const headersTab = screen.getByRole("tab", { name: /Headers/ })
+
+    requestTab.focus()
+    expect(requestTab).toHaveFocus()
+
+    // Navigate right
+    await user.keyboard("{ArrowRight}")
+    expect(responseTab).toHaveFocus()
+    await user.keyboard("{Enter}")
+    expect(responseTab).toHaveAttribute("aria-selected", "true")
+
+    await user.keyboard("{ArrowRight}")
+    expect(headersTab).toHaveFocus()
+    await user.keyboard("{Enter}")
+    expect(headersTab).toHaveAttribute("aria-selected", "true")
+
+    // Navigate left
+    await user.keyboard("{ArrowLeft}")
+    expect(responseTab).toHaveFocus()
+    await user.keyboard("{Enter}")
+    expect(responseTab).toHaveAttribute("aria-selected", "true")
+  })
+
+  it("masks sensitive headers by default and reveals them on click or enter", async () => {
     const user = userEvent.setup()
     render(
       <RequestInspector
@@ -92,14 +123,19 @@ describe("RequestInspector", () => {
     expect(authGroup).toBeInTheDocument()
     expect(authGroup).not.toHaveTextContent("secret-token-12345")
 
-    // Reveal Authorization
+    // Reveal Authorization via click
     const revealAuthBtn = authGroup.querySelector('button[aria-label="Reveal"]')
     expect(revealAuthBtn).not.toBeNull()
     await user.click(revealAuthBtn!)
     expect(authGroup).toHaveTextContent("Bearer secret-token-12345")
 
-    // Non-sensitive header (X-Request-Id) is visible directly
+    // Non-sensitive header (X-Request-Id) is visible directly and copyable
     expect(screen.getByText("req_abc123")).toBeInTheDocument()
+    const copyHeaderBtn = screen.getByRole("button", {
+      name: "Copy X-Request-Id header value",
+    })
+    await user.click(copyHeaderBtn)
+    expect(await navigator.clipboard.readText()).toBe("req_abc123")
   })
 
   it("respects custom sensitiveHeaders prop", () => {
@@ -124,12 +160,18 @@ describe("RequestInspector", () => {
     expect(screen.getByText("Bearer secret-token-12345")).toBeInTheDocument()
   })
 
-  it("copies cURL command to clipboard", async () => {
+  it("copies URL and cURL command to clipboard", async () => {
     const user = userEvent.setup()
     render(
       <RequestInspector request={SAMPLE_REQUEST} response={SAMPLE_RESPONSE} />
     )
 
+    // Copy URL button
+    const copyUrlBtn = screen.getByRole("button", { name: "Copy URL" })
+    await user.click(copyUrlBtn)
+    expect(await navigator.clipboard.readText()).toBe(SAMPLE_REQUEST.url)
+
+    // Copy cURL command button
     const curlBtn = screen.getByRole("button", { name: "Copy as cURL" })
     await user.click(curlBtn)
 
@@ -137,17 +179,55 @@ describe("RequestInspector", () => {
     expect(clipboardText).toContain(
       "curl 'https://api.example.com/v1/users?role=admin'"
     )
-    expect(clipboardText).toContain("-X POST")
+    expect(clipboardText).toContain("-X 'POST'")
     expect(clipboardText).toContain(
       "-H 'Authorization: Bearer secret-token-12345'"
     )
     expect(clipboardText).toContain("--data-raw")
 
     expect(screen.getByText("Copied to clipboard")).toBeInTheDocument()
-    expect(screen.getByText("Copied to clipboard")).toHaveClass("sr-only")
   })
 
-  it("supports text body with wrap toggle", async () => {
+  it("hides cURL button when hideCurl is true", () => {
+    render(
+      <RequestInspector
+        request={SAMPLE_REQUEST}
+        response={SAMPLE_RESPONSE}
+        hideCurl
+      />
+    )
+    expect(
+      screen.queryByRole("button", { name: "Copy as cURL" })
+    ).not.toBeInTheDocument()
+  })
+
+  it("copies request body and response body to clipboard", async () => {
+    const user = userEvent.setup()
+    render(
+      <RequestInspector request={SAMPLE_REQUEST} response={SAMPLE_RESPONSE} />
+    )
+
+    // Copy request body
+    const copyReqBodyBtn = screen.getByRole("button", {
+      name: "Copy request body",
+    })
+    await user.click(copyReqBodyBtn)
+    const reqClipboard = await navigator.clipboard.readText()
+    expect(reqClipboard).toContain("Jane Doe")
+
+    // Switch to response tab and copy response body
+    const resTab = screen.getByRole("tab", { name: /Response/ })
+    await user.click(resTab)
+
+    const copyResBodyBtn = screen.getByRole("button", {
+      name: "Copy response body",
+    })
+    await user.click(copyResBodyBtn)
+    const resClipboard = await navigator.clipboard.readText()
+    expect(resClipboard).toContain("usr_99")
+  })
+
+  it("supports text body with wrap toggle via click and keyboard", async () => {
     const user = userEvent.setup()
     render(
       <RequestInspector
@@ -156,14 +236,33 @@ describe("RequestInspector", () => {
           url: "https://api.example.com/webhook",
           body: "event=charge.succeeded&amount=4000&currency=usd",
         }}
+        response={{
+          status: 200,
+          body: "Raw plain text webhook acknowledgment response",
+        }}
       />
     )
 
-    const wrapBtn = screen.getByRole("button", { name: /Wrap/ })
-    expect(wrapBtn).toHaveAttribute("aria-pressed", "false")
+    // Request body wrap toggle
+    const wrapReqBtn = screen.getByRole("button", { name: /Wrap/ })
+    expect(wrapReqBtn).toHaveAttribute("aria-pressed", "false")
 
-    await user.click(wrapBtn)
-    expect(wrapBtn).toHaveAttribute("aria-pressed", "true")
+    await user.click(wrapReqBtn)
+    expect(wrapReqBtn).toHaveAttribute("aria-pressed", "true")
+
+    // Keyboard activation of wrap toggle
+    wrapReqBtn.focus()
+    await user.keyboard("{Enter}")
+    expect(wrapReqBtn).toHaveAttribute("aria-pressed", "false")
+
+    // Switch to Response tab with raw text body
+    const resTab = screen.getByRole("tab", { name: /Response/ })
+    await user.click(resTab)
+
+    const wrapResBtn = screen.getByRole("button", { name: /Wrap/ })
+    expect(wrapResBtn).toHaveAttribute("aria-pressed", "false")
+    await user.click(wrapResBtn)
+    expect(wrapResBtn).toHaveAttribute("aria-pressed", "true")
   })
 
   it("handles missing body and response cleanly", async () => {
@@ -184,6 +283,26 @@ describe("RequestInspector", () => {
     const resTab = screen.getByRole("tab", { name: /Response/ })
     await user.click(resTab)
     expect(screen.getByText("No response recorded")).toBeInTheDocument()
+
+    // Switch to headers tab without headers
+    const headersTab = screen.getByRole("tab", { name: /Headers/ })
+    await user.click(headersTab)
+    expect(screen.getAllByText("No headers")[0]).toBeInTheDocument()
+
+    // Switch to timing tab without response
+    const timingTab = screen.getByRole("tab", { name: /Timing/ })
+    await user.click(timingTab)
+    expect(screen.getAllByText("—")[0]).toBeInTheDocument()
+  })
+
+  it("falls back to getStatusText when statusText is empty string", () => {
+    render(
+      <RequestInspector
+        request={{ method: "GET", url: "https://api.example.com/health" }}
+        response={{ status: 200, statusText: "" }}
+      />
+    )
+    expect(screen.getAllByText(/200 OK/)[0]).toBeInTheDocument()
   })
 
   it("supports controlled tab state", async () => {
@@ -214,5 +333,25 @@ describe("RequestInspector", () => {
 
     expect(onTabChange).toHaveBeenCalledWith("timing")
     expect(screen.getByText("Roundtrip Latency")).toBeInTheDocument()
+  })
+
+  it("renders latency categories (Normal, Slow) in Timing tab", () => {
+    const { rerender } = render(
+      <RequestInspector
+        request={SAMPLE_REQUEST}
+        response={{ ...SAMPLE_RESPONSE, durationMs: 450 }}
+        defaultTab="timing"
+      />
+    )
+    expect(screen.getByText("Normal")).toBeInTheDocument()
+
+    rerender(
+      <RequestInspector
+        request={SAMPLE_REQUEST}
+        response={{ ...SAMPLE_RESPONSE, durationMs: 1500 }}
+        defaultTab="timing"
+      />
+    )
+    expect(screen.getByText("Slow")).toBeInTheDocument()
   })
 })

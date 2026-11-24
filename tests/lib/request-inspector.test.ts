@@ -46,13 +46,38 @@ describe("buildCurlCommand", () => {
     expect(cmd).toBe("curl 'https://api.example.com/items'")
   })
 
-  it("includes -X when method is not GET", () => {
+  it("defaults to GET when method is empty", () => {
+    const cmd = buildCurlCommand({
+      method: "",
+      url: "https://api.example.com/items",
+    })
+    expect(cmd).toBe("curl 'https://api.example.com/items'")
+  })
+
+  it("includes quoted -X when method is not GET", () => {
     const cmd = buildCurlCommand({
       method: "DELETE",
       url: "https://api.example.com/items/1",
     })
-    expect(cmd).toContain("-X DELETE")
+    expect(cmd).toContain("-X 'DELETE'")
     expect(cmd).toContain("curl 'https://api.example.com/items/1'")
+  })
+
+  it("emits -I for HEAD requests instead of -X HEAD", () => {
+    const cmd = buildCurlCommand({
+      method: "HEAD",
+      url: "https://api.example.com/health",
+    })
+    expect(cmd).toContain("-I")
+    expect(cmd).not.toContain("-X")
+  })
+
+  it("safely quotes caller-provided method with shell characters", () => {
+    const cmd = buildCurlCommand({
+      method: "CUSTOM; rm -rf /",
+      url: "https://api.example.com",
+    })
+    expect(cmd).toContain("-X 'CUSTOM; rm -rf /'")
   })
 
   it("includes headers with proper escaping", () => {
@@ -68,6 +93,24 @@ describe("buildCurlCommand", () => {
     expect(cmd).toContain("-H 'Authorization: Bearer token'\\''123'")
   })
 
+  it("optionally masks sensitive headers when maskSensitive is true", () => {
+    const cmd = buildCurlCommand(
+      {
+        method: "GET",
+        url: "https://api.example.com/secret",
+        headers: {
+          Authorization: "Bearer secret_abc123",
+          "X-Api-Key": "live_key_xyz",
+          Accept: "application/json",
+        },
+      },
+      { maskSensitive: true }
+    )
+    expect(cmd).toContain("-H 'Authorization: [REDACTED]'")
+    expect(cmd).toContain("-H 'X-Api-Key: [REDACTED]'")
+    expect(cmd).toContain("-H 'Accept: application/json'")
+  })
+
   it("includes JSON body and formats multi-line command with backslashes", () => {
     const cmd = buildCurlCommand({
       method: "POST",
@@ -81,7 +124,7 @@ describe("buildCurlCommand", () => {
     expect(cmd.startsWith("curl 'https://api.example.com/users' \\\n")).toBe(
       true
     )
-    expect(cmd).toContain("-X POST")
+    expect(cmd).toContain("-X 'POST'")
     expect(cmd).toContain("-H 'Content-Type: application/json'")
     expect(cmd).toContain(
       `--data-raw '{\n  "name": "Alice",\n  "active": true\n}'`
@@ -99,28 +142,44 @@ describe("buildCurlCommand", () => {
     )
   })
 
-  it("includes -X GET if GET request has a body", () => {
+  it("includes -X 'GET' if GET request has a body", () => {
     const cmd = buildCurlCommand({
       method: "GET",
       url: "https://api.example.com/search",
       body: { query: "test" },
     })
-    expect(cmd).toContain("-X GET")
+    expect(cmd).toContain("-X 'GET'")
     expect(cmd).toContain("--data-raw")
+  })
+
+  it("handles body serialization failure gracefully without throwing", () => {
+    const circular: Record<string, unknown> = {}
+    circular.self = circular
+
+    expect(() =>
+      buildCurlCommand({
+        method: "POST",
+        url: "https://api.example.com/circular",
+        body: circular,
+      })
+    ).not.toThrow()
   })
 })
 
 describe("isSensitiveHeader", () => {
-  it("identifies default sensitive headers case-insensitively", () => {
+  it("identifies default sensitive headers case-insensitively and with trimmed whitespace", () => {
     for (const h of DEFAULT_SENSITIVE_HEADERS) {
       expect(isSensitiveHeader(h)).toBe(true)
       expect(isSensitiveHeader(h.toUpperCase())).toBe(true)
-      expect(isSensitiveHeader(` ${h} `)).toBe(false)
+      expect(isSensitiveHeader(` ${h} `)).toBe(true)
     }
     expect(isSensitiveHeader("Authorization")).toBe(true)
     expect(isSensitiveHeader("Cookie")).toBe(true)
     expect(isSensitiveHeader("Set-Cookie")).toBe(true)
     expect(isSensitiveHeader("X-Api-Key")).toBe(true)
+    expect(isSensitiveHeader("Proxy-Authorization")).toBe(true)
+    expect(isSensitiveHeader("X-Auth-Token")).toBe(true)
+    expect(isSensitiveHeader("X-Access-Token")).toBe(true)
   })
 
   it("returns false for non-sensitive headers", () => {
@@ -193,6 +252,10 @@ describe("parseQueryParams", () => {
     expect(parseQueryParams("https://api.example.com/v1/items")).toEqual([])
     expect(parseQueryParams("")).toEqual([])
   })
+
+  it("returns empty array on malformed URL without throwing", () => {
+    expect(parseQueryParams("http://[invalid-ipv6")).toEqual([])
+  })
 })
 
 describe("parseBody", () => {
@@ -209,12 +272,26 @@ describe("parseBody", () => {
     expect(res.text).toBe(JSON.stringify(obj, null, 2))
   })
 
-  it("detects valid JSON strings", () => {
+  it("detects valid JSON object and array strings", () => {
     const raw = '{"success": true, "code": 200}'
     const res = parseBody(raw)
     expect(res.isJson).toBe(true)
     expect(res.jsonValue).toEqual({ success: true, code: 200 })
-    expect(res.text).toBe(raw)
+    expect(res.text).toBe(JSON.stringify({ success: true, code: 200 }, null, 2))
+
+    const arrayRaw = '["item1", "item2"]'
+    const arrayRes = parseBody(arrayRaw)
+    expect(arrayRes.isJson).toBe(true)
+    expect(arrayRes.jsonValue).toEqual(["item1", "item2"])
+  })
+
+  it("treats primitive JSON strings as text to avoid empty tree viewer", () => {
+    expect(parseBody("true")).toEqual({ isJson: false, text: "true" })
+    expect(parseBody("42")).toEqual({ isJson: false, text: "42" })
+    expect(parseBody('"quoted string"')).toEqual({
+      isJson: false,
+      text: '"quoted string"',
+    })
   })
 
   it("treats non-JSON or invalid JSON strings as text", () => {
@@ -226,6 +303,18 @@ describe("parseBody", () => {
       isJson: false,
       text: '{"broken": json',
     })
+  })
+
+  it("handles non-serializable objects (BigInt or circular) without crashing", () => {
+    const withBigInt = { count: BigInt(100) }
+    const res = parseBody(withBigInt)
+    expect(res.isJson).toBe(false)
+    expect(res.text).toBe("[object Object]")
+
+    const circular: Record<string, unknown> = {}
+    circular.self = circular
+    const circRes = parseBody(circular)
+    expect(circRes.isJson).toBe(false)
   })
 
   it("stringifies primitives", () => {
@@ -249,6 +338,11 @@ describe("formatDuration", () => {
   it("formats millisecond durations", () => {
     expect(formatDuration(182)).toBe("182 ms")
     expect(formatDuration(45.6)).toBe("45.6 ms")
+  })
+
+  it("correctly handles boundary near 1000 ms to avoid 1000 ms rounding issue", () => {
+    expect(formatDuration(999.96)).toBe("1 s")
+    expect(formatDuration(999.94)).toBe("999.9 ms")
   })
 
   it("formats second durations", () => {
@@ -287,15 +381,20 @@ describe("getStatusBadgeClass & getStatusText", () => {
     expect(unknown.label).toBe("Unknown")
   })
 
-  it("returns standard status texts", () => {
+  it("returns standard status texts across expanded registered HTTP codes", () => {
+    expect(getStatusText(100)).toBe("Continue")
     expect(getStatusText(200)).toBe("OK")
     expect(getStatusText(201)).toBe("Created")
+    expect(getStatusText(203)).toBe("Non-Authoritative Information")
     expect(getStatusText(204)).toBe("No Content")
+    expect(getStatusText(303)).toBe("See Other")
     expect(getStatusText(400)).toBe("Bad Request")
     expect(getStatusText(401)).toBe("Unauthorized")
     expect(getStatusText(404)).toBe("Not Found")
+    expect(getStatusText(418)).toBe("I'm a teapot")
     expect(getStatusText(422)).toBe("Unprocessable Entity")
     expect(getStatusText(500)).toBe("Internal Server Error")
+    expect(getStatusText(505)).toBe("HTTP Version Not Supported")
     expect(getStatusText(999)).toBe("Unknown")
   })
 })
