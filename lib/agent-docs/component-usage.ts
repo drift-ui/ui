@@ -525,6 +525,43 @@ export function WebhookPayload({ payload }: { payload: unknown }) {
   )
 }`,
   },
+  "kanban-board": {
+    notes:
+      "Multi-column task board for moving cards between workflow stages. Value is a Record<string, T[]> keyed by column id, managed through value/defaultValue and onValueChange. onMove reports the exact card, previous column, destination column, and index so transitions can be persisted without diffing the full board. Cards support HTML5 pointer drag-and-drop and full keyboard interaction: Space or Enter picks up the focused card, Up/Down moves it within the column, Left/Right moves it to adjacent columns, Space or Enter drops it, and Escape cancels. Live region announces every pickup, movement, drop, and cancellation. The board container scrolls horizontally on narrow viewports.",
+    example: `"use client"
+
+import { useState } from "react"
+import { KanbanBoard } from "@/components/ui/kanban-board"
+
+interface Task {
+  id: string
+  title: string
+}
+
+export function ProjectBoard() {
+  const [tasks, setTasks] = useState<Record<string, Task[]>>({
+    todo: [{ id: "1", title: "Refactor API" }],
+    doing: [{ id: "2", title: "Add unit tests" }],
+    done: [{ id: "3", title: "Update docs" }],
+  })
+
+  return (
+    <KanbanBoard
+      aria-label="Sprint tasks"
+      columns={[
+        { id: "todo", title: "To do" },
+        { id: "doing", title: "In progress" },
+        { id: "done", title: "Done" },
+      ]}
+      value={tasks}
+      onValueChange={setTasks}
+      onMove={(task, from, to, index) => {
+        console.log(\`Moved \${task.title} from \${from} to \${to} at index \${index}\`)
+      }}
+    />
+  )
+}`,
+  },
   "key-value-editor": {
     notes:
       "Rows of key and value for env vars, HTTP headers, query params or metadata. Each row is { id, key, value }; value/defaultValue/onValueChange hold the array. Enter in the last row adds a row and focuses its key, Enter elsewhere moves to the next row's key. Pasting text that contains KEY=value into a key field splits it into rows: comments, blank lines, an export prefix, quoted values and = inside a value are handled, multi-line values are not. Keys used more than once (after trimming) are marked aria-invalid with a Duplicate key message. secretValues masks every value with password-input, each with its own reveal button. Inputs are labelled Key 1, Value 1 and Remove row 1; rename with keyLabel and valueLabel. Pass aria-label to name the group.",

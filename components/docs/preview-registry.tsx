@@ -41,6 +41,7 @@ import { ImageCropperPreview } from "@/components/preview/image-cropper-preview"
 import { InlineEditPreview } from "@/components/preview/inline-edit-preview"
 import { InputPreview } from "@/components/preview/input-preview"
 import { JsonViewerPreview } from "@/components/preview/json-viewer-preview"
+import { KanbanBoardPreview } from "@/components/preview/kanban-board-preview"
 import { KeyValueEditorPreview } from "@/components/preview/key-value-editor-preview"
 import { LabelPreview } from "@/components/preview/label-preview"
 import { LogViewerPreview } from "@/components/preview/log-viewer-preview"
@@ -107,6 +108,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "inline-edit": InlineEditPreview,
   input: InputPreview,
   "json-viewer": JsonViewerPreview,
+  "kanban-board": KanbanBoardPreview,
   "key-value-editor": KeyValueEditorPreview,
   label: LabelPreview,
   "log-viewer": LogViewerPreview,

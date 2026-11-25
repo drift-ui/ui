@@ -72,6 +72,12 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ["Mod+C"], action: "Copy the value" },
     { keys: ["Mod+Shift+C"], action: "Copy the path" },
   ],
+  "kanban-board": [
+    { keys: ["Space", "Enter"], action: "Pick up or drop a card" },
+    { keys: UP_DOWN, action: "Move card within column" },
+    { keys: LEFT_RIGHT, action: "Move card across columns" },
+    { keys: ["Escape"], action: "Cancel the move" },
+  ],
   "log-viewer": [
     { keys: UP_DOWN, action: "Scroll through log lines" },
     { keys: HOME_END, action: "Jump to start or end of logs" },
