@@ -70,6 +70,7 @@ const IconRow = React.memo(function IconRow({
   return (
     <div
       role="row"
+      aria-rowindex={row + 1}
       className="grid gap-0.5 pb-0.5 [contain-intrinsic-size:auto_2.5rem] [content-visibility:auto]"
       style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
@@ -200,6 +201,16 @@ function IconPicker({
       )
       ?.focus()
   }, [rowLimit])
+
+  React.useEffect(() => {
+    if (visibleRowCount >= layout.rows.length) return
+    const el = gridRef.current
+    if (el && el.clientHeight > 0 && el.scrollHeight <= el.clientHeight) {
+      setRowLimit((current) =>
+        Math.min(layout.rows.length, current + ROW_BATCH)
+      )
+    }
+  }, [visibleRowCount, layout.rows.length])
 
   function focusCell(cell: IconCell) {
     setActiveCell(cell)
@@ -353,6 +364,7 @@ function IconPicker({
           ref={gridRef}
           role="grid"
           aria-label="Icons"
+          aria-rowcount={layout.rows.length}
           aria-colcount={columns}
           onKeyDown={handleGridKeyDown}
           onFocus={(event) => {

@@ -343,6 +343,11 @@ describe("IconPicker", () => {
     renderPicker({ icons: manyIcons, columns: 1 })
 
     const grid = screen.getByRole("grid", { name: "Icons" })
+    expect(grid).toHaveAttribute("aria-rowcount", "16")
+    expect(within(grid).getAllByRole("row")[0]).toHaveAttribute(
+      "aria-rowindex",
+      "1"
+    )
     expect(within(grid).getAllByRole("button")).toHaveLength(12)
     expect(screen.queryByRole("button", { name: "icon-15" })).toBeNull()
 
@@ -382,6 +387,51 @@ describe("IconPicker", () => {
       within(secondGrid).getByRole("button", { name: "icon-15" })
     ).toHaveFocus()
     unmount()
+  })
+
+  it("loads additional batches automatically when initial rows do not overflow", () => {
+    const manyIcons = Array.from({ length: 16 }, (_, i) => `icon-${i}`)
+    const originalClientHeight = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "clientHeight"
+    )
+    const originalScrollHeight = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "scrollHeight"
+    )
+    Object.defineProperty(HTMLElement.prototype, "clientHeight", {
+      configurable: true,
+      get: () => 500,
+    })
+    Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
+      configurable: true,
+      get: () => 400,
+    })
+
+    try {
+      renderPicker({ icons: manyIcons, columns: 1 })
+      const grid = screen.getByRole("grid", { name: "Icons" })
+      expect(within(grid).getAllByRole("button")).toHaveLength(16)
+    } finally {
+      if (originalClientHeight) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "clientHeight",
+          originalClientHeight
+        )
+      } else {
+        delete (HTMLElement.prototype as { clientHeight?: number }).clientHeight
+      }
+      if (originalScrollHeight) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "scrollHeight",
+          originalScrollHeight
+        )
+      } else {
+        delete (HTMLElement.prototype as { scrollHeight?: number }).scrollHeight
+      }
+    }
   })
 
   it("moves to previous row with ArrowUp when row > 0", async () => {
