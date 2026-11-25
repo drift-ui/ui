@@ -10,8 +10,8 @@ export function SnoozePickerNotificationPreview() {
   const [snoozedAt, setSnoozedAt] = React.useState<Date | null>(null)
 
   return (
-    <Card className="flex w-full max-w-md items-center justify-between p-4">
-      <div className="space-y-1">
+    <Card className="w-full max-w-md flex-row items-center justify-between gap-4 p-4">
+      <div className="min-w-0 space-y-1">
         <p className="text-sm leading-none font-medium">
           Security alert review
         </p>
@@ -21,7 +21,6 @@ export function SnoozePickerNotificationPreview() {
                 weekday: "short",
                 month: "short",
                 day: "numeric",
-                year: "numeric",
                 hour: "numeric",
                 minute: "2-digit",
               })}`

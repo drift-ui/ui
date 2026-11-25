@@ -15,7 +15,7 @@ export function SnoozePickerPreview() {
         id="preview-snooze"
         value={snoozeDate}
         onValueChange={setSnoozeDate}
-        placeholder="Pick when to snooze..."
+        placeholder="Pick when to snooze…"
       />
     </div>
   )

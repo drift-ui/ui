@@ -291,8 +291,8 @@ function SnoozePicker({
           align={align}
           side={side}
           className={cn(
-            "transition-all duration-150 outline-none",
-            view === "presets" ? "w-64 p-1" : "w-auto p-3"
+            "outline-none",
+            view === "presets" ? "w-72 p-1" : "w-auto p-3"
           )}
         >
           {view === "presets" ? (
@@ -302,7 +302,7 @@ function SnoozePicker({
               role="menu"
               aria-orientation="vertical"
               aria-label="Snooze options"
-              className="space-y-0.5 text-xs outline-none"
+              className="flex flex-col gap-0.5 outline-none"
             >
               {resolvedPresets.map((preset, index) => {
                 const isSelected =
@@ -319,17 +319,19 @@ function SnoozePicker({
                     onClick={() => handleSelectPreset(preset)}
                     onKeyDown={(e) => handlePresetKeyDown(e, index)}
                     className={cn(
-                      "flex w-full items-center justify-between gap-3 rounded-sm px-2.5 py-1.5 text-left text-xs transition-colors outline-none select-none",
+                      "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors outline-none select-none",
                       "cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                     )}
                   >
-                    <span className="flex items-center gap-2 font-medium">
+                    <span className="flex size-4 shrink-0 items-center justify-center">
                       {isSelected && (
-                        <CheckIcon className="size-3.5 shrink-0 text-primary" />
+                        <CheckIcon className="size-4 text-primary" />
                       )}
-                      <span>{preset.label}</span>
                     </span>
-                    <span className="text-[11px] text-muted-foreground tabular-nums">
+                    <span className="min-w-0 flex-1 truncate">
+                      {preset.label}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                       {preset.timeLabel}
                     </span>
                   </button>
@@ -347,14 +349,12 @@ function SnoozePicker({
                   handlePresetKeyDown(e, resolvedPresets.length)
                 }
                 className={cn(
-                  "flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-left text-xs transition-colors outline-none select-none",
+                  "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors outline-none select-none",
                   "cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                 )}
               >
-                <CalendarIcon className="size-3.5 text-muted-foreground" />
-                <span className="flex-1 font-medium">
-                  Pick date and time...
-                </span>
+                <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
+                <span className="flex-1">Pick date and time…</span>
               </button>
             </div>
           ) : (
@@ -371,9 +371,7 @@ function SnoozePicker({
                 >
                   <ArrowLeftIcon className="size-4" />
                 </Button>
-                <span className="text-xs font-semibold">
-                  Pick date and time
-                </span>
+                <span className="text-sm font-medium">Pick date and time</span>
               </div>
 
               <Calendar
@@ -415,9 +413,7 @@ function SnoozePicker({
               />
 
               <div className="flex items-center justify-between gap-2 border-t border-border pt-2.5">
-                <span className="text-xs font-medium text-muted-foreground">
-                  Time
-                </span>
+                <span className="text-sm text-muted-foreground">Time</span>
                 <TimeField
                   value={customTime}
                   onValueChange={setCustomTime}
@@ -425,7 +421,7 @@ function SnoozePicker({
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 border-t border-border pt-2.5">
+              <div className="flex items-center justify-end gap-2 pt-1">
                 <Button
                   type="button"
                   variant="outline"

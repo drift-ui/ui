@@ -33,7 +33,7 @@ export function SnoozePickerCustomPresetsPreview() {
         value={snoozeDate}
         onValueChange={setSnoozeDate}
         times={{ morning: "08:30" }}
-        placeholder="Pick relative snooze..."
+        placeholder="Pick relative snooze…"
       />
     </div>
   )
