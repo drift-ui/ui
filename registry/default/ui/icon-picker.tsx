@@ -25,6 +25,7 @@ import { Button } from "@/registry/default/ui/button"
 import { Input } from "@/registry/default/ui/input"
 
 const DEFAULT_COLUMNS = 6
+const ROW_BATCH = 12
 
 function subscribeToNothing() {
   return () => {}
@@ -138,9 +139,11 @@ function IconPicker({
   const id = React.useId()
   const gridRef = React.useRef<HTMLDivElement>(null)
   const searchRef = React.useRef<HTMLInputElement>(null)
+  const pendingFocusRef = React.useRef<IconCell | null>(null)
   const columns = normalizeColumns(requestedColumns, DEFAULT_COLUMNS)
 
   const [query, setQuery] = React.useState("")
+  const [rowLimit, setRowLimit] = React.useState(ROW_BATCH)
   const [activeCell, setActiveCell] = React.useState<IconCell>({
     row: 0,
     column: 0,
@@ -180,14 +183,31 @@ function IconPicker({
   }, [allIcons, needle, tags, recentIcons, columns])
 
   const resultCount = needle ? (layout.sections[0]?.icons.length ?? 0) : null
+  const visibleRowCount = Math.min(rowLimit, layout.rows.length)
   const tabCell = layout.rows[activeCell.row]?.[activeCell.column]
     ? activeCell
     : { row: 0, column: 0 }
 
   const footerName = previewName ?? (value || null)
 
+  React.useEffect(() => {
+    const cell = pendingFocusRef.current
+    if (!cell) return
+    pendingFocusRef.current = null
+    gridRef.current
+      ?.querySelector<HTMLElement>(
+        `[data-row="${cell.row}"][data-column="${cell.column}"]`
+      )
+      ?.focus()
+  }, [rowLimit])
+
   function focusCell(cell: IconCell) {
     setActiveCell(cell)
+    if (cell.row >= rowLimit) {
+      pendingFocusRef.current = cell
+      setRowLimit(cell.row + ROW_BATCH)
+      return
+    }
     gridRef.current
       ?.querySelector<HTMLElement>(
         `[data-row="${cell.row}"][data-column="${cell.column}"]`
@@ -211,6 +231,7 @@ function IconPicker({
   function updateQuery(next: string) {
     setQuery(next)
     setActiveCell({ row: 0, column: 0 })
+    setRowLimit(ROW_BATCH)
     setPreviewName(null)
     if (gridRef.current) gridRef.current.scrollTop = 0
   }
@@ -358,43 +379,63 @@ function IconPicker({
             const item = itemAt(cellOf(event.target))
             if (item) pick(item.name)
           }}
+          onScroll={(event) => {
+            if (rowLimit >= layout.rows.length) return
+            const el = event.currentTarget
+            if (el.scrollTop + el.clientHeight >= el.scrollHeight - 200) {
+              setRowLimit((current) =>
+                Math.min(layout.rows.length, current + ROW_BATCH)
+              )
+            }
+          }}
           className="relative min-h-0 flex-1 scroll-pt-7 overflow-y-auto px-2"
         >
-          {layout.sections.map((section) => (
-            <div
-              key={section.id}
-              id={`${id}-${section.id}`}
-              role="rowgroup"
-              aria-labelledby={`${id}-${section.id}-label`}
-            >
+          {layout.sections
+            .filter((section) => section.firstRow < visibleRowCount)
+            .map((section) => (
               <div
-                role="presentation"
-                className="sticky top-0 z-10 flex items-baseline justify-between bg-popover pt-2 pb-1.5 text-xs text-muted-foreground"
+                key={section.id}
+                id={`${id}-${section.id}`}
+                role="rowgroup"
+                aria-labelledby={`${id}-${section.id}-label`}
               >
-                <span id={`${id}-${section.id}-label`} className="font-medium">
-                  {section.label}
-                </span>
-                <span aria-hidden className="tabular-nums">
-                  {section.icons.length}
-                </span>
-              </div>
-              {layout.rows
-                .slice(section.firstRow, section.firstRow + section.rowCount)
-                .map((rowIcons, offset) => {
-                  const row = section.firstRow + offset
-                  return (
-                    <IconRow
-                      key={row}
-                      icons={rowIcons}
-                      row={row}
-                      tabColumn={row === tabCell.row ? tabCell.column : null}
-                      selectedValue={value}
-                      columns={columns}
-                    />
+                <div
+                  role="presentation"
+                  className="sticky top-0 z-10 flex items-baseline justify-between bg-popover pt-2 pb-1.5 text-xs text-muted-foreground"
+                >
+                  <span
+                    id={`${id}-${section.id}-label`}
+                    className="font-medium"
+                  >
+                    {section.label}
+                  </span>
+                  <span aria-hidden className="tabular-nums">
+                    {section.icons.length}
+                  </span>
+                </div>
+                {layout.rows
+                  .slice(
+                    section.firstRow,
+                    Math.min(
+                      section.firstRow + section.rowCount,
+                      visibleRowCount
+                    )
                   )
-                })}
-            </div>
-          ))}
+                  .map((rowIcons, offset) => {
+                    const row = section.firstRow + offset
+                    return (
+                      <IconRow
+                        key={row}
+                        icons={rowIcons}
+                        row={row}
+                        tabColumn={row === tabCell.row ? tabCell.column : null}
+                        selectedValue={value}
+                        columns={columns}
+                      />
+                    )
+                  })}
+              </div>
+            ))}
         </div>
       )}
       <div

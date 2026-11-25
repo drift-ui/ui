@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import axe from "axe-core"
 import { renderToString } from "react-dom/server"
@@ -335,6 +335,53 @@ describe("IconPicker", () => {
     await user.keyboard("{ArrowDown}a")
 
     expect(iconButton("folder")).toHaveFocus()
+  })
+
+  it("progressively renders large icon lists on scroll and Ctrl+End", async () => {
+    const user = userEvent.setup()
+    const manyIcons = Array.from({ length: 16 }, (_, i) => `icon-${i}`)
+    renderPicker({ icons: manyIcons, columns: 1 })
+
+    const grid = screen.getByRole("grid", { name: "Icons" })
+    expect(within(grid).getAllByRole("button")).toHaveLength(12)
+    expect(screen.queryByRole("button", { name: "icon-15" })).toBeNull()
+
+    // Scroll far from bottom should not load more yet
+    Object.defineProperty(grid, "scrollHeight", {
+      value: 1000,
+      configurable: true,
+    })
+    Object.defineProperty(grid, "clientHeight", {
+      value: 300,
+      configurable: true,
+    })
+    Object.defineProperty(grid, "scrollTop", { value: 100, configurable: true })
+    fireEvent.scroll(grid)
+    expect(within(grid).getAllByRole("button")).toHaveLength(12)
+
+    // Scroll near bottom loads remaining rows
+    Object.defineProperty(grid, "scrollTop", { value: 650, configurable: true })
+    fireEvent.scroll(grid)
+    expect(within(grid).getAllByRole("button")).toHaveLength(16)
+
+    // Additional scroll when all rows are already visible is a no-op
+    fireEvent.scroll(grid)
+    expect(within(grid).getAllByRole("button")).toHaveLength(16)
+
+    // Re-mount and test Ctrl+End jumping past initial batch
+    const { unmount } = renderPicker({ icons: manyIcons, columns: 1 })
+    const grids = screen.getAllByRole("grid", { name: "Icons" })
+    const secondGrid = grids[1]
+    expect(within(secondGrid).getAllByRole("button")).toHaveLength(12)
+
+    await user.click(
+      screen.getAllByRole("searchbox", { name: "Search icons" })[1]
+    )
+    await user.keyboard("{ArrowDown}{Control>}{End}{/Control}")
+    expect(
+      within(secondGrid).getByRole("button", { name: "icon-15" })
+    ).toHaveFocus()
+    unmount()
   })
 
   it("moves to previous row with ArrowUp when row > 0", async () => {
