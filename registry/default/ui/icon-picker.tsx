@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { SearchIcon, SearchXIcon } from "lucide-react"
 import { DynamicIcon, type IconName } from "lucide-react/dynamic"
 
 import { useControllableState } from "@/registry/default/hooks/use-controllable-state"
@@ -10,6 +11,7 @@ import {
   isValidIconName,
   layoutSections,
   moveCell,
+  normalizeColumns,
   normalizeIcons,
   readPreferences,
   searchIcons,
@@ -19,9 +21,37 @@ import {
   type IconItem,
 } from "@/registry/default/lib/icon-picker-utils"
 import { cn } from "@/registry/default/lib/utils"
+import { Button } from "@/registry/default/ui/button"
 import { Input } from "@/registry/default/ui/input"
 
 const DEFAULT_COLUMNS = 6
+
+function subscribeToNothing() {
+  return () => {}
+}
+
+function IconPlaceholder({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn("rounded-sm bg-muted motion-safe:animate-pulse", className)}
+    />
+  )
+}
+
+function IconGlyph({ name, className }: { name: string; className?: string }) {
+  if (!isValidIconName(name)) {
+    return <span aria-hidden className={cn("shrink-0", className)} />
+  }
+  return (
+    <DynamicIcon
+      name={name as IconName}
+      aria-hidden
+      className={cn("shrink-0", className)}
+      fallback={() => <IconPlaceholder className={className} />}
+    />
+  )
+}
 
 const IconRow = React.memo(function IconRow({
   icons,
@@ -39,7 +69,7 @@ const IconRow = React.memo(function IconRow({
   return (
     <div
       role="row"
-      className="grid [contain-intrinsic-size:auto_2.5rem] [content-visibility:auto]"
+      className="grid gap-0.5 pb-0.5 [contain-intrinsic-size:auto_2.5rem] [content-visibility:auto]"
       style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
     >
       {icons.map((item, column) => {
@@ -54,23 +84,20 @@ const IconRow = React.memo(function IconRow({
               type="button"
               data-row={row}
               data-column={column}
+              data-selected={isSelected || undefined}
               tabIndex={column === tabColumn ? 0 : -1}
               aria-label={item.name}
               aria-pressed={isSelected}
               title={item.name}
               className={cn(
-                "flex aspect-square w-full items-center justify-center rounded-md text-muted-foreground transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset",
-                isSelected && "bg-accent font-medium text-accent-foreground"
+                "flex aspect-square w-full items-center justify-center rounded-md text-muted-foreground outline-none",
+                "transition-[color,background-color,scale] duration-150 ease-out motion-safe:active:scale-90",
+                "hover:bg-accent hover:text-accent-foreground",
+                "focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                "data-selected:bg-primary data-selected:text-primary-foreground data-selected:hover:bg-primary/90 data-selected:focus-visible:bg-primary data-selected:focus-visible:text-primary-foreground"
               )}
             >
-              {isValidIconName(item.name) ? (
-                <DynamicIcon
-                  name={item.name as IconName}
-                  className="size-5 shrink-0"
-                />
-              ) : (
-                <span className="size-5 shrink-0" />
-              )}
+              <IconGlyph name={item.name} className="size-5" />
             </button>
           </div>
         )
@@ -101,7 +128,7 @@ function IconPicker({
   onSelect,
   icons: userIcons,
   tags,
-  columns = DEFAULT_COLUMNS,
+  columns: requestedColumns = DEFAULT_COLUMNS,
   maxRecent,
   storageKey = STORAGE_KEY,
   className,
@@ -111,17 +138,23 @@ function IconPicker({
   const id = React.useId()
   const gridRef = React.useRef<HTMLDivElement>(null)
   const searchRef = React.useRef<HTMLInputElement>(null)
+  const columns = normalizeColumns(requestedColumns, DEFAULT_COLUMNS)
 
   const [query, setQuery] = React.useState("")
   const [activeCell, setActiveCell] = React.useState<IconCell>({
     row: 0,
     column: 0,
   })
-  const [recentIcons] = React.useState<string[]>(() => {
-    return typeof window !== "undefined"
-      ? readPreferences(storageKey).recent
-      : []
-  })
+  const [previewName, setPreviewName] = React.useState<string | null>(null)
+  const isHydrated = React.useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false
+  )
+  const recentIcons = React.useMemo(
+    () => (isHydrated ? readPreferences(storageKey).recent : []),
+    [isHydrated, storageKey]
+  )
 
   const { value, setValue } = useControllableState({
     value: controlledValue,
@@ -151,6 +184,8 @@ function IconPicker({
     ? activeCell
     : { row: 0, column: 0 }
 
+  const footerName = previewName ?? (value || null)
+
   function focusCell(cell: IconCell) {
     setActiveCell(cell)
     gridRef.current
@@ -173,6 +208,13 @@ function IconPicker({
     onSelect?.(name)
   }
 
+  function updateQuery(next: string) {
+    setQuery(next)
+    setActiveCell({ row: 0, column: 0 })
+    setPreviewName(null)
+    if (gridRef.current) gridRef.current.scrollTop = 0
+  }
+
   function cellOf(target: EventTarget) {
     const button = (target as HTMLElement).closest<HTMLElement>("[data-row]")
     return button
@@ -183,13 +225,17 @@ function IconPicker({
       : null
   }
 
+  function itemAt(cell: IconCell | null) {
+    return cell ? layout.rows[cell.row]?.[cell.column] : undefined
+  }
+
   function handleGridKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     const cell = cellOf(event.target)
     if (!cell) return
 
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault()
-      const item = layout.rows[cell.row]?.[cell.column]
+      const item = itemAt(cell)
       if (item) pick(item.name)
       return
     }
@@ -228,29 +274,49 @@ function IconPicker({
       aria-label={ariaLabel}
       data-slot="icon-picker"
       className={cn(
-        "flex h-96 w-80 flex-col gap-2 rounded-lg border bg-popover p-2 text-popover-foreground",
+        "flex h-96 w-80 flex-col overflow-hidden rounded-lg border bg-popover text-popover-foreground",
         className
       )}
       {...props}
     >
-      <Input
-        ref={searchRef}
-        type="search"
-        aria-label="Search icons"
-        placeholder="Search icons"
-        value={query}
-        onChange={(event) => {
-          setQuery(event.target.value)
-          setActiveCell({ row: 0, column: 0 })
-          if (gridRef.current) gridRef.current.scrollTop = 0
-        }}
-        onKeyDown={handleSearchKeyDown}
-        className="h-control-sm py-0"
-      />
+      <div className="relative m-2 mb-1">
+        <SearchIcon
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+        />
+        <Input
+          ref={searchRef}
+          type="search"
+          aria-label="Search icons"
+          placeholder="Search icons"
+          value={query}
+          onChange={(event) => updateQuery(event.target.value)}
+          onKeyDown={handleSearchKeyDown}
+          className="h-control-sm py-0 pl-8"
+        />
+      </div>
       {layout.rows.length === 0 ? (
-        <p className="min-h-0 flex-1 p-2 text-sm text-muted-foreground">
-          No icons found
-        </p>
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 px-6 text-center">
+          <SearchXIcon
+            aria-hidden
+            className="mb-2 size-6 text-muted-foreground"
+          />
+          <p className="text-sm font-medium">No icons found</p>
+          <p className="max-w-full truncate text-xs text-muted-foreground">
+            Nothing matches &ldquo;{needle}&rdquo;
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-2"
+            onClick={() => {
+              updateQuery("")
+              searchRef.current?.focus()
+            }}
+          >
+            Clear search
+          </Button>
+        </div>
       ) : (
         <div
           ref={gridRef}
@@ -260,13 +326,29 @@ function IconPicker({
           onKeyDown={handleGridKeyDown}
           onFocus={(event) => {
             const cell = cellOf(event.target)
-            if (cell) setActiveCell(cell)
+            if (!cell) return
+            setActiveCell(cell)
+            setPreviewName(itemAt(cell)?.name ?? null)
+          }}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setPreviewName(null)
+            }
+          }}
+          onPointerOver={(event) => {
+            const name = itemAt(cellOf(event.target))?.name
+            if (name) setPreviewName(name)
+          }}
+          onPointerLeave={() => {
+            if (!gridRef.current?.contains(document.activeElement)) {
+              setPreviewName(null)
+            }
           }}
           onClick={(event) => {
-            const cell = cellOf(event.target)
-            if (cell) pick(layout.rows[cell.row][cell.column].name)
+            const item = itemAt(cellOf(event.target))
+            if (item) pick(item.name)
           }}
-          className="relative min-h-0 flex-1 overflow-y-auto"
+          className="relative min-h-0 flex-1 scroll-pt-7 overflow-y-auto px-2"
         >
           {layout.sections.map((section) => (
             <div
@@ -276,11 +358,15 @@ function IconPicker({
               aria-labelledby={`${id}-${section.id}-label`}
             >
               <div
-                id={`${id}-${section.id}-label`}
                 role="presentation"
-                className="sticky top-0 z-10 bg-popover py-1 text-xs font-medium text-muted-foreground"
+                className="sticky top-0 z-10 flex items-baseline justify-between bg-popover pt-2 pb-1.5 text-xs text-muted-foreground"
               >
-                {section.label}
+                <span id={`${id}-${section.id}-label`} className="font-medium">
+                  {section.label}
+                </span>
+                <span aria-hidden className="tabular-nums">
+                  {section.icons.length}
+                </span>
               </div>
               {layout.rows
                 .slice(section.firstRow, section.firstRow + section.rowCount)
@@ -301,11 +387,25 @@ function IconPicker({
           ))}
         </div>
       )}
-      <div className="flex items-center justify-between border-t border-border/60 px-1 pt-1.5 text-xs text-muted-foreground">
-        <span>Selected</span>
-        <span className="max-w-[180px] truncate font-mono text-foreground">
-          {value || "None"}
-        </span>
+      <div
+        data-slot="icon-picker-footer"
+        className="flex h-11 shrink-0 items-center gap-2.5 border-t bg-muted/40 px-3 text-xs"
+      >
+        {footerName ? (
+          <>
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-md border bg-background text-foreground">
+              <IconGlyph name={footerName} className="size-4" />
+            </span>
+            <span className="min-w-0 flex-1 truncate font-mono text-foreground">
+              {footerName}
+            </span>
+            {footerName === value && (
+              <span className="shrink-0 text-muted-foreground">Selected</span>
+            )}
+          </>
+        ) : (
+          <span className="text-muted-foreground">No icon selected</span>
+        )}
       </div>
       <span role="status" className="sr-only">
         {resultCount === null

@@ -45,7 +45,7 @@ describe("IconPicker", () => {
       within(grid).getByRole("rowgroup", { name: "All icons" })
     ).toBeInTheDocument()
     expect(iconButton("folder")).toBeInTheDocument()
-    expect(screen.getByText("Selected")).toBeInTheDocument()
+    expect(screen.getByText("No icon selected")).toBeInTheDocument()
   })
 
   it("calls onValueChange and onSelect when an icon is clicked", async () => {
@@ -94,6 +94,36 @@ describe("IconPicker", () => {
 
     expect(screen.getByText("No icons found")).toBeInTheDocument()
     expect(screen.getByRole("status")).toHaveTextContent("0 results")
+  })
+
+  it("clears the search from the empty state", async () => {
+    const user = userEvent.setup()
+    renderPicker()
+
+    await user.type(searchbox(), "nonexistentquery")
+    await user.click(screen.getByRole("button", { name: "Clear search" }))
+
+    expect(searchbox()).toHaveValue("")
+    expect(searchbox()).toHaveFocus()
+    expect(iconButton("folder")).toBeInTheDocument()
+  })
+
+  it("previews the focused icon in the footer and falls back to the selection", async () => {
+    const user = userEvent.setup()
+    renderPicker({ columns: 3, defaultValue: "star" })
+    const footer = screen
+      .getByRole("group", { name: "Icon picker" })
+      .querySelector("[data-slot='icon-picker-footer']")!
+
+    expect(footer).toHaveTextContent("starSelected")
+
+    await user.click(searchbox())
+    await user.keyboard("{ArrowDown}")
+    expect(footer).toHaveTextContent("folder")
+    expect(footer).not.toHaveTextContent("Selected")
+
+    await user.keyboard("{ArrowUp}")
+    expect(footer).toHaveTextContent("starSelected")
   })
 
   it("picks the first result with Enter from the search field", async () => {
@@ -177,12 +207,17 @@ describe("IconPicker", () => {
     renderPicker()
 
     await user.click(iconButton("star"))
+
     expect(screen.queryByText("Recently used")).not.toBeInTheDocument()
+    expect(
+      within(screen.getByRole("grid"))
+        .getAllByRole("button")
+        .map((button) => button.title)
+    ).toEqual(TEST_ICONS.map((icon) => icon.name))
   })
 
   it("pages between sections with PageDown and PageUp", async () => {
     const user = userEvent.setup()
-    // Pre-seed recent icon in storage
     localStorage.setItem(
       "drift-ui:icon-picker",
       JSON.stringify({ recent: ["star"] })
@@ -193,8 +228,13 @@ describe("IconPicker", () => {
 
     await user.click(searchbox())
     await user.keyboard("{ArrowDown}{PageDown}")
-
     expect(within(allIconsGroup).getAllByRole("button")[0]).toHaveFocus()
+
+    await user.keyboard("{ArrowRight}{PageUp}")
+    const recentGroup = screen.getByRole("rowgroup", { name: "Recently used" })
+    expect(
+      within(recentGroup).getByRole("button", { name: "star" })
+    ).toHaveFocus()
   })
 
   it("supports controlled value", async () => {

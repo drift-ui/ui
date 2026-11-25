@@ -31,13 +31,8 @@ export function isValidIconName(name: string): name is IconName {
   return VALID_NAMES.has(name)
 }
 
-/**
- * Built-in synonym and category tags for popular Lucide icons
- * to enhance search relevance alongside exact name matching.
- */
 export const LUCIDE_TAGS: Record<string, string[]> = {
   activity: ["heartbeat", "pulse", "health", "monitor", "status", "fitness"],
-  alert: ["warning", "caution", "danger", "error", "notice"],
   "alert-circle": ["warning", "danger", "error", "info", "notice"],
   "alert-triangle": ["warning", "danger", "caution", "alert", "error"],
   archive: ["box", "storage", "save", "package"],
@@ -74,7 +69,7 @@ export const LUCIDE_TAGS: Record<string, string[]> = {
   "credit-card": ["payment", "money", "billing", "card", "purchase"],
   database: ["sql", "storage", "server", "data", "records"],
   delete: ["backspace", "remove", "erase"],
-  dollar_sign: ["money", "currency", "price", "cash", "finance", "usd"],
+  "dollar-sign": ["money", "currency", "price", "cash", "finance", "usd"],
   download: ["save", "export", "fetch", "get"],
   edit: ["pencil", "pen", "write", "modify", "change"],
   "edit-2": ["pencil", "pen", "write"],
@@ -196,6 +191,12 @@ export function normalizeIcons(icons?: (string | IconItem)[]): IconItem[] {
   return icons.map((item) => (typeof item === "string" ? { name: item } : item))
 }
 
+export function normalizeColumns(columns: number, fallback: number) {
+  return Number.isFinite(columns) && columns >= 1
+    ? Math.floor(columns)
+    : fallback
+}
+
 export function searchIcons(
   icons: IconItem[],
   query: string,
@@ -208,23 +209,19 @@ export function searchIcons(
     const name = icon.name.toLowerCase()
     if (name.includes(needle)) return true
 
-    // Check hyphen-split segments, e.g. "folder-open" starts with "open"
     const segments = name.split("-")
     if (segments.some((seg) => seg.startsWith(needle))) return true
 
-    // Check icon-level tags
     if (icon.tags?.some((tag) => tag.toLowerCase().includes(needle))) {
       return true
     }
 
-    // Check caller-provided custom tags
     if (
       customTags?.[icon.name]?.some((tag) => tag.toLowerCase().includes(needle))
     ) {
       return true
     }
 
-    // Check built-in Lucide tags
     if (
       LUCIDE_TAGS[icon.name]?.some((tag) => tag.toLowerCase().includes(needle))
     ) {
@@ -262,7 +259,11 @@ export function buildSections(
     : [allSection]
 }
 
-export function layoutSections(sections: IconSection[], columns: number) {
+export function layoutSections(
+  sections: IconSection[],
+  requestedColumns: number
+) {
+  const columns = normalizeColumns(requestedColumns, 1)
   const rows: IconItem[][] = []
   const laidOut = sections
     .filter((section) => section.icons.length > 0)

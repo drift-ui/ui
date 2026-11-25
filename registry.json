@@ -437,6 +437,7 @@
       "description": "Searchable Lucide icon grid with arrow-key navigation, roving tabindex, recent icons, and tags search.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [
+        "button",
         "input",
         "utils",
         "@drift-ui/use-controllable-state",

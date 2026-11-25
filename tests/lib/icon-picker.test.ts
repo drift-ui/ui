@@ -5,6 +5,7 @@ import {
   buildSections,
   isValidIconName,
   layoutSections,
+  normalizeColumns,
   moveCell,
   normalizeIcons,
   readPreferences,
@@ -54,6 +55,12 @@ describe("normalizeIcons", () => {
 })
 
 describe("searchIcons", () => {
+  it("matches built-in tags for dollar-sign", () => {
+    expect(
+      searchIcons([{ name: "dollar-sign" }, { name: "star" }], "usd")
+    ).toEqual([{ name: "dollar-sign" }])
+  })
+
   it("returns all icons on empty or whitespace query", () => {
     const list = [FOLDER, STAR]
     expect(searchIcons(list, "")).toEqual(list)
@@ -138,6 +145,28 @@ describe("layoutSections", () => {
     }
     expect(laidOutSections).toHaveLength(1)
     expect(laidOutSections[0].id).toBe("full")
+  })
+})
+
+describe("normalizeColumns", () => {
+  it("keeps positive integers and floors fractions", () => {
+    expect(normalizeColumns(4, 6)).toBe(4)
+    expect(normalizeColumns(3.7, 6)).toBe(3)
+  })
+
+  it("falls back for zero, negative and non-finite values", () => {
+    expect(normalizeColumns(0, 6)).toBe(6)
+    expect(normalizeColumns(-2, 6)).toBe(6)
+    expect(normalizeColumns(Number.NaN, 6)).toBe(6)
+    expect(normalizeColumns(Number.POSITIVE_INFINITY, 6)).toBe(6)
+  })
+
+  it("lets layoutSections terminate when columns is zero", () => {
+    const { rows } = layoutSections(
+      [{ id: "all", label: "All", icons: [{ name: "a" }, { name: "b" }] }],
+      0
+    )
+    expect(rows).toEqual([[{ name: "a" }], [{ name: "b" }]])
   })
 })
 
