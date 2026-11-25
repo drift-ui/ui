@@ -440,6 +440,26 @@ export function PriceFilter() {
   )
 }`,
   },
+  "icon-picker": {
+    notes:
+      "A searchable Lucide icon picker with arrow-key navigation, roving tabindex, recently used icons, and tags matching. Icons are dynamically loaded on demand via lucide-react/dynamic to keep bundle sizes lean. Supports controlled (value, onValueChange) and uncontrolled (defaultValue) states. Users can provide a curated subset via the icons prop or pass extra synonym tags via tags. Supports Enter from the search input to immediately pick the first matching result.",
+    example: `"use client"
+
+import { useState } from "react"
+import { IconPicker } from "@/components/ui/icon-picker"
+
+export function Example() {
+  const [icon, setIcon] = useState("folder-open")
+
+  return (
+    <IconPicker
+      value={icon}
+      onValueChange={setIcon}
+      aria-label="Choose icon"
+    />
+  )
+}`,
+  },
   "image-cropper": {
     notes:
       "Interactive image crop component for avatars and covers. Supports pointer drag-to-pan, 2-finger pinch zoom, mouse wheel / slider zoom, 90-degree step rotation, rule-of-thirds grid, and fixed aspect ratios (1 for square, 16/9 for banner, 4/3 for photo). cropShape can be 'rect' or 'round'. Emits a cropped Blob and pixel crop coordinates through onCropComplete(blob, pixelCrop) when user clicks Apply or presses Enter. Shows a pulsing stage while the image loads and a message if it fails, keeps Apply disabled until it has loaded, and reports load or canvas errors via onCropError(error). The Reset button restores defaultZoom, defaultRotation and defaultCrop. Wheel and trackpad pinch zoom scale with the scroll delta, and the wheel falls through to page scroll at the zoom limits. Full keyboard support with Arrow keys to pan (Shift for 10x larger steps), + / - or [ / ] to zoom, R to rotate, and Enter to apply crop.",
@@ -501,6 +521,43 @@ export function WebhookPayload({ payload }: { payload: unknown }) {
       data={payload}
       defaultExpandDepth={2}
       className="h-80 w-full"
+    />
+  )
+}`,
+  },
+  "kanban-board": {
+    notes:
+      "Multi-column task board for moving cards between workflow stages. Value is a Record<string, T[]> keyed by column id, managed through value/defaultValue and onValueChange. onMove reports the exact card, previous column, destination column, and index so transitions can be persisted without diffing the full board. Cards support HTML5 pointer drag-and-drop and full keyboard interaction: Space or Enter picks up the focused card, Up/Down moves it within the column, Left/Right moves it to adjacent columns, Space or Enter drops it, and Escape cancels. Live region announces every pickup, movement, drop, and cancellation. The board container scrolls horizontally on narrow viewports.",
+    example: `"use client"
+
+import { useState } from "react"
+import { KanbanBoard } from "@/components/ui/kanban-board"
+
+interface Task {
+  id: string
+  title: string
+}
+
+export function ProjectBoard() {
+  const [tasks, setTasks] = useState<Record<string, Task[]>>({
+    todo: [{ id: "1", title: "Refactor API" }],
+    doing: [{ id: "2", title: "Add unit tests" }],
+    done: [{ id: "3", title: "Update docs" }],
+  })
+
+  return (
+    <KanbanBoard
+      aria-label="Sprint tasks"
+      columns={[
+        { id: "todo", title: "To do" },
+        { id: "doing", title: "In progress" },
+        { id: "done", title: "Done" },
+      ]}
+      value={tasks}
+      onValueChange={setTasks}
+      onMove={(task, from, to, index) => {
+        console.log(\`Moved \${task.title} from \${from} to \${to} at index \${index}\`)
+      }}
     />
   )
 }`,
