@@ -209,9 +209,6 @@ export function searchIcons(
     const name = icon.name.toLowerCase()
     if (name.includes(needle)) return true
 
-    const segments = name.split("-")
-    if (segments.some((seg) => seg.startsWith(needle))) return true
-
     if (icon.tags?.some((tag) => tag.toLowerCase().includes(needle))) {
       return true
     }

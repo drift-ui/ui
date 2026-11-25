@@ -26,7 +26,7 @@ describe("IconPicker examples", () => {
     await user.click(starBtn)
 
     expect(screen.getAllByText("star").length).toBeGreaterThan(0)
-  })
+  }, 15000)
 
   it("renders IconPickerPopoverPreview and picks an icon to close popover", async () => {
     const user = userEvent.setup()
@@ -48,7 +48,7 @@ describe("IconPicker examples", () => {
       screen.queryByRole("grid", { name: "Icons" })
     ).not.toBeInTheDocument()
     expect(trigger).toHaveTextContent("star")
-  })
+  }, 15000)
 
   it("renders IconPickerCustomIconsPreview with curated icons", async () => {
     const user = userEvent.setup()

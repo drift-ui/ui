@@ -22,9 +22,9 @@ export function IconPickerPopoverPreview() {
         aria-label="Choose icon"
         className={buttonVariants({ variant: "outline" })}
       >
-        {isValidIconName(icon) ? (
+        {isValidIconName(icon) && (
           <DynamicIcon name={icon as IconName} className="size-4" />
-        ) : null}
+        )}
         <span>{icon}</span>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">

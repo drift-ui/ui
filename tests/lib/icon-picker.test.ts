@@ -231,6 +231,18 @@ describe("moveCell", () => {
     ).toEqual({ row: 0, column: 5 })
   })
 
+  it("stops at grid start when moving left from first cell", () => {
+    expect(
+      moveCell(
+        ROW_LENGTHS,
+        SECTION_STARTS,
+        { row: 0, column: 0 },
+        "ArrowLeft",
+        false
+      )
+    ).toEqual({ row: 0, column: 0 })
+  })
+
   it("moves down to same column clamped to row length", () => {
     expect(
       moveCell(

@@ -229,6 +229,15 @@ function IconPicker({
     return cell ? layout.rows[cell.row]?.[cell.column] : undefined
   }
 
+  function resetPointerPreview() {
+    const focused =
+      document.activeElement &&
+      gridRef.current?.contains(document.activeElement)
+        ? cellOf(document.activeElement)
+        : null
+    setPreviewName(itemAt(focused)?.name ?? null)
+  }
+
   function handleGridKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     const cell = cellOf(event.target)
     if (!cell) return
@@ -306,6 +315,7 @@ function IconPicker({
             Nothing matches &ldquo;{needle}&rdquo;
           </p>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className="mt-2"
@@ -336,14 +346,14 @@ function IconPicker({
             }
           }}
           onPointerOver={(event) => {
-            const name = itemAt(cellOf(event.target))?.name
-            if (name) setPreviewName(name)
-          }}
-          onPointerLeave={() => {
-            if (!gridRef.current?.contains(document.activeElement)) {
-              setPreviewName(null)
+            const cell = cellOf(event.target)
+            if (cell) {
+              setPreviewName(itemAt(cell)?.name ?? null)
+            } else {
+              resetPointerPreview()
             }
           }}
+          onPointerLeave={resetPointerPreview}
           onClick={(event) => {
             const item = itemAt(cellOf(event.target))
             if (item) pick(item.name)
