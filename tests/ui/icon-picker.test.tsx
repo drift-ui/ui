@@ -1,0 +1,486 @@
+import { fireEvent, render, screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import axe from "axe-core"
+import { renderToString } from "react-dom/server"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+import { IconPicker } from "@/registry/default/ui/icon-picker"
+
+const TEST_ICONS = [
+  { name: "folder", tags: ["directory", "project"] },
+  { name: "folder-open", tags: ["directory", "active"] },
+  { name: "file-text", tags: ["document", "notes"] },
+  { name: "star", tags: ["favorite", "bookmark"] },
+  { name: "trash-2", tags: ["delete", "remove"] },
+  { name: "search", tags: ["find", "zoom"] },
+]
+
+function renderPicker(props: React.ComponentProps<typeof IconPicker> = {}) {
+  return render(<IconPicker icons={TEST_ICONS} {...props} />)
+}
+
+function iconButton(name: string) {
+  return screen.getByRole("button", { name })
+}
+
+function iconCell(name: string) {
+  return iconButton(name).closest("[role='gridcell']")!
+}
+
+function searchbox() {
+  return screen.getByRole("searchbox", { name: "Search icons" })
+}
+
+describe("IconPicker", () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it("renders search input, icon grid, and footer", () => {
+    renderPicker()
+
+    expect(searchbox()).toBeInTheDocument()
+    const grid = screen.getByRole("grid", { name: "Icons" })
+    expect(grid).toBeInTheDocument()
+    expect(
+      within(grid).getByRole("rowgroup", { name: "All icons" })
+    ).toBeInTheDocument()
+    expect(iconButton("folder")).toBeInTheDocument()
+    expect(screen.getByText("No icon selected")).toBeInTheDocument()
+  })
+
+  it("calls onValueChange and onSelect when an icon is clicked", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    const onSelect = vi.fn()
+    renderPicker({ onValueChange, onSelect })
+
+    await user.click(iconButton("star"))
+
+    expect(onValueChange).toHaveBeenCalledWith("star")
+    expect(onSelect).toHaveBeenCalledWith("star")
+    expect(iconButton("star")).toHaveAttribute("aria-pressed", "true")
+    expect(iconCell("star")).toHaveAttribute("aria-selected", "true")
+    expect(screen.getByText("star")).toBeInTheDocument()
+  })
+
+  it("filters icons by search query and announces count", async () => {
+    const user = userEvent.setup()
+    renderPicker()
+
+    await user.type(searchbox(), "star")
+
+    expect(iconButton("star")).toBeInTheDocument()
+    expect(
+      screen.queryByRole("button", { name: "folder" })
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole("status")).toHaveTextContent("1 result")
+  })
+
+  it("filters by tags", async () => {
+    const user = userEvent.setup()
+    renderPicker()
+
+    await user.type(searchbox(), "favorite")
+
+    expect(iconButton("star")).toBeInTheDocument()
+    expect(screen.getByRole("status")).toHaveTextContent("1 result")
+  })
+
+  it("shows empty state when no icons match", async () => {
+    const user = userEvent.setup()
+    renderPicker()
+
+    await user.type(searchbox(), "nonexistentquery")
+
+    expect(screen.getByText("No icons found")).toBeInTheDocument()
+    expect(screen.getByRole("status")).toHaveTextContent("0 results")
+  })
+
+  it("clears the search from the empty state without submitting a form", async () => {
+    const user = userEvent.setup()
+    const onSubmit = vi.fn((event: React.FormEvent) => event.preventDefault())
+    render(
+      <form onSubmit={onSubmit}>
+        <IconPicker icons={TEST_ICONS} />
+      </form>
+    )
+
+    await user.type(searchbox(), "nonexistentquery")
+    await user.click(screen.getByRole("button", { name: "Clear search" }))
+
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(searchbox()).toHaveValue("")
+    expect(searchbox()).toHaveFocus()
+    expect(iconButton("folder")).toBeInTheDocument()
+  })
+
+  it("previews hovered icons and clears when pointer enters non-cell or leaves grid", async () => {
+    const user = userEvent.setup()
+    renderPicker({ columns: 3, defaultValue: "star" })
+    const grid = screen.getByRole("grid", { name: "Icons" })
+    const footer = screen
+      .getByRole("group", { name: "Icon picker" })
+      .querySelector("[data-slot='icon-picker-footer']")!
+
+    expect(footer).toHaveTextContent("starSelected")
+
+    await user.hover(iconButton("folder"))
+    expect(footer).toHaveTextContent("folder")
+
+    await user.hover(screen.getByText("All icons"))
+    expect(footer).toHaveTextContent("starSelected")
+
+    await user.hover(iconButton("folder"))
+    expect(footer).toHaveTextContent("folder")
+    await user.unhover(iconButton("folder"))
+    expect(footer).toHaveTextContent("starSelected")
+
+    // When a grid cell owns focus, pointer leaving or entering non-cell restores focused icon
+    await user.click(searchbox())
+    await user.keyboard("{ArrowDown}{ArrowRight}")
+    expect(iconButton("folder-open")).toHaveFocus()
+    expect(footer).toHaveTextContent("folder-open")
+
+    await user.hover(iconButton("file-text"))
+    expect(footer).toHaveTextContent("file-text")
+
+    await user.unhover(grid)
+    expect(footer).toHaveTextContent("folder-open")
+  })
+
+  it("previews the focused icon in the footer and falls back to the selection", async () => {
+    const user = userEvent.setup()
+    renderPicker({ columns: 3, defaultValue: "star" })
+    const footer = screen
+      .getByRole("group", { name: "Icon picker" })
+      .querySelector("[data-slot='icon-picker-footer']")!
+
+    expect(footer).toHaveTextContent("starSelected")
+
+    await user.click(searchbox())
+    await user.keyboard("{ArrowDown}")
+    expect(footer).toHaveTextContent("folder")
+    expect(footer).not.toHaveTextContent("Selected")
+
+    await user.keyboard("{ArrowUp}")
+    expect(footer).toHaveTextContent("starSelected")
+  })
+
+  it("picks the first result with Enter from the search field", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    renderPicker({ onValueChange })
+
+    await user.type(searchbox(), "star{Enter}")
+
+    expect(onValueChange).toHaveBeenCalledWith("star")
+  })
+
+  it("navigates between search and grid with arrow keys", async () => {
+    const user = userEvent.setup()
+    renderPicker({ columns: 3 })
+
+    await user.click(searchbox())
+    await user.keyboard("{ArrowDown}")
+    expect(iconButton("folder")).toHaveFocus()
+
+    await user.keyboard("{ArrowRight}")
+    expect(iconButton("folder-open")).toHaveFocus()
+
+    await user.keyboard("{ArrowLeft}")
+    expect(iconButton("folder")).toHaveFocus()
+
+    await user.keyboard("{ArrowUp}")
+    expect(searchbox()).toHaveFocus()
+  })
+
+  it("keeps one tab stop in the grid which follows focus", async () => {
+    const user = userEvent.setup()
+    renderPicker({ columns: 3 })
+
+    await user.click(searchbox())
+    await user.tab()
+    expect(iconButton("folder")).toHaveFocus()
+
+    await user.keyboard("{ArrowRight}")
+    expect(iconButton("folder")).toHaveAttribute("tabindex", "-1")
+    expect(iconButton("folder-open")).toHaveAttribute("tabindex", "0")
+    expect(iconButton("folder-open")).toHaveFocus()
+
+    const focusableButtons = screen
+      .getAllByRole("button")
+      .filter((btn) => btn.tabIndex === 0)
+    expect(focusableButtons).toHaveLength(1)
+  })
+
+  it("selects with Enter and Space on a focused icon in grid", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    renderPicker({ onValueChange, columns: 3 })
+
+    await user.click(searchbox())
+    await user.keyboard("{ArrowDown}{Enter}")
+    expect(onValueChange).toHaveBeenCalledWith("folder")
+
+    await user.keyboard("{ArrowRight} ")
+    expect(onValueChange).toHaveBeenCalledWith("folder-open")
+  })
+
+  it("persists recent icons in localStorage and displays on next mount", async () => {
+    const user = userEvent.setup()
+    const { unmount } = renderPicker()
+
+    expect(screen.queryByText("Recently used")).not.toBeInTheDocument()
+
+    await user.click(iconButton("star"))
+    unmount()
+
+    renderPicker()
+    const recent = screen.getByRole("rowgroup", { name: "Recently used" })
+    expect(
+      within(recent).getByRole("button", { name: "star" })
+    ).toBeInTheDocument()
+  })
+
+  it("does not reorder the grid while open", async () => {
+    const user = userEvent.setup()
+    renderPicker()
+    const buttonOrder = () =>
+      within(screen.getByRole("grid"))
+        .getAllByRole("button")
+        .map((button) => button.title)
+
+    const before = buttonOrder()
+    await user.click(iconButton("star"))
+
+    expect(screen.queryByText("Recently used")).not.toBeInTheDocument()
+    expect(buttonOrder()).toEqual(before)
+  })
+
+  it("pages between sections with PageDown and PageUp", async () => {
+    const user = userEvent.setup()
+    localStorage.setItem(
+      "drift-ui:icon-picker",
+      JSON.stringify({ recent: ["star"] })
+    )
+
+    renderPicker({ columns: 3 })
+    const allIconsGroup = screen.getByRole("rowgroup", { name: "All icons" })
+
+    await user.click(searchbox())
+    await user.keyboard("{ArrowDown}{PageDown}")
+    expect(within(allIconsGroup).getAllByRole("button")[0]).toHaveFocus()
+
+    await user.keyboard("{ArrowRight}{PageUp}")
+    const recentGroup = screen.getByRole("rowgroup", { name: "Recently used" })
+    expect(
+      within(recentGroup).getByRole("button", { name: "star" })
+    ).toHaveFocus()
+  })
+
+  it("supports controlled value", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    const { rerender } = render(
+      <IconPicker
+        icons={TEST_ICONS}
+        value="folder"
+        onValueChange={onValueChange}
+      />
+    )
+
+    expect(iconButton("folder")).toHaveAttribute("aria-pressed", "true")
+    expect(iconButton("star")).toHaveAttribute("aria-pressed", "false")
+    expect(iconCell("folder")).toHaveAttribute("aria-selected", "true")
+    expect(iconCell("star")).toHaveAttribute("aria-selected", "false")
+
+    await user.click(iconButton("star"))
+    expect(onValueChange).toHaveBeenCalledWith("star")
+
+    rerender(
+      <IconPicker
+        icons={TEST_ICONS}
+        value="star"
+        onValueChange={onValueChange}
+      />
+    )
+    expect(iconButton("star")).toHaveAttribute("aria-pressed", "true")
+    expect(iconCell("star")).toHaveAttribute("aria-selected", "true")
+  })
+
+  it("renders fallback for invalid icon name", () => {
+    renderPicker({ icons: ["not-a-valid-icon"] })
+    const button = iconButton("not-a-valid-icon")
+    expect(button).toBeInTheDocument()
+    expect(button.querySelector("span")).toBeInTheDocument()
+    expect(button.querySelector("svg")).not.toBeInTheDocument()
+  })
+
+  it("renders server markup without storage-dependent recent section", () => {
+    localStorage.setItem(
+      "drift-ui:icon-picker",
+      JSON.stringify({ recent: ["star"] })
+    )
+    const html = renderToString(<IconPicker icons={TEST_ICONS} />)
+    expect(html).not.toContain("Recently used")
+    expect(html).toContain("All icons")
+  })
+
+  it("ignores unrecognized keys on focused grid cells", async () => {
+    const user = userEvent.setup()
+    renderPicker({ columns: 3 })
+
+    await user.click(searchbox())
+    await user.keyboard("{ArrowDown}a")
+
+    expect(iconButton("folder")).toHaveFocus()
+  })
+
+  it("progressively renders large icon lists on scroll and Ctrl+End", async () => {
+    const user = userEvent.setup()
+    const manyIcons = Array.from({ length: 16 }, (_, i) => `icon-${i}`)
+    renderPicker({ icons: manyIcons, columns: 1 })
+
+    const grid = screen.getByRole("grid", { name: "Icons" })
+    expect(grid).toHaveAttribute("aria-rowcount", "16")
+    expect(within(grid).getAllByRole("row")[0]).toHaveAttribute(
+      "aria-rowindex",
+      "1"
+    )
+    expect(within(grid).getAllByRole("button")).toHaveLength(12)
+    expect(screen.queryByRole("button", { name: "icon-15" })).toBeNull()
+
+    // Scroll far from bottom should not load more yet
+    Object.defineProperty(grid, "scrollHeight", {
+      value: 1000,
+      configurable: true,
+    })
+    Object.defineProperty(grid, "clientHeight", {
+      value: 300,
+      configurable: true,
+    })
+    Object.defineProperty(grid, "scrollTop", { value: 100, configurable: true })
+    fireEvent.scroll(grid)
+    expect(within(grid).getAllByRole("button")).toHaveLength(12)
+
+    // Scroll near bottom loads remaining rows
+    Object.defineProperty(grid, "scrollTop", { value: 650, configurable: true })
+    fireEvent.scroll(grid)
+    expect(within(grid).getAllByRole("button")).toHaveLength(16)
+
+    // Additional scroll when all rows are already visible is a no-op
+    fireEvent.scroll(grid)
+    expect(within(grid).getAllByRole("button")).toHaveLength(16)
+
+    // Re-mount and test Ctrl+End jumping past initial batch
+    const { unmount } = renderPicker({ icons: manyIcons, columns: 1 })
+    const grids = screen.getAllByRole("grid", { name: "Icons" })
+    const secondGrid = grids[1]
+    expect(within(secondGrid).getAllByRole("button")).toHaveLength(12)
+
+    await user.click(
+      screen.getAllByRole("searchbox", { name: "Search icons" })[1]
+    )
+    await user.keyboard("{ArrowDown}{Control>}{End}{/Control}")
+    expect(
+      within(secondGrid).getByRole("button", { name: "icon-15" })
+    ).toHaveFocus()
+    unmount()
+  })
+
+  it("loads additional batches automatically when initial rows do not overflow", () => {
+    const manyIcons = Array.from({ length: 16 }, (_, i) => `icon-${i}`)
+    const originalClientHeight = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "clientHeight"
+    )
+    const originalScrollHeight = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "scrollHeight"
+    )
+    Object.defineProperty(HTMLElement.prototype, "clientHeight", {
+      configurable: true,
+      get: () => 500,
+    })
+    Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
+      configurable: true,
+      get: () => 400,
+    })
+
+    try {
+      renderPicker({ icons: manyIcons, columns: 1 })
+      const grid = screen.getByRole("grid", { name: "Icons" })
+      expect(within(grid).getAllByRole("button")).toHaveLength(16)
+    } finally {
+      if (originalClientHeight) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "clientHeight",
+          originalClientHeight
+        )
+      } else {
+        delete (HTMLElement.prototype as { clientHeight?: number }).clientHeight
+      }
+      if (originalScrollHeight) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "scrollHeight",
+          originalScrollHeight
+        )
+      } else {
+        delete (HTMLElement.prototype as { scrollHeight?: number }).scrollHeight
+      }
+    }
+  })
+
+  it("moves to previous row with ArrowUp when row > 0", async () => {
+    const user = userEvent.setup()
+    renderPicker({ columns: 3 })
+
+    await user.click(searchbox())
+    await user.keyboard("{ArrowDown}")
+    await user.keyboard("{ArrowDown}")
+    expect(iconButton("star")).toHaveFocus()
+
+    await user.keyboard("{ArrowUp}")
+    expect(iconButton("folder")).toHaveFocus()
+  })
+
+  it("safely ignores clicks or focus on non-cell elements inside grid", async () => {
+    const user = userEvent.setup()
+    renderPicker()
+    const grid = screen.getByRole("grid", { name: "Icons" })
+    await user.click(grid)
+    grid.tabIndex = -1
+    grid.focus()
+    expect(grid).toHaveFocus()
+    await user.keyboard("{ArrowRight}")
+    expect(grid).toHaveFocus()
+  })
+
+  it("forwards className and remaining props to root element", () => {
+    renderPicker({
+      className: "custom-class",
+      "aria-label": "Select project icon",
+    })
+
+    const root = screen.getByRole("group", { name: "Select project icon" })
+    expect(root).toHaveClass("custom-class")
+  })
+
+  it("passes axe accessibility checks", async () => {
+    const { container } = renderPicker()
+
+    const { violations } = await axe.run(container, {
+      rules: { region: { enabled: false } },
+    })
+
+    expect(
+      violations.map(({ id, nodes }) => ({
+        id,
+        targets: nodes.map((node) => node.target.join(" ")),
+      }))
+    ).toEqual([])
+  })
+})

@@ -50,6 +50,12 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: PAGE, action: "Adjust the focused thumb by larger step" },
     { keys: HOME_END, action: "Set the focused thumb to min or max" },
   ],
+  "icon-picker": [
+    { keys: ARROWS, action: "Move through the grid" },
+    { keys: HOME_END, action: "First or last icon in the row" },
+    { keys: PAGE, action: "Previous or next section" },
+    { keys: ["Enter", "Space"], action: "Pick the focused icon" },
+  ],
   "image-cropper": [
     { keys: ARROWS, action: "Pan, hold Shift for larger steps" },
     { keys: ["]", "["], action: "Zoom in or out" },
