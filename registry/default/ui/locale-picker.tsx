@@ -179,7 +179,7 @@ function LocalePicker({
         <PopoverContent
           align="start"
           aria-label="Choose a locale"
-          className="flex w-80 flex-col gap-1 p-1"
+          className="flex w-80 min-w-[var(--radix-popover-trigger-width,var(--anchor-width))] flex-col gap-1 p-1"
         >
           <input
             type="text"
