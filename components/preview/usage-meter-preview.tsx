@@ -2,6 +2,7 @@
 
 import * as React from "react"
 
+import { Button } from "@/registry/default/ui/button"
 import {
   UsageMeter,
   type UsageMeterSegment,
@@ -15,19 +16,28 @@ const STORAGE_SEGMENTS: UsageMeterSegment[] = [
 
 export function UsageMeterPreview() {
   return (
-    <div className="flex w-full max-w-md flex-col gap-6 rounded-lg border bg-card p-5 text-card-foreground shadow-xs">
+    <div className="flex w-full max-w-md flex-col gap-5 rounded-lg border bg-card p-5 text-card-foreground shadow-xs">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="font-medium">Team plan</p>
+          <p className="text-sm text-muted-foreground">Resets on December 1</p>
+        </div>
+        <Button size="sm" variant="outline">
+          Upgrade
+        </Button>
+      </div>
+
       <UsageMeter
-        label="Storage Used"
-        description="Standard single-value usage meter with warning threshold"
-        value={7.2}
-        max={10}
-        unit="GB"
+        label="Build minutes"
+        value={2140}
+        max={3000}
+        unit="min"
         warningAt={0.8}
       />
 
       <UsageMeter
-        label="Storage Breakdown"
-        description="Segmented breakdown across content categories with legend"
+        label="Storage"
+        description="Across 3 projects"
         max={10}
         unit="GB"
         segments={STORAGE_SEGMENTS}
