@@ -36,10 +36,12 @@ import { EmojiPickerPreview } from "@/components/preview/emoji-picker-preview"
 import { FileDropzonePreview } from "@/components/preview/file-dropzone-preview"
 import { FilterBuilderPreview } from "@/components/preview/filter-builder-preview"
 import { HistogramRangePreview } from "@/components/preview/histogram-range-preview"
+import { IconPickerPreview } from "@/components/preview/icon-picker-preview"
 import { ImageCropperPreview } from "@/components/preview/image-cropper-preview"
 import { InlineEditPreview } from "@/components/preview/inline-edit-preview"
 import { InputPreview } from "@/components/preview/input-preview"
 import { JsonViewerPreview } from "@/components/preview/json-viewer-preview"
+import { KanbanBoardPreview } from "@/components/preview/kanban-board-preview"
 import { KeyValueEditorPreview } from "@/components/preview/key-value-editor-preview"
 import { LabelPreview } from "@/components/preview/label-preview"
 import { LogViewerPreview } from "@/components/preview/log-viewer-preview"
@@ -102,10 +104,12 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "file-dropzone": FileDropzonePreview,
   "filter-builder": FilterBuilderPreview,
   "histogram-range": HistogramRangePreview,
+  "icon-picker": IconPickerPreview,
   "image-cropper": ImageCropperPreview,
   "inline-edit": InlineEditPreview,
   input: InputPreview,
   "json-viewer": JsonViewerPreview,
+  "kanban-board": KanbanBoardPreview,
   "key-value-editor": KeyValueEditorPreview,
   label: LabelPreview,
   "log-viewer": LogViewerPreview,

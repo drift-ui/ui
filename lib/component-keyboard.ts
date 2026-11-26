@@ -50,6 +50,12 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: PAGE, action: "Adjust the focused thumb by larger step" },
     { keys: HOME_END, action: "Set the focused thumb to min or max" },
   ],
+  "icon-picker": [
+    { keys: ARROWS, action: "Move through the grid" },
+    { keys: HOME_END, action: "First or last icon in the row" },
+    { keys: PAGE, action: "Previous or next section" },
+    { keys: ["Enter", "Space"], action: "Pick the focused icon" },
+  ],
   "image-cropper": [
     { keys: ARROWS, action: "Pan, hold Shift for larger steps" },
     { keys: ["]", "["], action: "Zoom in or out" },
@@ -65,6 +71,12 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: LEFT_RIGHT, action: "Collapse or expand" },
     { keys: ["Mod+C"], action: "Copy the value" },
     { keys: ["Mod+Shift+C"], action: "Copy the path" },
+  ],
+  "kanban-board": [
+    { keys: ["Space", "Enter"], action: "Pick up or drop a card" },
+    { keys: UP_DOWN, action: "Move card within column" },
+    { keys: LEFT_RIGHT, action: "Move card across columns" },
+    { keys: ["Escape"], action: "Cancel the move" },
   ],
   "log-viewer": [
     { keys: UP_DOWN, action: "Scroll through log lines" },
