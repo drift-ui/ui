@@ -198,7 +198,7 @@ function RequestInspector({
     >
       {/* Header bar / overview */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/30 px-3 py-2.5 sm:px-4">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="flex min-w-[min(100%,24rem)] flex-1 items-center gap-2">
           <Badge
             variant="outline"
             className="shrink-0 font-mono text-xs font-semibold tracking-wider uppercase"
