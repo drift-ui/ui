@@ -155,7 +155,13 @@ function RegexInput({
 
   const matchKey =
     sample && isValid && pattern
-      ? `${pattern}\0${currentFlags}\0${sample}\0${maxMatches}\0${maxSampleLength}`
+      ? JSON.stringify([
+          pattern,
+          currentFlags,
+          sample,
+          maxMatches,
+          maxSampleLength,
+        ])
       : null
 
   React.useEffect(() => {

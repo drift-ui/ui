@@ -308,6 +308,7 @@ describe("RegexInput", () => {
 
     const workers: Array<{
       onmessage: ((e: MessageEvent) => void) | null
+      postMessage: ReturnType<typeof vi.fn>
       terminate: ReturnType<typeof vi.fn>
     }> = []
 
@@ -329,6 +330,16 @@ describe("RegexInput", () => {
         <RegexInput value="foo" sample="foo bar" />
       )
       expect(workers).toHaveLength(1)
+      expect(workers[0].postMessage).toHaveBeenCalledWith({
+        pattern: "foo",
+        flags: "",
+        sample: "foo bar",
+        options: expect.objectContaining({
+          maxMatches: 100,
+          maxSampleLength: 20000,
+          timeoutMs: 150,
+        }),
+      })
       workers[0].onmessage?.({
         data: {
           matches: [{ match: "foo", index: 0, length: 3, groups: [] }],

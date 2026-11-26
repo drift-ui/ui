@@ -369,7 +369,7 @@ export function findRegexMatchesAsync(
     }
 
     let worker: Worker
-    let blobUrl: string
+    let blobUrl: string | undefined
     try {
       const blob = new Blob([createRegexWorkerScript()], {
         type: "text/javascript",
@@ -377,10 +377,12 @@ export function findRegexMatchesAsync(
       blobUrl = URL.createObjectURL(blob)
       worker = new Worker(blobUrl)
     } catch {
+      if (blobUrl) URL.revokeObjectURL(blobUrl)
       resolve(findRegexMatches(pattern, flags, sample, workerOptions))
       return
     }
 
+    const activeBlobUrl = blobUrl
     let settled = false
 
     const finish = (result: RegexMatchResult) => {
@@ -389,7 +391,7 @@ export function findRegexMatchesAsync(
       clearTimeout(timer)
       signal?.removeEventListener("abort", onAbort)
       worker.terminate()
-      URL.revokeObjectURL(blobUrl)
+      URL.revokeObjectURL(activeBlobUrl)
       resolve(result)
     }
 
@@ -420,7 +422,13 @@ export function findRegexMatchesAsync(
     }
 
     worker.onerror = () => {
-      finish(findRegexMatches(pattern, flags, sample, workerOptions))
+      finish({
+        matches: [],
+        matchCount: 0,
+        truncated: false,
+        executionTimeMs: 0,
+        error: "Regex worker failed",
+      })
     }
 
     worker.postMessage({

@@ -387,7 +387,7 @@ describe("regex-input-utils", () => {
         expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-worker")
 
         // 2. Timeout terminates hung worker and marks truncated
-        const r2 = await findRegexMatchesAsync("(a+)+$", "", "a".repeat(30), {
+        const r2 = await findRegexMatchesAsync("a+$", "", "a".repeat(30), {
           timeoutMs: 15,
         })
         expect(r2.truncated).toBe(true)
@@ -405,13 +405,16 @@ describe("regex-input-utils", () => {
         expect(r3.truncated).toBe(false)
         expect(instances[2].terminate).toHaveBeenCalled()
 
-        // 4. Worker onerror falls back to findRegexMatches
+        // 4. Worker onerror returns bounded error without blocking main thread
         const p4 = findRegexMatchesAsync("a", "", "aba")
         instances[3].onerror?.(new Event("error"))
         const r4 = await p4
-        expect(r4.matchCount).toBe(2)
+        expect(r4.matchCount).toBe(0)
+        expect(r4.truncated).toBe(false)
+        expect(r4.error).toBe("Regex worker failed")
 
-        // 5. Worker constructor throw falls back to findRegexMatches
+        // 5. Worker constructor throw revokes Blob URL and falls back
+        revokeObjectURL.mockClear()
         vi.stubGlobal(
           "Worker",
           class {
@@ -421,6 +424,7 @@ describe("regex-input-utils", () => {
           }
         )
         const r5 = await findRegexMatchesAsync("a", "", "aba")
+        expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-worker")
         expect(r5.matchCount).toBe(2)
       } finally {
         vi.unstubAllGlobals()
