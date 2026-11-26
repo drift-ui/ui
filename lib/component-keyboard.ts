@@ -234,6 +234,9 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: HOME_END, action: "First or last segment" },
     { keys: ["Enter"], action: "Open the segment's details" },
   ],
+  "usage-meter": [
+    { keys: ["Tab"], action: "Focus the meter to read its value and status" },
+  ],
   "virtual-list": [
     { keys: UP_DOWN, action: "Move between rows" },
     { keys: PAGE, action: "Move a page at a time" },

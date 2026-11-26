@@ -1440,6 +1440,26 @@ export function ServiceHealth() {
   return <UptimeBar title="API" days={days} />
 }`,
   },
+  "usage-meter": {
+    notes:
+      "UsageMeter displays resource quotas such as disk storage, user seats, or rate limits. It supports both single numeric values with warning and danger thresholds and segmented multi-category breakdowns with automatic legend formatting. When usage exceeds capacity, it displays an overage badge, and segmented mode additionally renders a limit boundary marker showing the quota threshold. Complies with WAI-ARIA role='meter' using aria-valuenow (clamped to min and max), aria-valuemin, aria-valuemax, and descriptive aria-valuetext.",
+    example: `"use client"
+
+import { UsageMeter } from "@/components/ui/usage-meter"
+
+export function StorageUsage() {
+  return (
+    <UsageMeter
+      label="Cloud Storage"
+      description="Allocated quota across your team"
+      value={7.2}
+      max={10}
+      unit="GB"
+      warningAt={0.8}
+    />
+  )
+}`,
+  },
   "use-controllable-state": {
     notes:
       "Hook shared by several components to support both controlled (value + onValueChange) and uncontrolled (defaultValue) use. Installed automatically as a dependency.",
