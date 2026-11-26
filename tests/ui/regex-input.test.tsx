@@ -123,7 +123,7 @@ describe("RegexInput", () => {
     const { container } = render(<RegexInput value="[0-9]+" sample={sample} />)
 
     expect(screen.getByText("Test Sample")).toBeInTheDocument()
-    expect(await screen.findAllByText(/2 matches/)).toHaveLength(2)
+    expect(await screen.findAllByText(/2 matches/)).toHaveLength(1)
 
     const marks = container.querySelectorAll("mark")
     expect(marks).toHaveLength(2)
@@ -286,11 +286,20 @@ describe("RegexInput", () => {
     expect(screen.getByText("Invalid regex pattern")).toBeInTheDocument()
 
     rerender(<RegexInput value="hello" sample="hello world" />)
-    expect(await screen.findAllByText(/1 match/)).toHaveLength(2)
+    expect(await screen.findAllByText(/1 match/)).toHaveLength(1)
 
     rerender(<RegexInput value="a" sample="aaaa" maxMatches={2} />)
+    expect(await screen.findByText(/\(limit reached\)/)).toBeInTheDocument()
+
+    rerender(
+      <RegexInput
+        value="a"
+        sample="aaaa"
+        maxMatches={2}
+        showSamplePreview={false}
+      />
+    )
     expect(await screen.findByText("2 matches+")).toBeInTheDocument()
-    expect(screen.getByText(/\(limit reached\)/)).toBeInTheDocument()
 
     rerender(<RegexInput value="([a-z])" sample="a b c d e f g h i j k l" />)
     expect(await screen.findAllByText("Group 1")).toHaveLength(10)
@@ -351,7 +360,7 @@ describe("RegexInput", () => {
       } as MessageEvent)
 
       await waitFor(() => {
-        expect(screen.getAllByText(/1 match/)).toHaveLength(2)
+        expect(screen.getAllByText(/1 match/)).toHaveLength(1)
       })
 
       rerender(<RegexInput value="bar" sample="foo bar" />)

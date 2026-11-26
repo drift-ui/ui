@@ -7,7 +7,7 @@ import { RegexInput } from "@/registry/default/ui/regex-input"
 const SAMPLE_TEXT = `user_alice@drift-ui.dev logged in from 192.168.1.10
 support+urgent@example.org reported issue #404
 invalid-address@@test
-sales@acme.corp requested a demo`
+sales@lumenhq.io requested a demo`
 
 export function RegexInputPreview() {
   const [pattern, setPattern] = React.useState(
@@ -16,7 +16,7 @@ export function RegexInputPreview() {
   const [flags, setFlags] = React.useState("i")
 
   return (
-    <div className="w-full max-w-lg">
+    <div className="w-full max-w-2xl">
       <RegexInput
         aria-label="Email pattern"
         value={pattern}

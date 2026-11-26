@@ -313,7 +313,7 @@ function RegexInput({
           </div>
         )}
 
-        {sample && isValid && pattern && (
+        {sample && !showSamplePreview && isValid && pattern && (
           <Badge
             variant="secondary"
             className="h-5 shrink-0 px-1.5 text-[10px] font-normal"
@@ -408,7 +408,7 @@ function RegexInput({
                       Match {mIdx + 1}:{" "}
                     </span>
                     <span className="font-medium">&quot;{m.match}&quot;</span>
-                    <div className="mt-0.5 ml-3 space-y-0.5">
+                    <div className="mt-0.5 ml-3 flex flex-wrap gap-x-3 gap-y-0.5">
                       {m.groups.map((g, gIdx) => (
                         <div key={gIdx} className="text-muted-foreground">
                           <span className="font-medium text-primary">
