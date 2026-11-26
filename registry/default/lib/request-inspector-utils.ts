@@ -13,7 +13,7 @@ export type HttpMethod =
   | (string & {})
 
 export interface RequestInspectorRequest {
-  method: HttpMethod | string
+  method: HttpMethod
   url: string
   headers?: RequestInspectorHeaders | [string, string][]
   body?: unknown
@@ -25,7 +25,6 @@ export interface RequestInspectorResponse {
   headers?: RequestInspectorHeaders | [string, string][]
   body?: unknown
   durationMs?: number
-  timestamp?: number | string | Date
 }
 
 export const DEFAULT_SENSITIVE_HEADERS = [
@@ -182,7 +181,7 @@ export function parseBody(body: unknown): {
         return {
           isJson: true,
           jsonValue: parsed,
-          text: JSON.stringify(parsed, null, 2),
+          text: body,
         }
       }
     } catch {
@@ -264,7 +263,7 @@ export function buildCurlCommand(
   }
 ): string {
   const parts: string[] = ["curl"]
-  const rawMethod = request.method ? request.method.trim() : "GET"
+  const rawMethod = request.method?.trim() || "GET"
   const upperMethod = rawMethod.toUpperCase()
 
   parts.push(quoteShell(request.url))

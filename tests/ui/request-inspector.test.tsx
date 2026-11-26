@@ -8,6 +8,7 @@ import {
   type RequestInspectorRequest,
   type RequestInspectorResponse,
 } from "@/registry/default/ui/request-inspector"
+import { RequestInspector as BaseRequestInspector } from "@/registry/base/ui/request-inspector"
 
 const SAMPLE_REQUEST: RequestInspectorRequest = {
   method: "POST",
@@ -31,7 +32,10 @@ const SAMPLE_RESPONSE: RequestInspectorResponse = {
   durationMs: 182,
 }
 
-describe("RequestInspector", () => {
+describe.each([
+  ["Radix", RequestInspector],
+  ["Base UI", BaseRequestInspector],
+])("RequestInspector (%s)", (_library, RequestInspector) => {
   it("renders request method, URL, status badge, and duration", () => {
     render(
       <RequestInspector request={SAMPLE_REQUEST} response={SAMPLE_RESPONSE} />

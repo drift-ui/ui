@@ -54,6 +54,14 @@ describe("buildCurlCommand", () => {
     expect(cmd).toBe("curl 'https://api.example.com/items'")
   })
 
+  it("defaults to GET when method is whitespace", () => {
+    const cmd = buildCurlCommand({
+      method: "   ",
+      url: "https://api.example.com/items",
+    })
+    expect(cmd).toBe("curl 'https://api.example.com/items'")
+  })
+
   it("includes quoted -X when method is not GET", () => {
     const cmd = buildCurlCommand({
       method: "DELETE",
@@ -277,12 +285,17 @@ describe("parseBody", () => {
     const res = parseBody(raw)
     expect(res.isJson).toBe(true)
     expect(res.jsonValue).toEqual({ success: true, code: 200 })
-    expect(res.text).toBe(JSON.stringify({ success: true, code: 200 }, null, 2))
+    expect(res.text).toBe(raw)
 
     const arrayRaw = '["item1", "item2"]'
     const arrayRes = parseBody(arrayRaw)
     expect(arrayRes.isJson).toBe(true)
     expect(arrayRes.jsonValue).toEqual(["item1", "item2"])
+  })
+
+  it("keeps the original text of a JSON string body", () => {
+    const raw = '{"id": 9007199254740993}'
+    expect(parseBody(raw).text).toBe(raw)
   })
 
   it("treats primitive JSON strings as text to avoid empty tree viewer", () => {
