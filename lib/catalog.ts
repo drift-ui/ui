@@ -77,6 +77,7 @@ const ENTRY_LAYOUT: {
   { slug: "query-input", category: "inputs" },
   { slug: "rating", category: "inputs" },
   { slug: "recurrence-editor", category: "inputs", isFlagship: true },
+  { slug: "regex-input", category: "inputs" },
   { slug: "secret-field", category: "inputs" },
   { slug: "shortcut-recorder", category: "inputs", stageClassName: "gap-8" },
   { slug: "signature-pad", category: "inputs" },

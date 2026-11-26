@@ -946,6 +946,31 @@ export function StandupRepeat({ start }: { start: Date }) {
   return <RecurrenceEditor aria-label="Repeat" value={rule} onValueChange={setRule} start={start} showPreview={3} />
 }`,
   },
+  "regex-input": {
+    notes:
+      "RegexInput is an interactive regular expression pattern field with flags toggles, syntax validation, match execution limits (length, iteration and count caps), and sample text match highlights. In browser environments, matching runs off-render in an interruptible Web Worker via findRegexMatchesAsync (with timeout termination and AbortSignal cancellation, falling back to synchronous findRegexMatches when Workers are unavailable). It supports controlled and uncontrolled use for both pattern (value/defaultValue/onValueChange) and flags (flags/defaultFlags/onFlagsChange). Invalid patterns set aria-invalid; when showError is enabled (the default), constructor error messages appear with role=alert. Flags buttons toggle with Space/Enter or click. When a sample string is provided, matches are highlighted in a pre-wrap preview with a match count and capture groups inspection ($name or Group n). Pure logic functions live in @/lib/regex-input-utils: validateRegex, findRegexMatches, findRegexMatchesAsync, highlightSampleText, toggleFlag, and normalizeFlags. Installs badge.",
+    example: `"use client"
+
+import { useState } from "react"
+import { RegexInput } from "@/components/ui/regex-input"
+
+export function LogPatternFilter() {
+  const [pattern, setPattern] = useState("\\\\[(ERROR|WARN)\\\\]\\\\s+(?<message>.*)")
+  const [flags, setFlags] = useState("i")
+
+  return (
+    <RegexInput
+      aria-label="Log filter regex"
+      value={pattern}
+      onValueChange={setPattern}
+      flags={flags}
+      onFlagsChange={setFlags}
+      sample="[2026-05-18] [ERROR] Database connection lost"
+      placeholder="Type regex pattern..."
+    />
+  )
+}`,
+  },
   "saved-views": {
     notes:
       "SavedViews manages named combinations of filters, sorting and columns on table and list screens. View data should be structured-cloneable, since Duplicate copies it with structuredClone. Pass currentData and the component works out isDirty by comparing it with the active view's data: plain objects compare deeply with key order and undefined fields ignored, arrays keep their order, dates compare by time, regular expressions compare by source and flags, Set members and Map values compare deeply, Map keys compare by identity, and cyclic data is safe. A view with no data is never dirty. Other class instances, such as Temporal or URL objects, need an isEqual of your own. Pass isEqual to change the rule (for filter-builder data, compare serializeFilters output so filter ids don't count), or pass isDirty to override it, which also skips the compare. Save writes currentData to the active view; Discard calls onReset so you can restore view.data. To keep the active view in the URL, pass activeId={readViewParam(searchParams, views)} and write it in onActiveChange with writeViewParam(searchParams, id). A missing or unknown id resolves to the current default view, or the first view when none is the default. Because the active view can change without onActiveChange (browser back and forward, or a new default while the URL has no param), derive the working data from activeId as the example does rather than setting it only in onActiveChange. The component itself has no router code. For server storage, return a Promise (or any thenable) from onCreate, onRename, onDuplicate, onDelete, onSetDefault or onSave. The change shows at once and the view is marked aria-busy, its options menu and rename are blocked until the request settles, and a rejected Promise (or a callback that throws) undoes only that change, shows an inline role=alert message and calls onError(error, action), or logs the error with console.error when there is no onError. Only one set default request runs at a time. Rename works with F2 or double click; delete is blocked for locked views and for the last view that is not still being created. variant='select' gives a compact dropdown. Scale limit, measured in Chrome on a dev build at 4x CPU throttle: moving between tabs takes about 60 ms with 100 views, 115 ms with 200 and 230 ms with 500, and comparing currentData with 2,000 filters takes about 2.5 ms. Keep lists to about 100 views. Pure helpers live in @/lib/saved-views-utils. Installs button, input, badge, and popover.",

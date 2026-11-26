@@ -3071,6 +3071,143 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "Import from @/lib/recurrence to read, write, summarize or expand a rule outside the editor with unknown parts preservation, BYSETPOS, BYMONTH, and EXDATE support.",
     },
   ],
+  "regex-input": [
+    {
+      name: "RegexInput",
+      description:
+        "A live regular expression pattern input with flags toggles, syntax error feedback, configurable match limits, sample text match highlights, and capture groups inspection.",
+      props: [
+        {
+          name: "value",
+          type: "string",
+          description:
+            "Controlled regex pattern string (without slash delimiters).",
+        },
+        {
+          name: "defaultValue",
+          type: "string",
+          default: '""',
+          description: "Initial regex pattern string when uncontrolled.",
+        },
+        {
+          name: "onValueChange",
+          type: "(pattern: string) => void",
+          description: "Called when the pattern changes.",
+        },
+        {
+          name: "flags",
+          type: "string",
+          description:
+            'Controlled active flags string, such as "i", "m", "ims".',
+        },
+        {
+          name: "defaultFlags",
+          type: "string",
+          default: '""',
+          description: "Initial flags string when uncontrolled.",
+        },
+        {
+          name: "onFlagsChange",
+          type: "(flags: string) => void",
+          description: "Called when active flags change.",
+        },
+        {
+          name: "availableFlags",
+          type: "readonly string[]",
+          default: '["i", "m", "s"]',
+          description: "Flag toggle buttons to show next to the input.",
+        },
+        {
+          name: "sample",
+          type: "string",
+          description:
+            "Sample text to test the pattern against and highlight matches.",
+        },
+        {
+          name: "placeholder",
+          type: "string",
+          default: '"pattern"',
+          description: "Placeholder text for the pattern input.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables the pattern input and flag toggles.",
+        },
+        {
+          name: "readOnly",
+          type: "boolean",
+          default: "false",
+          description: "Makes the pattern input and flag toggles read-only.",
+        },
+        {
+          name: "name",
+          type: "string",
+          description:
+            "Form field name for submitting the pattern through a hidden input.",
+        },
+        {
+          name: "showDelimiters",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to display leading and trailing slashes (/ ... /).",
+        },
+        {
+          name: "showFlags",
+          type: "boolean",
+          default: "true",
+          description: "Whether to display flag toggle buttons.",
+        },
+        {
+          name: "showError",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to render constructor syntax errors below the input.",
+        },
+        {
+          name: "showSamplePreview",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to display highlighted sample text and capture groups.",
+        },
+        {
+          name: "maxMatches",
+          type: "number",
+          default: "100",
+          description: "Cap on number of matches to find in the sample.",
+        },
+        {
+          name: "maxSampleLength",
+          type: "number",
+          default: "20000",
+          description: "Cap on sample text character length for matching.",
+        },
+        {
+          name: "inputRef",
+          type: "React.Ref<HTMLInputElement>",
+          description: "Ref forwarded to the pattern input element.",
+        },
+        {
+          name: "inputProps",
+          type: 'Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "disabled" | "readOnly">',
+          description:
+            "Additional props forwarded to the underlying text input element.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "validateRegex, findRegexMatches, findRegexMatchesAsync, highlightSampleText, toggleFlag, normalizeFlags",
+      signature:
+        "validateRegex(pattern: string, flags?: string): RegexValidationResult; findRegexMatches(pattern: string, flags: string, sample: string, options?: RegexMatchOptions): RegexMatchResult; findRegexMatchesAsync(pattern: string, flags: string, sample: string, options?: RegexMatchOptions & { signal?: AbortSignal }): Promise<RegexMatchResult>; highlightSampleText(sample: string, matches: RegexMatch[]): RegexSegment[]; toggleFlag(flags: string, flag: string): string; normalizeFlags(flags: string): string",
+      description:
+        "Pure logic functions for validating patterns, length- and match-capped regex execution (with interruptible Web Worker support via findRegexMatchesAsync), sample text segmenting, and flag manipulation. Import from @/lib/regex-input-utils.",
+    },
+  ],
   "saved-views": [
     {
       name: "SavedViews",
