@@ -78,6 +78,11 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: LEFT_RIGHT, action: "Move card across columns" },
     { keys: ["Escape"], action: "Cancel the move" },
   ],
+  "locale-picker": [
+    { keys: UP_DOWN, action: "Open, then move through locales" },
+    { keys: ["Enter"], action: "Pick the locale" },
+    { keys: ["Escape"], action: "Close the picker" },
+  ],
   "log-viewer": [
     { keys: UP_DOWN, action: "Scroll through log lines" },
     { keys: HOME_END, action: "Jump to start or end of logs" },

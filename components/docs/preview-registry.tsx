@@ -44,6 +44,7 @@ import { JsonViewerPreview } from "@/components/preview/json-viewer-preview"
 import { KanbanBoardPreview } from "@/components/preview/kanban-board-preview"
 import { KeyValueEditorPreview } from "@/components/preview/key-value-editor-preview"
 import { LabelPreview } from "@/components/preview/label-preview"
+import { LocalePickerPreview } from "@/components/preview/locale-picker-preview"
 import { LogViewerPreview } from "@/components/preview/log-viewer-preview"
 import { MaskedInputPreview } from "@/components/preview/masked-input-preview"
 import { MentionTextareaPreview } from "@/components/preview/mention-textarea-preview"
@@ -113,6 +114,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "kanban-board": KanbanBoardPreview,
   "key-value-editor": KeyValueEditorPreview,
   label: LabelPreview,
+  "locale-picker": LocalePickerPreview,
   "log-viewer": LogViewerPreview,
   "masked-input": MaskedInputPreview,
   "mention-textarea": MentionTextareaPreview,
