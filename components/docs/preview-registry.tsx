@@ -37,6 +37,7 @@ import { EmojiPickerPreview } from "@/components/preview/emoji-picker-preview"
 import { FileDropzonePreview } from "@/components/preview/file-dropzone-preview"
 import { FilterBuilderPreview } from "@/components/preview/filter-builder-preview"
 import { HistogramRangePreview } from "@/components/preview/histogram-range-preview"
+import { IconPickerPreview } from "@/components/preview/icon-picker-preview"
 import { ImageCropperPreview } from "@/components/preview/image-cropper-preview"
 import { InlineEditPreview } from "@/components/preview/inline-edit-preview"
 import { InputPreview } from "@/components/preview/input-preview"
@@ -104,6 +105,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "file-dropzone": FileDropzonePreview,
   "filter-builder": FilterBuilderPreview,
   "histogram-range": HistogramRangePreview,
+  "icon-picker": IconPickerPreview,
   "image-cropper": ImageCropperPreview,
   "inline-edit": InlineEditPreview,
   input: InputPreview,
