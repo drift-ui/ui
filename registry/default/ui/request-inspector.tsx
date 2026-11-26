@@ -582,7 +582,7 @@ function RequestInspector({
                       ? "text-chart-2"
                       : response.durationMs < 1000
                         ? "text-chart-4"
-                        : "text-chart-5"
+                        : "text-warning"
                   )}
                 >
                   {response.durationMs < 200
@@ -600,7 +600,7 @@ function RequestInspector({
                       ? "bg-chart-2"
                       : response.durationMs < 1000
                         ? "bg-chart-4"
-                        : "bg-chart-5"
+                        : "bg-warning"
                   )}
                   style={{
                     width: `${Math.min(100, Math.max(5, (response.durationMs / 1000) * 100))}%`,

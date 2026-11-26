@@ -382,8 +382,8 @@ describe("getStatusBadgeClass & getStatusText", () => {
 
     const clientErr = getStatusBadgeClass(404)
     expect(clientErr.label).toBe("Client error")
-    expect(clientErr.className).toContain("bg-chart-5/15")
-    expect(clientErr.className).toContain("text-chart-5")
+    expect(clientErr.className).toContain("bg-warning/15")
+    expect(clientErr.className).toContain("text-warning")
 
     const serverErr = getStatusBadgeClass(500)
     expect(serverErr.label).toBe("Server error")
