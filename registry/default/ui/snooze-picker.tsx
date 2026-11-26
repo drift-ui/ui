@@ -292,7 +292,9 @@ function SnoozePicker({
           side={side}
           className={cn(
             "outline-none",
-            view === "presets" ? "w-72 p-1" : "w-auto p-3"
+            view === "presets"
+              ? "w-72 min-w-[var(--radix-popover-trigger-width,var(--anchor-width))] p-1"
+              : "w-auto p-3"
           )}
         >
           {view === "presets" ? (

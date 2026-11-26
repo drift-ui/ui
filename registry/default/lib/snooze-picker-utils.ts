@@ -546,7 +546,12 @@ export function resolvePresets(
   const resolved: ResolvedPreset[] = []
   for (const preset of presets) {
     const item = resolvePreset(preset, now, options)
-    if (item) {
+    if (
+      item &&
+      !resolved.some(
+        (existing) => existing.date.getTime() === item.date.getTime()
+      )
+    ) {
       resolved.push(item)
     }
   }

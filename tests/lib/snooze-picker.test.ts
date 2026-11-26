@@ -367,6 +367,14 @@ describe("snooze-picker-utils", () => {
       const saturday = new Date(2026, 4, 16, 18, 0, 0)
       const satList = resolvePresets(DEFAULT_SNOOZE_PRESETS, saturday)
       expect(satList.map((p) => p.id)).toEqual(["tomorrow", "next-week"])
+
+      const friday = new Date(2026, 10, 27, 10, 0, 0)
+      const fridayList = resolvePresets(DEFAULT_SNOOZE_PRESETS, friday)
+      expect(fridayList.map((p) => p.id)).toEqual([
+        "later-today",
+        "tomorrow",
+        "next-week",
+      ])
     })
   })
 })
