@@ -80,6 +80,7 @@ const ENTRY_LAYOUT: {
   { slug: "secret-field", category: "inputs" },
   { slug: "shortcut-recorder", category: "inputs", stageClassName: "gap-8" },
   { slug: "signature-pad", category: "inputs" },
+  { slug: "snooze-picker", category: "inputs" },
   { slug: "tags-input", category: "inputs" },
   { slug: "template-input", category: "inputs" },
   { slug: "time-field", category: "inputs", stageClassName: "gap-8" },

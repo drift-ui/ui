@@ -1077,6 +1077,26 @@ export function DeliveryConfirmation() {
   return <SignaturePad aria-label="Delivery signature" value={signature} onValueChange={setSignature} format="svg" penColor="currentColor" />
 }`,
   },
+  "snooze-picker": {
+    notes:
+      "SnoozePicker provides a popover menu for deferring tasks, snoozing notifications, or scheduling reminders. It includes standard quick presets ('Later today', 'Tomorrow', 'This weekend', 'Next week') with relative time labels, timezone awareness, dynamic cutoff for evening presets, and a custom date-and-time picker with an embedded Calendar and TimeField. Supports controlled or uncontrolled value/open, custom preset definitions via presets, custom target hours via times, and custom trigger content. Pure logic lives in @/lib/snooze-picker-utils. Installs button, calendar, popover, and time-field.",
+    example: `"use client"
+
+import { useState } from "react"
+import { SnoozePicker } from "@/components/ui/snooze-picker"
+
+export function ReminderSnooze() {
+  const [snoozeUntil, setSnoozeUntil] = useState<Date | null>(null)
+
+  return (
+    <SnoozePicker
+      value={snoozeUntil}
+      onValueChange={setSnoozeUntil}
+      placeholder="Snooze reminder"
+    />
+  )
+}`,
+  },
   "sortable-list": {
     notes:
       "Reorderable list built on Motion's Reorder: the dragged row follows the pointer, neighbours spring out of the way, and the page or a scrollable parent scrolls near its edges. Controlled with value/onValueChange or uncontrolled with defaultValue. onValueChange fires once, on drop, and only if the order changed; the render function gets the live index during a move. Space/Enter picks up or drops an item, ArrowUp/ArrowDown (or ArrowLeft/ArrowRight for horizontal) moves it, Home/End jump to the ends, and Escape cancels a keyboard or pointer move. Moving focus away drops the item. Screen readers receive live status announcements. Add SortableDragHandle to limit dragging to a grip, which also leaves touch scrolling and text selection working on the row. Without a handle, the row drags from anywhere except links, buttons and form controls inside it. If the list sits in an overflow container that can scroll, wrap that container in motion.div with layoutScroll.",
