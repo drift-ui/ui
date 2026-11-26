@@ -138,6 +138,10 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
       action: "Move focus between pattern input and flag buttons",
     },
   ],
+  "request-inspector": [
+    { keys: LEFT_RIGHT, action: "Switch between tabs" },
+    { keys: HOME_END, action: "First or last tab" },
+  ],
   "saved-views": [
     { keys: LEFT_RIGHT, action: "Move between views" },
     { keys: HOME_END, action: "First or last view" },

@@ -3276,6 +3276,65 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "Pure logic functions for validating patterns, length- and match-capped regex execution (with interruptible Web Worker support via findRegexMatchesAsync), sample text segmenting, and flag manipulation. Import from @/lib/regex-input-utils.",
     },
   ],
+  "request-inspector": [
+    {
+      name: "RequestInspector",
+      description:
+        "Inspect HTTP requests and responses with status badge, duration, headers, query parameters, body format detection, and cURL generation.",
+      props: [
+        {
+          name: "request",
+          type: "RequestInspectorRequest",
+          required: true,
+          description:
+            "Request details including method, url, optional headers, and body.",
+        },
+        {
+          name: "response",
+          type: "RequestInspectorResponse",
+          description:
+            "Response details including status, statusText, headers, body, and durationMs.",
+        },
+        {
+          name: "defaultTab",
+          type: '"request" | "response" | "headers" | "timing"',
+          default: '"request"',
+          description: "Initial active tab when uncontrolled.",
+        },
+        {
+          name: "tab",
+          type: '"request" | "response" | "headers" | "timing"',
+          description: "Controlled active tab.",
+        },
+        {
+          name: "onTabChange",
+          type: '(tab: "request" | "response" | "headers" | "timing") => void',
+          description: "Callback fired when the active tab changes.",
+        },
+        {
+          name: "sensitiveHeaders",
+          type: "string[]",
+          default: "DEFAULT_SENSITIVE_HEADERS",
+          description:
+            "List of header names to mask by default and reveal with secret-field. Passing this replaces defaults; spread DEFAULT_SENSITIVE_HEADERS to retain them.",
+        },
+        {
+          name: "hideCurl",
+          type: "boolean",
+          default: "false",
+          description: "Whether to hide the Copy as cURL action button.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "buildCurlCommand, quoteShell, isSensitiveHeader, normalizeHeaders, parseQueryParams, parseBody, formatDuration, getStatusBadgeClass, getStatusText",
+      signature:
+        "buildCurlCommand(request: RequestInspectorRequest, options?: { maskSensitive?: boolean; sensitiveHeaders?: string[] }): string; quoteShell(arg: string): string; isSensitiveHeader(name: string, sensitiveHeaders?: string[]): boolean; normalizeHeaders(headers?: RequestInspectorHeaders | [string, string][]): [string, string][]; parseQueryParams(url: string): [string, string][]; parseBody(body: unknown): { isJson: boolean; jsonValue?: unknown; text: string }; formatDuration(ms?: number): string; getStatusBadgeClass(status: number): { className: string; label: string }; getStatusText(status: number): string",
+      description:
+        "Pure logic helpers imported from @/lib/request-inspector-utils.",
+    },
+  ],
   "saved-views": [
     {
       name: "SavedViews",
