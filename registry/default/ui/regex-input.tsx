@@ -6,13 +6,14 @@ import { AlertCircleIcon } from "lucide-react"
 import { useControllableState } from "@/registry/default/hooks/use-controllable-state"
 import {
   DEFAULT_AVAILABLE_FLAGS,
-  findRegexMatches,
+  findRegexMatchesAsync,
   highlightSampleText,
   normalizeFlags,
   REGEX_FLAGS,
   toggleFlag,
   validateRegex,
   type RegexFlagInfo,
+  type RegexMatchResult,
 } from "@/registry/default/lib/regex-input-utils"
 import { cn } from "@/registry/default/lib/utils"
 import { Badge } from "@/registry/default/ui/badge"
@@ -146,14 +147,38 @@ function RegexInput({
   const isValid = validation.isValid
   const error = validation.error
 
-  // Find matches if sample text is provided
-  const matchResult = React.useMemo(() => {
-    if (!sample || !isValid) return null
-    return findRegexMatches(pattern, currentFlags, sample, {
+  // Evaluate matches off-render (in an interruptible Worker when supported)
+  const [matchState, setMatchState] = React.useState<{
+    key: string
+    result: RegexMatchResult
+  } | null>(null)
+
+  const matchKey =
+    sample && isValid && pattern
+      ? `${pattern}\0${currentFlags}\0${sample}\0${maxMatches}\0${maxSampleLength}`
+      : null
+
+  React.useEffect(() => {
+    if (!matchKey || !sample) return
+
+    const controller = new AbortController()
+    findRegexMatchesAsync(pattern, currentFlags, sample, {
       maxMatches,
       maxSampleLength,
+      signal: controller.signal,
+    }).then((result) => {
+      if (!controller.signal.aborted) {
+        setMatchState({ key: matchKey, result })
+      }
     })
-  }, [pattern, currentFlags, sample, isValid, maxMatches, maxSampleLength])
+
+    return () => {
+      controller.abort()
+    }
+  }, [matchKey, pattern, currentFlags, sample, maxMatches, maxSampleLength])
+
+  const matchResult =
+    matchKey && matchState?.key === matchKey ? matchState.result : null
 
   const matches = React.useMemo(() => matchResult?.matches ?? [], [matchResult])
   const matchCount = matchResult?.matchCount ?? 0
@@ -171,7 +196,6 @@ function RegexInput({
   }
 
   const handleToggleFlag = (flag: string) => {
-    if (disabled || readOnly) return
     const nextFlags = toggleFlag(currentFlags, flag)
     setCurrentFlags(nextFlags)
   }
@@ -309,7 +333,7 @@ function RegexInput({
       {sample && (
         <div id={statusId} className="sr-only" aria-live="polite">
           {isValid && pattern
-            ? `${matchCount} matches found in sample text`
+            ? `${matchCount} ${matchCount === 1 ? "match" : "matches"} found in sample text`
             : !isValid
               ? "Invalid regex pattern"
               : ""}

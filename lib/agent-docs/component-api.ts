@@ -3060,11 +3060,11 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<div>",
     },
     {
-      name: "validateRegex, findRegexMatches, highlightSampleText, toggleFlag, normalizeFlags",
+      name: "validateRegex, findRegexMatches, findRegexMatchesAsync, highlightSampleText, toggleFlag, normalizeFlags",
       signature:
-        "validateRegex(pattern: string, flags?: string): RegexValidationResult; findRegexMatches(pattern: string, flags: string, sample: string, options?: RegexMatchOptions): RegexMatchResult; highlightSampleText(sample: string, matches: RegexMatch[]): RegexSegment[]; toggleFlag(flags: string, flag: string): string; normalizeFlags(flags: string): string",
+        "validateRegex(pattern: string, flags?: string): RegexValidationResult; findRegexMatches(pattern: string, flags: string, sample: string, options?: RegexMatchOptions): RegexMatchResult; findRegexMatchesAsync(pattern: string, flags: string, sample: string, options?: RegexMatchOptions & { signal?: AbortSignal }): Promise<RegexMatchResult>; highlightSampleText(sample: string, matches: RegexMatch[]): RegexSegment[]; toggleFlag(flags: string, flag: string): string; normalizeFlags(flags: string): string",
       description:
-        "Pure logic functions for validating patterns, safe regex execution with length and match caps, sample text segmenting, and flag manipulation. Import from @/lib/regex-input-utils.",
+        "Pure logic functions for validating patterns, length- and match-capped regex execution (with interruptible Web Worker support via findRegexMatchesAsync), sample text segmenting, and flag manipulation. Import from @/lib/regex-input-utils.",
     },
   ],
   "saved-views": [

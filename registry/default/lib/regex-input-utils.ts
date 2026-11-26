@@ -138,8 +138,11 @@ type RegExpExecWithIndices = RegExpExecArray & {
 }
 
 /**
- * Finds all matches and capture groups safely within sample text.
- * Enforces execution limits (sample length cap, match cap, iteration cap, zero-length loop guard).
+ * Finds all matches and capture groups within sample text.
+ * Enforces execution limits (sample length cap, match cap, iteration cap,
+ * inter-iteration timeout check, and zero-length loop guard).
+ * Note: for interruptible bounding of a single catastrophic regex.exec call
+ * in browser environments, use `findRegexMatchesAsync`.
  */
 export function findRegexMatches(
   pattern: string,
@@ -306,6 +309,127 @@ export function findRegexMatches(
     executionTimeMs: Math.round(executionTimeMs * 10) / 10,
     error: null,
   }
+}
+
+function createRegexWorkerScript(): string {
+  return `${normalizeFlags.toString()}
+${findRegexMatches.toString()}
+self.onmessage = function (event) {
+  var data = event.data
+  self.postMessage(
+    findRegexMatches(data.pattern, data.flags, data.sample, data.options)
+  )
+}`
+}
+
+/**
+ * Runs `findRegexMatches` inside an interruptible Web Worker when available so
+ * catastrophic backtracking can be terminated after `timeoutMs` or on abort
+ * without blocking the main thread. Falls back to `findRegexMatches` when
+ * Workers are unavailable.
+ */
+export function findRegexMatchesAsync(
+  pattern: string,
+  flags: string,
+  sample: string,
+  options?: RegexMatchOptions & { signal?: AbortSignal }
+): Promise<RegexMatchResult> {
+  const maxMatches = options?.maxMatches ?? 100
+  const timeoutMs = options?.timeoutMs ?? 150
+  const signal = options?.signal
+
+  if (signal?.aborted) {
+    return Promise.resolve({
+      matches: [],
+      matchCount: 0,
+      truncated: false,
+      executionTimeMs: 0,
+      error: null,
+    })
+  }
+
+  if (
+    !pattern ||
+    !sample ||
+    maxMatches <= 0 ||
+    typeof Worker === "undefined" ||
+    typeof Blob === "undefined" ||
+    typeof URL === "undefined" ||
+    typeof URL.createObjectURL !== "function"
+  ) {
+    return Promise.resolve(findRegexMatches(pattern, flags, sample, options))
+  }
+
+  return new Promise((resolve) => {
+    const workerOptions: RegexMatchOptions = {
+      maxMatches: options?.maxMatches,
+      maxSampleLength: options?.maxSampleLength,
+      maxIterations: options?.maxIterations,
+      timeoutMs,
+    }
+
+    let worker: Worker
+    let blobUrl: string
+    try {
+      const blob = new Blob([createRegexWorkerScript()], {
+        type: "text/javascript",
+      })
+      blobUrl = URL.createObjectURL(blob)
+      worker = new Worker(blobUrl)
+    } catch {
+      resolve(findRegexMatches(pattern, flags, sample, workerOptions))
+      return
+    }
+
+    let settled = false
+
+    const finish = (result: RegexMatchResult) => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      signal?.removeEventListener("abort", onAbort)
+      worker.terminate()
+      URL.revokeObjectURL(blobUrl)
+      resolve(result)
+    }
+
+    const onAbort = () => {
+      finish({
+        matches: [],
+        matchCount: 0,
+        truncated: false,
+        executionTimeMs: 0,
+        error: null,
+      })
+    }
+
+    signal?.addEventListener("abort", onAbort, { once: true })
+
+    const timer = setTimeout(() => {
+      finish({
+        matches: [],
+        matchCount: 0,
+        truncated: true,
+        executionTimeMs: timeoutMs,
+        error: null,
+      })
+    }, timeoutMs)
+
+    worker.onmessage = (event: MessageEvent<RegexMatchResult>) => {
+      finish(event.data)
+    }
+
+    worker.onerror = () => {
+      finish(findRegexMatches(pattern, flags, sample, workerOptions))
+    }
+
+    worker.postMessage({
+      pattern,
+      flags,
+      sample,
+      options: workerOptions,
+    })
+  })
 }
 
 /**

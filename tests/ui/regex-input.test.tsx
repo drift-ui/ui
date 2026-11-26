@@ -1,5 +1,5 @@
 import * as React from "react"
-import { fireEvent, render, screen } from "@testing-library/react"
+import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -118,12 +118,12 @@ describe("RegexInput", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument()
   })
 
-  it("renders sample text preview and highlights matches in <mark>", () => {
+  it("renders sample text preview and highlights matches in <mark>", async () => {
     const sample = "Alpha 123 Beta 456 Gamma"
     const { container } = render(<RegexInput value="[0-9]+" sample={sample} />)
 
     expect(screen.getByText("Test Sample")).toBeInTheDocument()
-    expect(screen.getAllByText(/2 matches/)).toHaveLength(2)
+    expect(await screen.findAllByText(/2 matches/)).toHaveLength(2)
 
     const marks = container.querySelectorAll("mark")
     expect(marks).toHaveLength(2)
@@ -131,11 +131,11 @@ describe("RegexInput", () => {
     expect(marks[1]).toHaveTextContent("456")
   })
 
-  it("displays capture groups when pattern contains groups", () => {
+  it("displays capture groups when pattern contains groups", async () => {
     const sample = "order-101 and order-202"
     render(<RegexInput value="order-(?<id>[0-9]+)" sample={sample} />)
 
-    expect(screen.getByText("Capture Groups")).toBeInTheDocument()
+    expect(await screen.findByText("Capture Groups")).toBeInTheDocument()
     expect(screen.getByText("Match 1:")).toBeInTheDocument()
     expect(screen.getByText('"order-101"')).toBeInTheDocument()
     expect(screen.getAllByText("$id")).toHaveLength(2)
@@ -251,5 +251,104 @@ describe("RegexInput", () => {
     const ref = React.createRef<HTMLInputElement>()
     render(<RegexInput inputRef={ref} />)
     expect(ref.current).toBeInstanceOf(HTMLInputElement)
+  })
+
+  it("supports aria-labelledby, showError=false, and custom/unknown flags", async () => {
+    const user = userEvent.setup()
+    render(
+      <div>
+        <span id="custom-regex-label">Pattern label</span>
+        <RegexInput
+          aria-labelledby="custom-regex-label"
+          value="[unclosed"
+          showError={false}
+          availableFlags={["i", "z"]}
+        />
+      </div>
+    )
+
+    const input = screen.getByLabelText("Pattern label")
+    expect(input).toHaveAttribute("aria-invalid", "true")
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument()
+
+    const customBtn = screen.getByRole("button", { name: "Flag z" })
+    expect(customBtn).toHaveAttribute("title", "Flag z")
+    await user.click(customBtn)
+    expect(customBtn).toHaveAttribute("aria-pressed", "false")
+  })
+
+  it("renders singular match, truncated badge/summary, empty/invalid sample states, numbered groups, and >10 matches notice", async () => {
+    const { rerender } = render(<RegexInput value="" sample="hello" />)
+    expect(screen.getByText("Enter a pattern to test")).toBeInTheDocument()
+
+    rerender(<RegexInput value="[unclosed" sample="hello" />)
+    expect(screen.getByText("Invalid pattern")).toBeInTheDocument()
+    expect(screen.getByText("Invalid regex pattern")).toBeInTheDocument()
+
+    rerender(<RegexInput value="hello" sample="hello world" />)
+    expect(await screen.findAllByText(/1 match/)).toHaveLength(2)
+
+    rerender(<RegexInput value="a" sample="aaaa" maxMatches={2} />)
+    expect(await screen.findByText("2 matches+")).toBeInTheDocument()
+    expect(screen.getByText(/\(limit reached\)/)).toBeInTheDocument()
+
+    rerender(<RegexInput value="([a-z])" sample="a b c d e f g h i j k l" />)
+    expect(await screen.findAllByText("Group 1")).toHaveLength(10)
+    expect(screen.getByText("+ 2 more matches")).toBeInTheDocument()
+  })
+
+  it("evaluates matches in a Worker when available and aborts on unmount", async () => {
+    const createObjectURL = vi.fn(() => "blob:ui-worker")
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal("URL", {
+      ...URL,
+      createObjectURL,
+      revokeObjectURL,
+    })
+
+    const workers: Array<{
+      onmessage: ((e: MessageEvent) => void) | null
+      terminate: ReturnType<typeof vi.fn>
+    }> = []
+
+    vi.stubGlobal(
+      "Worker",
+      class {
+        onmessage: ((e: MessageEvent) => void) | null = null
+        onerror: ((e: Event) => void) | null = null
+        postMessage = vi.fn()
+        terminate = vi.fn()
+        constructor() {
+          workers.push(this)
+        }
+      }
+    )
+
+    try {
+      const { rerender, unmount } = render(
+        <RegexInput value="foo" sample="foo bar" />
+      )
+      expect(workers).toHaveLength(1)
+      workers[0].onmessage?.({
+        data: {
+          matches: [{ match: "foo", index: 0, length: 3, groups: [] }],
+          matchCount: 1,
+          truncated: false,
+          executionTimeMs: 1,
+          error: null,
+        },
+      } as MessageEvent)
+
+      await waitFor(() => {
+        expect(screen.getAllByText(/1 match/)).toHaveLength(2)
+      })
+
+      rerender(<RegexInput value="bar" sample="foo bar" />)
+      expect(workers).toHaveLength(2)
+      unmount()
+      expect(workers[1].terminate).toHaveBeenCalled()
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })

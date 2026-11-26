@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import {
   findRegexMatches,
+  findRegexMatchesAsync,
   highlightSampleText,
   normalizeFlags,
   toggleFlag,
@@ -73,6 +74,23 @@ describe("regex-input-utils", () => {
 
       const leadingQuantifier = validateRegex("*abc")
       expect(leadingQuantifier.isValid).toBe(false)
+    })
+
+    it("falls back to default message when a non-Error is thrown", () => {
+      const OrigRegExp = globalThis.RegExp
+      globalThis.RegExp = class {
+        constructor() {
+          throw "non-error syntax failure"
+        }
+      } as unknown as RegExpConstructor
+
+      try {
+        const res = validateRegex("abc")
+        expect(res.isValid).toBe(false)
+        expect(res.error).toBe("Invalid regular expression syntax")
+      } finally {
+        globalThis.RegExp = OrigRegExp
+      }
     })
   })
 
@@ -230,6 +248,60 @@ describe("regex-input-utils", () => {
           start: 0,
           end: 5,
         })
+
+        // Multiple named groups & duplicate values in fallback mode
+        const dupRes = findRegexMatches(
+          "(?<left>\\w+)-(?<right>\\w+)",
+          "",
+          "same-same"
+        )
+        expect(dupRes.matches[0].groups[0].name).toBe("left")
+        expect(dupRes.matches[0].groups[1].name).toBe("right")
+
+        // Unnamed group in fallback mode
+        const numRes = findRegexMatches("(\\w+)", "", "hello")
+        expect(numRes.matches[0].groups[0].name).toBeUndefined()
+
+        // Invalid pattern in fallback mode (also exercises outer/inner catch)
+        const invalidRes = findRegexMatches("[a-z", "", "test")
+        expect(invalidRes.error).toBeTruthy()
+        expect(invalidRes.matches).toHaveLength(0)
+      } finally {
+        globalThis.RegExp = OrigRegExp
+      }
+    })
+
+    it("handles optional unmatched capture groups", () => {
+      const res = findRegexMatches("(a)|(b)", "", "a")
+      expect(res.matches).toHaveLength(1)
+      expect(res.matches[0].groups).toHaveLength(1)
+      expect(res.matches[0].groups[0].number).toBe(1)
+      expect(res.matches[0].groups[0].value).toBe("a")
+    })
+
+    it("truncates when elapsed time reaches timeoutMs and works without performance global", () => {
+      vi.stubGlobal("performance", undefined)
+      try {
+        const res = findRegexMatches("a", "", "aaaaa", { timeoutMs: 0 })
+        expect(res.truncated).toBe(true)
+        expect(res.matches).toHaveLength(1)
+      } finally {
+        vi.unstubAllGlobals()
+      }
+    })
+
+    it("handles non-Error thrown during fallback regex compilation", () => {
+      const OrigRegExp = globalThis.RegExp
+      globalThis.RegExp = class {
+        constructor() {
+          throw "unexpected"
+        }
+      } as unknown as RegExpConstructor
+
+      try {
+        const res = findRegexMatches("a", "", "a")
+        expect(res.error).toBe("Invalid regular expression")
+        expect(res.matches).toHaveLength(0)
       } finally {
         globalThis.RegExp = OrigRegExp
       }
@@ -248,7 +320,124 @@ describe("regex-input-utils", () => {
     })
   })
 
+  describe("findRegexMatchesAsync", () => {
+    it("falls back to synchronous matching when Worker is unavailable", async () => {
+      const res = await findRegexMatchesAsync("\\d+", "", "a1 b22")
+      expect(res.matchCount).toBe(2)
+      expect(res.matches[0].match).toBe("1")
+      expect(res.matches[1].match).toBe("22")
+    })
+
+    it("returns empty immediately when aborted or inputs are empty", async () => {
+      const controller = new AbortController()
+      controller.abort()
+      const aborted = await findRegexMatchesAsync("a", "", "aaa", {
+        signal: controller.signal,
+      })
+      expect(aborted.matchCount).toBe(0)
+
+      const empty = await findRegexMatchesAsync("", "", "aaa")
+      expect(empty.matchCount).toBe(0)
+    })
+
+    it("runs in a Worker, resolves messages, handles timeouts, abort, and errors", async () => {
+      const createObjectURL = vi.fn(() => "blob:mock-worker")
+      const revokeObjectURL = vi.fn()
+      vi.stubGlobal("URL", {
+        ...URL,
+        createObjectURL,
+        revokeObjectURL,
+      })
+
+      const instances: Array<{
+        onmessage: ((e: MessageEvent) => void) | null
+        onerror: ((e: Event) => void) | null
+        postMessage: ReturnType<typeof vi.fn>
+        terminate: ReturnType<typeof vi.fn>
+      }> = []
+
+      class MockWorker {
+        onmessage: ((e: MessageEvent) => void) | null = null
+        onerror: ((e: Event) => void) | null = null
+        postMessage = vi.fn()
+        terminate = vi.fn()
+        constructor() {
+          instances.push(this)
+        }
+      }
+      vi.stubGlobal("Worker", MockWorker)
+
+      try {
+        // 1. Successful message completion
+        const p1 = findRegexMatchesAsync("a", "", "aba")
+        expect(instances).toHaveLength(1)
+        const w1 = instances[0]
+        w1.onmessage?.({
+          data: {
+            matches: [],
+            matchCount: 2,
+            truncated: false,
+            executionTimeMs: 1,
+            error: null,
+          },
+        } as MessageEvent)
+        const r1 = await p1
+        expect(r1.matchCount).toBe(2)
+        expect(w1.terminate).toHaveBeenCalled()
+        expect(revokeObjectURL).toHaveBeenCalledWith("blob:mock-worker")
+
+        // 2. Timeout terminates hung worker and marks truncated
+        const r2 = await findRegexMatchesAsync("(a+)+$", "", "a".repeat(30), {
+          timeoutMs: 15,
+        })
+        expect(r2.truncated).toBe(true)
+        expect(r2.matchCount).toBe(0)
+        expect(instances[1].terminate).toHaveBeenCalled()
+
+        // 3. Abort signal terminates worker
+        const ctrl = new AbortController()
+        const p3 = findRegexMatchesAsync("a", "", "aaa", {
+          signal: ctrl.signal,
+          timeoutMs: 500,
+        })
+        ctrl.abort()
+        const r3 = await p3
+        expect(r3.truncated).toBe(false)
+        expect(instances[2].terminate).toHaveBeenCalled()
+
+        // 4. Worker onerror falls back to findRegexMatches
+        const p4 = findRegexMatchesAsync("a", "", "aba")
+        instances[3].onerror?.(new Event("error"))
+        const r4 = await p4
+        expect(r4.matchCount).toBe(2)
+
+        // 5. Worker constructor throw falls back to findRegexMatches
+        vi.stubGlobal(
+          "Worker",
+          class {
+            constructor() {
+              throw new Error("CSP blocked")
+            }
+          }
+        )
+        const r5 = await findRegexMatchesAsync("a", "", "aba")
+        expect(r5.matchCount).toBe(2)
+      } finally {
+        vi.unstubAllGlobals()
+      }
+    })
+  })
+
   describe("highlightSampleText", () => {
+    it("skips zero-length matches without emitting empty <mark> segments", () => {
+      const segments = highlightSampleText("ab", [
+        { match: "", index: 1, length: 0, groups: [] },
+      ])
+      expect(segments).toEqual([
+        { text: "a", isMatch: false },
+        { text: "b", isMatch: false },
+      ])
+    })
     it("returns single segment when no matches", () => {
       const sample = "Hello World"
       const segments = highlightSampleText(sample, [])
