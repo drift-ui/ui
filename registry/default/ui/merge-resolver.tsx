@@ -34,7 +34,7 @@ function renderOursSegments(segments: DiffSegment[]) {
     segment.changed ? (
       <del
         key={index}
-        className="text-destructive-foreground rounded-sm bg-destructive/25 px-0.5 font-semibold no-underline dark:text-destructive"
+        className="rounded-sm bg-destructive/25 px-0.5 font-semibold no-underline"
       >
         <span className="sr-only">Removed: </span>
         {segment.text}
