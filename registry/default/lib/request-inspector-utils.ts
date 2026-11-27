@@ -239,7 +239,7 @@ export function getStatusBadgeClass(status: number): {
   }
   if (status >= 400 && status < 500) {
     return {
-      className: "border-chart-5/30 bg-chart-5/15 text-chart-5",
+      className: "border-warning/30 bg-warning/15 text-warning",
       label: "Client error",
     }
   }

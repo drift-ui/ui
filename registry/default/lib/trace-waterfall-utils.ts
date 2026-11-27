@@ -44,11 +44,11 @@ export type FlattenedSpanRow = {
 }
 
 const CHART_COLOR_CLASSES = [
-  "bg-chart-1 text-chart-1-foreground",
-  "bg-chart-2 text-chart-2-foreground",
-  "bg-chart-3 text-chart-3-foreground",
-  "bg-chart-4 text-chart-4-foreground",
-  "bg-chart-5 text-chart-5-foreground",
+  "bg-chart-1",
+  "bg-chart-2",
+  "bg-chart-3",
+  "bg-chart-4",
+  "bg-chart-5",
 ]
 
 export function formatDuration(ms: number): string {
@@ -82,7 +82,7 @@ export function getSpanColorClass(
   serviceColors?: ReadonlyMap<string, string>
 ): string {
   if (span.status === "error") {
-    return "bg-destructive text-destructive-foreground"
+    return "bg-destructive"
   }
   if (span.color) {
     return span.color

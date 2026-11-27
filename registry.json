@@ -980,7 +980,8 @@
         "@drift-ui/json-viewer",
         "@drift-ui/secret-field",
         "@drift-ui/use-controllable-state",
-        "@drift-ui/use-copy-to-clipboard"
+        "@drift-ui/use-copy-to-clipboard",
+        "@drift-ui/warning-color"
       ],
       "files": [
         {
@@ -1235,7 +1236,9 @@
       "description": "Neutral color tokens for light and dark mode, with AA contrast for secondary text.",
       "cssVars": {
         "theme": {
-          "radius": "0.625rem"
+          "radius": "0.625rem",
+          "color-warning": "var(--warning)",
+          "color-warning-foreground": "var(--warning-foreground)"
         },
         "light": {
           "background": "oklch(1 0 0)",
@@ -1253,6 +1256,8 @@
           "accent": "oklch(0.97 0 0)",
           "accent-foreground": "oklch(0.205 0 0)",
           "destructive": "oklch(0.577 0.245 27.325)",
+          "warning": "oklch(0.555 0.163 48.998)",
+          "warning-foreground": "oklch(0.985 0 0)",
           "border": "oklch(0.9 0 0)",
           "input": "oklch(0.9 0 0)",
           "ring": "oklch(0.708 0 0)",
@@ -1278,6 +1283,8 @@
           "accent": "oklch(0.269 0 0)",
           "accent-foreground": "oklch(0.985 0 0)",
           "destructive": "oklch(0.704 0.191 22.216)",
+          "warning": "oklch(0.828 0.189 84.429)",
+          "warning-foreground": "oklch(0.205 0 0)",
           "border": "oklch(1 0 0 / 10%)",
           "input": "oklch(1 0 0 / 15%)",
           "ring": "oklch(0.556 0 0)",
@@ -1353,7 +1360,7 @@
       "title": "Toast",
       "description": "Toasts that keep shadcn's API and add undo with a working shortcut, progress, merging of repeated toasts, reading-time durations and a handoff to the notification inbox.",
       "dependencies": ["sonner", "next-themes", "lucide-react"],
-      "registryDependencies": ["@drift-ui/shape"],
+      "registryDependencies": ["@drift-ui/shape", "@drift-ui/warning-color"],
       "files": [
         {
           "path": "registry/default/ui/sonner.tsx",
@@ -1489,7 +1496,8 @@
         "badge",
         "popover",
         "utils",
-        "@drift-ui/use-controllable-state"
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/warning-color"
       ],
       "files": [
         {
@@ -1508,7 +1516,7 @@
       "title": "Usage Meter",
       "description": "Progress meter for storage, seats, and rate limits with thresholds, segmented breakdown, and overage tracking.",
       "dependencies": [],
-      "registryDependencies": ["badge", "utils"],
+      "registryDependencies": ["badge", "utils", "@drift-ui/warning-color"],
       "files": [
         {
           "path": "registry/default/ui/usage-meter.tsx",
@@ -1573,6 +1581,26 @@
           "type": "registry:lib"
         }
       ]
+    },
+    {
+      "name": "warning-color",
+      "type": "registry:theme",
+      "title": "Warning Color",
+      "description": "Amber warning tokens for light and dark mode that pass AA contrast as small text.",
+      "cssVars": {
+        "theme": {
+          "color-warning": "var(--warning)",
+          "color-warning-foreground": "var(--warning-foreground)"
+        },
+        "light": {
+          "warning": "oklch(0.555 0.163 48.998)",
+          "warning-foreground": "oklch(0.985 0 0)"
+        },
+        "dark": {
+          "warning": "oklch(0.828 0.189 84.429)",
+          "warning-foreground": "oklch(0.205 0 0)"
+        }
+      }
     },
     {
       "name": "weekly-hours",

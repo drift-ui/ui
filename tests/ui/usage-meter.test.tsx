@@ -53,7 +53,7 @@ describe("UsageMeter", () => {
     expect(track).toHaveAttribute("data-status", "warning")
 
     const bar = container.querySelector('[data-slot="usage-meter-bar"]')!
-    expect(bar).toHaveClass("bg-chart-5")
+    expect(bar).toHaveClass("bg-warning")
     expect(bar).toHaveStyle({ width: "80%" })
 
     expect(screen.getByText("80% used")).toBeInTheDocument()

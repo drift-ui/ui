@@ -49,7 +49,7 @@ const SIZE_VARIANTS = {
 
 const STATUS_BAR_COLORS: Record<UsageMeterStatus, string> = {
   normal: "bg-primary",
-  warning: "bg-chart-5",
+  warning: "bg-warning",
   danger: "bg-destructive",
 }
 
@@ -218,7 +218,7 @@ export function UsageMeter({
             {showStatusBadge && !isOverLimit && status === "warning" && (
               <Badge
                 variant="secondary"
-                className="shrink-0 border-chart-5/40 text-xs text-chart-5"
+                className="shrink-0 border-warning/40 text-xs text-warning"
               >
                 {Math.round(percentage)}% used
               </Badge>

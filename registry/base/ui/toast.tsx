@@ -348,7 +348,7 @@ function ToastClose({
 const TOAST_ICONS: Record<string, React.ReactNode> = {
   success: <CircleCheckIcon aria-hidden="true" className="text-chart-2" />,
   info: <InfoIcon aria-hidden="true" className="text-muted-foreground" />,
-  warning: <TriangleAlertIcon aria-hidden="true" className="text-chart-5" />,
+  warning: <TriangleAlertIcon aria-hidden="true" className="text-warning" />,
   error: <OctagonXIcon aria-hidden="true" className="text-destructive" />,
   loading: (
     <Loader2Icon

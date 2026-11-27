@@ -49,7 +49,7 @@ describe("UptimeBar", () => {
     )
 
     expect(segments[1]).toHaveAttribute("data-status", "degraded")
-    expect(segments[1]).toHaveClass("bg-chart-5")
+    expect(segments[1]).toHaveClass("bg-warning")
     expect(segments[1]).toHaveAttribute(
       "aria-label",
       "October 29, 2026, degraded performance: Elevated latency"
