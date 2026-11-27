@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { ArrowRightIcon } from "lucide-react"
 
-import type { CatalogCard } from "@/components/docs/components-browser"
+import type { CatalogCard } from "@/components/docs/component-card"
 import { ComponentsBrowser } from "@/components/docs/components-browser"
 import { PreviewStage } from "@/components/docs/preview-stage"
 import { CATALOG, CATEGORIES } from "@/lib/catalog"
@@ -20,7 +20,6 @@ const CARDS: CatalogCard[] = CATALOG.map((entry) => ({
   name: entry.name,
   description: entry.description,
   category: entry.category,
-  isFlagship: entry.isFlagship,
   thumbnail: <PreviewStage entry={entry} />,
 }))
 
@@ -28,7 +27,7 @@ export default function ComponentsPage() {
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 pt-10 pb-24 md:px-10">
       <header className="flex flex-col gap-3">
-        <h1 className="rise font-display text-5xl leading-[0.92] font-semibold tracking-[-0.045em] md:text-7xl">
+        <h1 className="rise font-display text-4xl leading-[1.02] font-semibold tracking-[-0.04em] md:text-5xl">
           Components
         </h1>
         <div className="flex flex-col gap-2 lg:flex-row lg:items-baseline lg:justify-between lg:gap-8">

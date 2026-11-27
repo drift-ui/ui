@@ -22,6 +22,32 @@
       ]
     },
     {
+      "name": "address-input",
+      "type": "registry:ui",
+      "title": "Address Input",
+      "description": "Address fields that follow each country's field order, labels and postal code rules, with browser autofill.",
+      "registryDependencies": [
+        "utils",
+        "input",
+        "label",
+        "@drift-ui/use-controllable-state"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/address-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/address-input-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/countries.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "avatar",
       "type": "registry:ui",
       "title": "Avatar",
@@ -157,6 +183,28 @@
         },
         {
           "path": "registry/default/lib/comment-thread-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "cron-input",
+      "type": "registry:ui",
+      "title": "Cron Input",
+      "description": "Standard five-field cron expression input with plain-English schedule readout and upcoming run times.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "utils",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/cron-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/cron-input-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -365,6 +413,48 @@
       ]
     },
     {
+      "name": "histogram-range",
+      "type": "registry:ui",
+      "title": "Histogram Range",
+      "description": "Dual-thumb range slider combined with a distribution histogram bar chart.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": ["utils", "@drift-ui/use-controllable-state"],
+      "files": [
+        {
+          "path": "registry/default/ui/histogram-range.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/histogram-range-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "icon-picker",
+      "type": "registry:ui",
+      "title": "Icon Picker",
+      "description": "Searchable Lucide icon grid with arrow-key navigation, roving tabindex, recent icons, and tags search.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "button",
+        "input",
+        "utils",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/icon-picker.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/icon-picker-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "image-cropper",
       "type": "registry:ui",
       "title": "Image Cropper",
@@ -439,6 +529,28 @@
       ]
     },
     {
+      "name": "kanban-board",
+      "type": "registry:ui",
+      "title": "Kanban Board",
+      "description": "Multi-column task board for moving cards between workflow stages with keyboard and drag-and-drop support.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "utils",
+        "badge",
+        "@drift-ui/use-controllable-state"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/kanban-board.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/kanban-board-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "key-value-editor",
       "type": "registry:ui",
       "title": "Key Value Editor",
@@ -485,6 +597,33 @@
         {
           "path": "registry/default/ui/label.tsx",
           "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "locale-picker",
+      "type": "registry:ui",
+      "title": "Locale Picker",
+      "description": "Combobox for picking a BCP 47 locale with native names, English names and country flags.",
+      "dependencies": ["lucide-react", "radix-ui"],
+      "registryDependencies": [
+        "utils",
+        "popover",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/locale-picker.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/locale-picker-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/countries.ts",
+          "type": "registry:lib"
         }
       ]
     },
@@ -554,6 +693,35 @@
         },
         {
           "path": "registry/default/lib/mention.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "merge-resolver",
+      "type": "registry:ui",
+      "title": "Merge Resolver",
+      "description": "Per-field conflict resolution for structured records with diff highlights, custom overrides, and batch actions.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "utils",
+        "badge",
+        "button",
+        "input",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/merge-resolver.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/merge-resolver-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/diff.ts",
           "type": "registry:lib"
         }
       ]
@@ -702,6 +870,10 @@
         {
           "path": "registry/default/lib/phone-input-utils.ts",
           "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/countries.ts",
+          "type": "registry:lib"
         }
       ]
     },
@@ -716,6 +888,33 @@
         {
           "path": "registry/default/ui/popover.tsx",
           "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "query-input",
+      "type": "registry:ui",
+      "title": "Query Input",
+      "description": "A search bar that reads key:value filters as you type, suggests keys and values, and returns Filter objects plus the leftover text.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": [
+        "utils",
+        "popover",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/query-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/query-input-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/filter.ts",
+          "type": "registry:lib"
         }
       ]
     },
@@ -753,6 +952,56 @@
         },
         {
           "path": "registry/default/lib/recurrence.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "regex-input",
+      "type": "registry:ui",
+      "title": "Regex Input",
+      "description": "Validate regular expressions live with flags toggles, error feedback, and match previews.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "utils",
+        "badge",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/regex-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/regex-input-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "request-inspector",
+      "type": "registry:ui",
+      "title": "Request Inspector",
+      "description": "Inspect HTTP requests and responses with status codes, headers, timing, format detection, and cURL generation.",
+      "dependencies": ["radix-ui", "lucide-react"],
+      "registryDependencies": [
+        "utils",
+        "badge",
+        "button",
+        "@drift-ui/json-viewer",
+        "@drift-ui/secret-field",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/use-copy-to-clipboard",
+        "@drift-ui/warning-color"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/request-inspector.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/request-inspector-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -894,6 +1143,32 @@
       ]
     },
     {
+      "name": "snooze-picker",
+      "type": "registry:ui",
+      "title": "Snooze Picker",
+      "description": "Menu for scheduling reminders, snoozing notifications, or deferring tasks with quick presets and custom date-time picker.",
+      "dependencies": ["lucide-react", "react-day-picker"],
+      "registryDependencies": [
+        "utils",
+        "button",
+        "calendar",
+        "popover",
+        "@drift-ui/time-field",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/snooze-picker.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/snooze-picker-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "sortable-list",
       "type": "registry:ui",
       "title": "Sortable List",
@@ -940,13 +1215,42 @@
       ]
     },
     {
+      "name": "template-input",
+      "type": "registry:ui",
+      "title": "Template Input",
+      "description": "A textarea for templates with {{variables}}: typing {{ suggests variables, inserted ones are highlighted and unknown ones are flagged.",
+      "dependencies": ["radix-ui"],
+      "registryDependencies": [
+        "utils",
+        "popover",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/template-input.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/template-input-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/mention.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "theme",
       "type": "registry:theme",
       "title": "Theme",
       "description": "Neutral color tokens for light and dark mode, with AA contrast for secondary text.",
       "cssVars": {
         "theme": {
-          "radius": "0.625rem"
+          "radius": "0.625rem",
+          "color-warning": "var(--warning)",
+          "color-warning-foreground": "var(--warning-foreground)"
         },
         "light": {
           "background": "oklch(1 0 0)",
@@ -964,6 +1268,8 @@
           "accent": "oklch(0.97 0 0)",
           "accent-foreground": "oklch(0.205 0 0)",
           "destructive": "oklch(0.577 0.245 27.325)",
+          "warning": "oklch(0.555 0.163 48.998)",
+          "warning-foreground": "oklch(0.985 0 0)",
           "border": "oklch(0.9 0 0)",
           "input": "oklch(0.9 0 0)",
           "ring": "oklch(0.708 0 0)",
@@ -989,6 +1295,8 @@
           "accent": "oklch(0.269 0 0)",
           "accent-foreground": "oklch(0.985 0 0)",
           "destructive": "oklch(0.704 0.191 22.216)",
+          "warning": "oklch(0.828 0.189 84.429)",
+          "warning-foreground": "oklch(0.205 0 0)",
           "border": "oklch(1 0 0 / 10%)",
           "input": "oklch(1 0 0 / 15%)",
           "ring": "oklch(0.556 0 0)",
@@ -1054,6 +1362,28 @@
         },
         {
           "path": "registry/default/lib/timezone-picker-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "toast",
+      "type": "registry:ui",
+      "title": "Toast",
+      "description": "Toasts that keep shadcn's API and add undo with a working shortcut, progress, merging of repeated toasts, reading-time durations and a handoff to the notification inbox.",
+      "dependencies": ["sonner", "next-themes", "lucide-react"],
+      "registryDependencies": ["@drift-ui/shape", "@drift-ui/warning-color"],
+      "files": [
+        {
+          "path": "registry/default/ui/sonner.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/toast-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/shortcut.ts",
           "type": "registry:lib"
         }
       ]
@@ -1178,7 +1508,8 @@
         "badge",
         "popover",
         "utils",
-        "@drift-ui/use-controllable-state"
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/warning-color"
       ],
       "files": [
         {
@@ -1187,6 +1518,24 @@
         },
         {
           "path": "registry/default/lib/uptime-bar-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "usage-meter",
+      "type": "registry:ui",
+      "title": "Usage Meter",
+      "description": "Progress meter for storage, seats, and rate limits with thresholds, segmented breakdown, and overage tracking.",
+      "dependencies": [],
+      "registryDependencies": ["badge", "utils", "@drift-ui/warning-color"],
+      "files": [
+        {
+          "path": "registry/default/ui/usage-meter.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/usage-meter-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -1241,6 +1590,54 @@
         },
         {
           "path": "registry/default/lib/virtual-list-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "warning-color",
+      "type": "registry:theme",
+      "title": "Warning Color",
+      "description": "Amber warning tokens for light and dark mode that pass AA contrast as small text.",
+      "cssVars": {
+        "theme": {
+          "color-warning": "var(--warning)",
+          "color-warning-foreground": "var(--warning-foreground)"
+        },
+        "light": {
+          "warning": "oklch(0.555 0.163 48.998)",
+          "warning-foreground": "oklch(0.985 0 0)"
+        },
+        "dark": {
+          "warning": "oklch(0.828 0.189 84.429)",
+          "warning-foreground": "oklch(0.205 0 0)"
+        }
+      }
+    },
+    {
+      "name": "weekly-hours",
+      "type": "registry:ui",
+      "title": "Weekly Hours",
+      "description": "Opening or working hours per weekday, with split shifts, copy to other days and overlap checks.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "utils",
+        "button",
+        "@drift-ui/time-field",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/weekly-hours.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/weekly-hours-utils.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/default/lib/recurrence.ts",
           "type": "registry:lib"
         }
       ]

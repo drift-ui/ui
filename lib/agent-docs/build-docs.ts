@@ -120,7 +120,12 @@ function itemSection(siteUrl: string, item: RegistryItem) {
   ]
   if (dependsOn.length > 0) lines.push(`Depends on: ${dependsOn.join(", ")}`)
   if (usage) lines.push("", usage.notes)
-  if (usage?.example) lines.push("", "```tsx", usage.example, "```")
+  if (usage?.example && usage.baseExample) {
+    lines.push("", "Radix:", "", "```tsx", usage.example, "```")
+    lines.push("", "Base UI:", "", "```tsx", usage.baseExample, "```")
+  } else if (usage?.example) {
+    lines.push("", "```tsx", usage.example, "```")
+  }
   for (const part of COMPONENT_API[item.name] ?? [])
     lines.push(...apiLines(part))
   return lines.join("\n")

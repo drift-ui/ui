@@ -21,6 +21,15 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.bun/install/cache
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('bun.lock') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('bun.lock') }}-
+
       - run: bun install --frozen-lockfile
 
       - name: Format
@@ -32,12 +41,15 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Registry
+        run: bun run registry:build
+
       - name: Test
-        run: bun run test --coverage
+        run: bunx vitest run --coverage
 
       - uses: codecov/codecov-action@v7
         with:
           use_oidc: ${{ !github.event.pull_request.head.repo.fork }}
 
       - name: Build
-        run: bun run build
+        run: bunx next build

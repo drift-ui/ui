@@ -7,7 +7,10 @@ const names = (dir: string) =>
 
 describe("lib file names", () => {
   it("never match a UI file name", () => {
-    const ui = new Set(names("registry/default/ui"))
+    const ui = new Set([
+      ...names("registry/default/ui"),
+      ...names("registry/base/ui"),
+    ])
     expect(names("registry/default/lib").filter((n) => ui.has(n))).toEqual([])
   })
 })

@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import type { CatalogCard } from "@/components/docs/components-browser"
+import type { CatalogCard } from "@/components/docs/component-card"
 import { ComponentsBrowser } from "@/components/docs/components-browser"
 import { CATEGORIES } from "@/lib/catalog"
 
@@ -46,10 +46,10 @@ afterEach(() => {
 })
 
 describe("ComponentsBrowser", () => {
-  it("mounts only the previewed component and keeps it while filtering", async () => {
+  it("hides filtered cards without remounting their previews", async () => {
     const user = userEvent.setup()
     renderBrowser()
-    expect(mounts).toHaveBeenCalledTimes(1)
+    expect(mounts).toHaveBeenCalledTimes(2)
 
     const search = screen.getByRole("searchbox")
     await user.type(search, "rating")
@@ -58,30 +58,16 @@ describe("ComponentsBrowser", () => {
 
     await user.clear(search)
     expect(stepper()).toBeInTheDocument()
-    expect(mounts).toHaveBeenCalledTimes(1)
+    expect(mounts).toHaveBeenCalledTimes(2)
   })
 
-  it("previews the focused row on the stage", () => {
-    renderBrowser()
-    const preview = () => screen.getByRole("complementary", { name: "Preview" })
-    expect(preview()).toHaveTextContent("Rating")
-
-    act(() => stepper()!.focus())
-    expect(preview()).toHaveTextContent("Stepper")
-    expect(screen.getByRole("link", { name: "Open Stepper" })).toHaveAttribute(
-      "href",
-      "/components/stepper"
-    )
-  })
-
-  it("moves the stage to the first match when the previewed row is filtered out", async () => {
+  it("filters by category", async () => {
     const user = userEvent.setup()
     renderBrowser()
 
-    await user.type(screen.getByRole("searchbox"), "step")
-    expect(
-      screen.getByRole("complementary", { name: "Preview" })
-    ).toHaveTextContent("Stepper")
+    await user.click(screen.getByRole("radio", { name: /Structure/ }))
+    expect(stepper()).toBeInTheDocument()
+    expect(rating()).not.toBeInTheDocument()
   })
 
   it("announces how many components match", async () => {
@@ -91,6 +77,16 @@ describe("ComponentsBrowser", () => {
 
     await user.type(screen.getByRole("searchbox"), "rating")
     expect(screen.getByRole("status")).toHaveTextContent("1 component")
+  })
+
+  it("matches any search word, the same way the landing finder does", async () => {
+    const user = userEvent.setup()
+    renderBrowser()
+
+    await user.type(screen.getByRole("searchbox"), "a rating for steps")
+
+    expect(rating()).toBeInTheDocument()
+    expect(stepper()).toBeInTheDocument()
   })
 
   it("offers a reset when nothing matches", async () => {

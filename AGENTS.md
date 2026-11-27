@@ -100,7 +100,11 @@ All of these must pass before you open a pull request:
 bun run typecheck && bun run lint && bun run test
 ```
 
+Then go through [Automated review](CONTRIBUTING.md#automated-review) line by line against your diff, and run its coverage command on every file you changed. That section lists what cubic and Codecov flagged on recent pull requests. Each fix you make before pushing is a review comment nobody has to write.
+
 For visual changes, run `bun dev`, open `/components/<name>`, and check light and dark mode. Attach a screenshot to the pull request.
+
+When cubic comments after you push, fix the valid ones and reply-then-resolve the rest, as [Replying to cubic](CONTRIBUTING.md#replying-to-cubic) describes.
 
 ### 6. Commit and open the pull request
 

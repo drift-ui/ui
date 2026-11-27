@@ -1,6 +1,7 @@
 import { ActivityHeatmapBasicPreview } from "@/components/preview/examples/activity-heatmap/basic"
 import { ActivityHeatmapInteractivePreview } from "@/components/preview/examples/activity-heatmap/interactive"
 import { ActivityHeatmapThresholdsPreview } from "@/components/preview/examples/activity-heatmap/thresholds"
+import { ActivityHeatmapTooltipPreview } from "@/components/preview/examples/activity-heatmap/tooltip"
 import type { ComponentExample } from "@/lib/component-docs"
 
 export const examples: ComponentExample[] = [
@@ -24,5 +25,12 @@ export const examples: ComponentExample[] = [
     description:
       "Map discrete count bands to intensity levels with custom units and summary formatting.",
     Preview: ActivityHeatmapThresholdsPreview,
+  },
+  {
+    id: "tooltip",
+    title: "Custom tooltip formatting",
+    description:
+      "Render a rich floating tooltip with intensity badges and activity breakdown on hover and focus.",
+    Preview: ActivityHeatmapTooltipPreview,
   },
 ]

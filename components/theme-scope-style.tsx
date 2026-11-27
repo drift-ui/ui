@@ -11,15 +11,17 @@ const THEME_SCOPE = [
   '[data-slot="dialog-content"]:not([data-theme-editor])',
 ]
 
-const RADIUS_SCALE_CSS = `${THEME_SCOPE.join(",\n")} {
+export function radiusScaleCss(scopeSelectors: string[]) {
+  return `${scopeSelectors.join(",\n")} {
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }`
+}
 
 export function themeScopeCss(theme: Theme, style: ShowcaseStyle) {
   return [
-    RADIUS_SCALE_CSS,
+    radiusScaleCss(THEME_SCOPE),
     isEmptyTheme(theme) ? "" : scopeThemeCss(theme, THEME_SCOPE),
     scopeStyleCss(style, THEME_SCOPE),
   ]

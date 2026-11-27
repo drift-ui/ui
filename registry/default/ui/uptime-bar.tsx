@@ -24,7 +24,7 @@ import {
 
 const STATUS_BG: Record<UptimeStatus, string> = {
   operational: "bg-chart-2",
-  degraded: "bg-chart-5",
+  degraded: "bg-warning",
   down: "bg-destructive",
   "no-data": "bg-muted",
 }
@@ -207,7 +207,7 @@ export function UptimeBar({
                           status === "operational" &&
                             "border-chart-2/30 bg-chart-2/10 text-chart-2",
                           status === "degraded" &&
-                            "border-chart-5/30 bg-chart-5/10 text-chart-5",
+                            "border-warning/30 bg-warning/10 text-warning",
                           status === "down" &&
                             "border-destructive/30 bg-destructive/10 text-destructive",
                           status === "no-data" &&

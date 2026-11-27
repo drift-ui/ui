@@ -129,6 +129,19 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
             "Custom CSS class overrides for intensity levels 0 through 4.",
         },
         {
+          name: "showTooltip",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to render a floating tooltip on hover and focus.",
+        },
+        {
+          name: "renderTooltip",
+          type: "(day: ActivityDay) => ReactNode",
+          description:
+            "Custom tooltip content render function receiving the active day.",
+        },
+        {
           name: "aria-label",
           type: "string",
           default: '"Activity heatmap"',
@@ -136,6 +149,73 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         },
       ],
       rest: "div",
+    },
+  ],
+  "address-input": [
+    {
+      name: "AddressInput",
+      description:
+        "A country select followed by the address fields that country uses, in its order and with its labels, such as State and ZIP code for the US or Prefecture first after the postal code for Japan. Tab moves through the fields in layout order, and the country is a native select, so arrow keys and typing a name pick a country. A filled-in postal code that fails its layout pattern shows an error when the field loses focus or a form is submitted, linked to the field with aria-describedby. An empty required postal code gets only the native required check.",
+      rest: '<div role="group">',
+      props: [
+        STATE_PROPS.value(
+          "{ country: string; line1: string; line2: string; city: string; region: string; postalCode: string }",
+          "address"
+        ),
+        STATE_PROPS.defaultValue("Partial<Address>", "an empty address"),
+        STATE_PROPS.onValueChange(
+          "(address: Address) => void",
+          "on every edit, and when the country changes, with fields the new layout lacks cleared"
+        ),
+        {
+          name: "defaultCountry",
+          type: "string",
+          default: '"US"',
+          description:
+            "ISO 3166-1 alpha-2 country used when defaultValue has none.",
+        },
+        {
+          name: "countries",
+          type: "string[]",
+          default: "every country",
+          description:
+            "Country codes to offer, in display order. The current country is always listed.",
+        },
+        {
+          name: "layouts",
+          type: "AddressLayouts",
+          description:
+            "Layouts by country code: rows (field order, grouped into rows), required, labels and postalCode ({ pattern, format }). They override the built-in layouts for AU, CA, DE, FR, GB, IN, JP and US and replace the generic layout for other countries.",
+        },
+        {
+          name: "locale",
+          type: "string",
+          default: '"en"',
+          description: "Locale for country names.",
+        },
+        {
+          name: "addressType",
+          type: '"shipping" | "billing"',
+          description:
+            'Prefixes every autocomplete token, such as "shipping postal-code", so a page with two addresses autofills each one.',
+        },
+        {
+          name: "name",
+          type: "string",
+          description:
+            "Submits each field with a form as name.country, name.line1, name.line2, name.city, name.region and name.postalCode.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          description: "Disables the country select and every field.",
+        },
+        {
+          name: "className",
+          type: "string",
+          description: "Classes for the group wrapper.",
+        },
+      ],
     },
   ],
   avatar: [
@@ -545,6 +625,107 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
             "Each emoji and who reacted. Names come from the thread's authors and currentUser.",
         },
       ],
+    },
+  ],
+  "cron-input": [
+    {
+      name: "CronInput",
+      description:
+        "A standard five-field cron expression input with plain-English schedule readout and upcoming run times.",
+      props: [
+        {
+          name: "value",
+          type: "string",
+          description: "Controlled cron expression value.",
+        },
+        {
+          name: "defaultValue",
+          type: "string",
+          default: '"* * * * *"',
+          description: "Initial value in uncontrolled mode.",
+        },
+        {
+          name: "onValueChange",
+          type: "(value: string) => void",
+          description: "Fires whenever the cron expression text changes.",
+        },
+        {
+          name: "placeholder",
+          type: "string",
+          default: '"* * * * *"',
+          description: "Placeholder text for the cron input field.",
+        },
+        {
+          name: "showDescription",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to display the plain-English schedule readout below the input.",
+        },
+        {
+          name: "showNextRuns",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to show the list of upcoming calculated run times.",
+        },
+        {
+          name: "nextRunsCount",
+          type: "number",
+          default: "5",
+          description: "Number of upcoming run times to calculate and display.",
+        },
+        {
+          name: "nextRunsFrom",
+          type: "Date",
+          description:
+            "Reference date for upcoming runs calculation. Defaults to current time.",
+        },
+        {
+          name: "formatNextRun",
+          type: "(date: Date) => string",
+          description: "Custom date formatting function for upcoming runs.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Whether the input is disabled.",
+        },
+        {
+          name: "readOnly",
+          type: "boolean",
+          default: "false",
+          description: "Whether the input is read-only.",
+        },
+        {
+          name: "inputProps",
+          type: 'Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "disabled" | "readOnly">',
+          description:
+            "Additional props passed directly to the inner input element.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "parseCron",
+      signature:
+        "parseCron(expression: string | undefined | null): ParseCronResult",
+      description:
+        "Pure logic helper in @/lib/cron-input that parses, validates, and expands a standard 5-field cron expression.",
+    },
+    {
+      name: "describeCron",
+      signature: "describeCron(expression: string | undefined | null): string",
+      description:
+        "Pure logic helper in @/lib/cron-input that turns a 5-field cron expression into a plain-English sentence.",
+    },
+    {
+      name: "getNextRunTimes",
+      signature:
+        "getNextRunTimes(expression: string | undefined | null, count?: number, from?: Date): Date[]",
+      description:
+        "Pure logic helper in @/lib/cron-input that computes the next N run times starting from a reference date, following POSIX matching rules.",
     },
   ],
   "csv-importer": [
@@ -1062,6 +1243,199 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "Parses a DSL string, URL search parameters, or JSON into Filter[] or FilterGroup.",
     },
   ],
+  "histogram-range": [
+    {
+      name: "HistogramRange",
+      description:
+        "A dual-thumb range slider sitting below a distribution histogram bar chart. Highlights values in the selected range and mutes values outside.",
+      props: [
+        {
+          name: "data",
+          type: "number[]",
+          description:
+            "Raw numeric dataset to distribute across histogram bins.",
+        },
+        {
+          name: "min",
+          type: "number",
+          description:
+            "Lower bound of the range. Defaults to min value in data, or 0.",
+        },
+        {
+          name: "max",
+          type: "number",
+          description:
+            "Upper bound of the range. Defaults to max value in data, or 100.",
+        },
+        {
+          name: "step",
+          type: "number",
+          default: "1",
+          description: "Step increment of the slider thumbs.",
+        },
+        {
+          name: "minStepsBetweenThumbs",
+          type: "number",
+          default: "0",
+          description:
+            "Minimum number of steps required between the two thumbs.",
+        },
+        STATE_PROPS.value("[number, number]", "selected range"),
+        STATE_PROPS.defaultValue("[number, number]", "[min, max]"),
+        STATE_PROPS.onValueChange(
+          "(value: [number, number]) => void",
+          "when the range changes during dragging or keyboard input"
+        ),
+        {
+          name: "onValueCommit",
+          type: "(value: [number, number]) => void",
+          description:
+            "Called when pointer drag or keyboard interaction finishes.",
+        },
+        {
+          name: "bins",
+          type: "number",
+          default: "24",
+          description: "Number of discrete histogram buckets.",
+        },
+        {
+          name: "formatValue",
+          type: "(value: number) => string",
+          description: "Formats values for display and thumb aria-valuetext.",
+        },
+        {
+          name: "minThumbLabel",
+          type: "string",
+          default: '"Minimum"',
+          description: "Accessible aria-label for the lower thumb.",
+        },
+        {
+          name: "maxThumbLabel",
+          type: "string",
+          default: '"Maximum"',
+          description: "Accessible aria-label for the upper thumb.",
+        },
+        {
+          name: "showValues",
+          type: "boolean",
+          default: "false",
+          description:
+            "Whether to render current range values above the chart.",
+        },
+        {
+          name: "showCount",
+          type: "boolean",
+          default: "false",
+          description: "Whether to render active item count above the chart.",
+        },
+        {
+          name: "renderCount",
+          type: "(selectedCount: number, totalCount: number) => React.ReactNode",
+          description:
+            "Custom renderer for result count summary and live region.",
+        },
+        {
+          name: "barHeight",
+          type: "number | string",
+          default: "64",
+          description: "Height of the histogram chart area.",
+        },
+        {
+          name: "barColor",
+          type: "string",
+          description:
+            "Tailwind class for active bars inside the range (defaults to bg-primary).",
+        },
+        {
+          name: "mutedBarColor",
+          type: "string",
+          description:
+            "Tailwind class for inactive bars outside the range (defaults to bg-muted-foreground/20).",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Whether the slider thumbs are disabled.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "buildHistogramBuckets",
+      signature:
+        "buildHistogramBuckets(options: BuildHistogramBucketsOptions): BuildHistogramBucketsResult",
+      description:
+        "Pure logic helper in @/lib/histogram-range that buckets numeric data, normalizes bar heights, and calculates inRange statuses.",
+    },
+  ],
+  "icon-picker": [
+    {
+      name: "IconPicker",
+      description:
+        "An inline Lucide icon panel with search, roving tabindex, arrow-key navigation, tags search, and recently used icons. Icons load dynamically on demand.",
+      props: [
+        {
+          name: "value",
+          type: "string",
+          description: 'Controlled Lucide icon name (e.g. "folder-open").',
+        },
+        {
+          name: "defaultValue",
+          type: "string",
+          default: '""',
+          description: "Initial uncontrolled Lucide icon name.",
+        },
+        {
+          name: "onValueChange",
+          type: "(value: string) => void",
+          description: "Called when an icon is selected.",
+        },
+        {
+          name: "onSelect",
+          type: "(value: string) => void",
+          description: "Alias callback called when an icon is selected.",
+        },
+        {
+          name: "icons",
+          type: "(string | { name: string; tags?: string[] })[]",
+          description:
+            "Optional custom icon subset. Defaults to all Lucide icons.",
+        },
+        {
+          name: "tags",
+          type: "Record<string, string[]>",
+          description: "Additional search tags keyed by icon name.",
+        },
+        {
+          name: "columns",
+          type: "number",
+          default: "6",
+          description: "Number of columns in the icon grid.",
+        },
+        {
+          name: "maxRecent",
+          type: "number",
+          default: "16",
+          description: "Maximum number of recently used icons to preserve.",
+        },
+        {
+          name: "storageKey",
+          type: "string",
+          default: '"drift-ui:icon-picker"',
+          description: "localStorage key for persisting recently used icons.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "searchIcons",
+      signature:
+        "searchIcons(icons: IconItem[], query: string, customTags?: Record<string, string[]>): IconItem[]",
+      description:
+        "Pure logic helper in @/lib/icon-picker-utils that matches query against icon names, hyphenated segments, and tags.",
+    },
+  ],
   "image-cropper": [
     {
       name: "ImageCropper",
@@ -1288,6 +1662,80 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<div>",
     },
   ],
+  "kanban-board": [
+    {
+      name: "KanbanBoard",
+      description:
+        "Multi-column task board for moving cards between workflow stages with keyboard and HTML5 drag-and-drop support. Space picks up a card, arrow keys move it within or across columns, Space drops it, and Escape cancels.",
+      props: [
+        {
+          name: "columns",
+          type: "KanbanColumn[]",
+          required: true,
+          description:
+            "List of columns with id, title, and optional description.",
+        },
+        STATE_PROPS.value(
+          "Record<string, T[]>",
+          "map of column ids to card arrays"
+        ),
+        STATE_PROPS.defaultValue("Record<string, T[]>", "{}"),
+        STATE_PROPS.onValueChange(
+          "(value: Record<string, T[]>) => void",
+          "when any card is moved or reordered"
+        ),
+        {
+          name: "onMove",
+          type: "(card: T, fromColumnId: string, toColumnId: string, toIndex: number) => void",
+          description:
+            "Fires when a card is moved between columns or reordered within a column, reporting the specific transition.",
+        },
+        {
+          name: "renderCard",
+          type: "(card: T, info: { columnId: string; index: number; isGrabbed: boolean }) => ReactNode",
+          description: "Render function for each card.",
+        },
+        {
+          name: "renderColumnHeader",
+          type: "(column: KanbanColumn, cards: T[]) => ReactNode",
+          description: "Custom render function for column headers.",
+        },
+        {
+          name: "renderEmptyColumn",
+          type: "(column: KanbanColumn) => ReactNode",
+          description:
+            "Custom placeholder rendered when a column has no cards.",
+        },
+        {
+          name: "getCardId",
+          type: "(card: T, index: number) => string",
+          default: "getDefaultCardId",
+          description: "Returns a unique key for each card.",
+        },
+        {
+          name: "getCardLabel",
+          type: "(card: T, index: number) => string",
+          default: "getDefaultCardLabel",
+          description:
+            "Returns accessible label for screen readers and live region announcements.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables drag-and-drop and keyboard grabbing.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "kanban-board-utils",
+      signature:
+        "moveCard<T>(board: Record<string, readonly T[] | undefined>, cardId: string, toColumnId: string, toIndex: number, getCardId?: (card: T, index: number) => string): MoveCardResult<T>; findCardLocation<T>(board: Record<string, readonly T[] | undefined>, cardId: string, getCardId?: (card: T, index: number) => string): KanbanCardLocation<T> | null; reorderCardInColumn<T>(cards: readonly T[], fromIndex: number, toIndex: number): T[]; getPickupAnnouncement(cardLabel: string, columnTitle: string, index: number, total: number): string; getMoveAnnouncement(cardLabel: string, columnTitle: string, index: number, total: number): string; getDropAnnouncement(cardLabel: string, columnTitle: string, index: number, total: number): string; getCancelAnnouncement(cardLabel: string, originalColumnTitle: string, originalIndex: number, total: number): string",
+      description:
+        "Pure logic functions for moving cards between columns, finding card locations, and formatting ARIA live region announcements. Import from @/lib/kanban-board-utils.",
+    },
+  ],
   "key-value-editor": [
     {
       name: "KeyValueEditor",
@@ -1355,6 +1803,74 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       description:
         "Same API as the shadcn/ui Label. Skip it if the project already has one. Point htmlFor at a field id. It dims when the field inside its group is disabled.",
       rest: "<label>",
+    },
+  ],
+  "locale-picker": [
+    {
+      name: "LocalePicker",
+      description:
+        "A button that opens a searchable list of BCP 47 locales, showing native names, display language names, and country flags. Arrow keys navigate, Enter selects, and Escape closes the popover.",
+      props: [
+        STATE_PROPS.value("string", "BCP 47 language tag"),
+        STATE_PROPS.defaultValue("string", '""'),
+        STATE_PROPS.onValueChange(
+          "(value: string) => void",
+          "when a locale is picked"
+        ),
+        {
+          name: "locales",
+          type: "string[]",
+          default: "DEFAULT_LOCALES",
+          description:
+            "Limits the list to these BCP 47 language tags. Defaults to 34 common global locales.",
+        },
+        {
+          name: "displayLocale",
+          type: "string",
+          default: '"en"',
+          description:
+            "Language used to format the secondary name in each option via Intl.DisplayNames.",
+        },
+        {
+          name: "placeholder",
+          type: "string",
+          default: '"Select a locale"',
+          description: "Shown while no locale is selected.",
+        },
+        {
+          name: "searchPlaceholder",
+          type: "string",
+          default: '"Search locales"',
+          description: "Placeholder for the search input.",
+        },
+        {
+          name: "showTag",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to show the monospace BCP 47 tag badge next to the names.",
+        },
+        {
+          name: "name",
+          type: "string",
+          description:
+            "Name for the hidden form input that submits the selected locale value.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables the trigger button and hidden form input.",
+        },
+      ],
+      rest: "<button>",
+    },
+    {
+      name: "locale-picker-utils",
+      signature:
+        "isValidLocale(tag: string): boolean; normalizeLocale(tag: string): string; getLocaleFlag(tag: string): string | null; formatLocaleNames(tag: string, displayLocale?: string): { nativeName: string; currentName: string; label: string }; listLocales(tags?: string[], displayLocale?: string): LocaleOption[]; filterLocales(options: LocaleOption[], query: string): LocaleOption[]",
+      description:
+        "Pure logic functions for BCP 47 tag validation, canonical normalization, country flag derivation, Intl.DisplayNames formatting, and search filtering. Import from @/lib/locale-picker-utils.",
     },
   ],
   "log-viewer": [
@@ -1628,6 +2144,131 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       name: "MentionSearch",
       description:
         "(query: string, { signal }: { signal: AbortSignal }) => Promise<MentionOption[]>. Pass the signal to fetch; the request is aborted when the query changes or the list closes. A rejected promise shows the error state. The first 8 results are shown.",
+    },
+  ],
+  "merge-resolver": [
+    {
+      name: "MergeResolver",
+      description:
+        "Resolves conflicts between two versions of a structured record on a field-by-field basis. Displays word-level diff highlights distinguishing changes using semantic ins/del tags, offers ours/theirs/custom choices, supports batch acceptance, and announces remaining conflicts to screen readers.",
+      props: [
+        {
+          name: "fields",
+          type: "MergeField[]",
+          required: true,
+          description:
+            "List of fields with name, optional label, ours value, theirs value, and optional base value.",
+        },
+        STATE_PROPS.value("MergeResolutions", "resolutions"),
+        STATE_PROPS.defaultValue("MergeResolutions", "{}"),
+        STATE_PROPS.onValueChange(
+          "(resolutions: MergeResolutions) => void",
+          "when any field's resolution choice or custom value changes"
+        ),
+        {
+          name: "onResolve",
+          type: "(merged: MergedRecord) => void",
+          description:
+            "Called when the save resolutions button is clicked with the fully resolved record.",
+        },
+        {
+          name: "oursLabel",
+          type: "string",
+          default: '"Ours (Local)"',
+          description: "Label for the local/ours option.",
+        },
+        {
+          name: "theirsLabel",
+          type: "string",
+          default: '"Theirs (Remote)"',
+          description: "Label for the remote/theirs option.",
+        },
+        {
+          name: "customLabel",
+          type: "string",
+          default: '"Custom"',
+          description: "Label for the custom override option.",
+        },
+        {
+          name: "resolveLabel",
+          type: "string",
+          default: '"Save resolutions"',
+          description: "Text on the submit/resolve button.",
+        },
+        {
+          name: "acceptAllOursLabel",
+          type: "string",
+          default: '"Accept all ours"',
+          description: "Text on the batch accept ours button.",
+        },
+        {
+          name: "acceptAllTheirsLabel",
+          type: "string",
+          default: '"Accept all theirs"',
+          description: "Text on the batch accept theirs button.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description:
+            "Disables all radio inputs, custom text inputs, and action buttons.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "MergeField",
+      description: "A single record field undergoing conflict evaluation.",
+      props: [
+        {
+          name: "name",
+          type: "string",
+          required: true,
+          description: "Unique field identifier in the record.",
+        },
+        {
+          name: "ours",
+          type: "string",
+          required: true,
+          description: "Local version of the field value.",
+        },
+        {
+          name: "theirs",
+          type: "string",
+          required: true,
+          description: "Remote or conflicting version of the field value.",
+        },
+        {
+          name: "label",
+          type: "string",
+          description: "Human-readable label shown in the UI header.",
+        },
+        {
+          name: "base",
+          type: "string",
+          description:
+            "Common ancestor value for 3-way context display if available.",
+        },
+      ],
+    },
+    {
+      name: "MergeFieldResolution",
+      description:
+        "The resolution choice and optional custom value for one field.",
+      props: [
+        {
+          name: "choice",
+          type: '"ours" | "theirs" | "custom"',
+          required: true,
+          description: "Which option was chosen for this field.",
+        },
+        {
+          name: "customValue",
+          type: "string",
+          description: "Custom value when choice is 'custom'.",
+        },
+      ],
     },
   ],
   "multi-select": [
@@ -2356,6 +2997,54 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "Radix only. Positions the panel against another element. In Base UI, pass anchor to PopoverContent.",
     },
   ],
+  "query-input": [
+    {
+      name: "QueryInput",
+      description:
+        "A combobox input that parses key:value terms into filters. Typing at the end of a term suggests keys, then values. Arrow keys move through the list, ArrowDown on an empty term opens it, Enter or Tab inserts the highlighted suggestion, and Escape closes. Key suggestions start with nothing highlighted, so Enter on a plain word still submits; value suggestions start on the first option.",
+      props: [
+        {
+          name: "fields",
+          type: "FilterField[]",
+          required: true,
+          description:
+            "The keys that can be filtered on. Field ids are the keys, and select options are suggested as values.",
+        },
+        STATE_PROPS.value("string", "query"),
+        STATE_PROPS.defaultValue("string", '""'),
+        STATE_PROPS.onValueChange(
+          "(value: string) => void",
+          "when the query text changes"
+        ),
+        {
+          name: "onFiltersChange",
+          type: "(filters: Filter[], text: string) => void",
+          description:
+            "Called on every edit with the parsed filters and the leftover free text.",
+        },
+        {
+          name: "className",
+          type: "string",
+          description:
+            "Applied to the bordered wrapper, which also sets the font for the text and its highlights.",
+        },
+      ],
+      rest: "<input>",
+    },
+    {
+      name: "parseQuery",
+      signature:
+        "parseQuery(query: string, fields: FilterField[]): { filters: Filter[]; text: string }",
+      description:
+        "Reads a query into filters and free text. Exported from the lib file.",
+    },
+    {
+      name: "formatQuery",
+      signature: "formatQuery(filters: Filter[], text?: string): string",
+      description:
+        "Writes filters and free text back as a query. parseQuery reads it back to the same filters, as long as the free text has no key:value terms for known fields.",
+    },
+  ],
   rating: [
     {
       name: "Rating",
@@ -2448,6 +3137,202 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         "parseRRule(rule: string): Recurrence; formatRRule(recurrence: Recurrence, options?: { prefix?: boolean; multiline?: boolean }): string; describeRecurrence(recurrence: Recurrence, start: Date): string; occurrences(recurrence: Recurrence, start: Date, limit: number, options?: { exdates?: (Date | string)[]; tzid?: string }): Date[]",
       description:
         "Import from @/lib/recurrence to read, write, summarize or expand a rule outside the editor with unknown parts preservation, BYSETPOS, BYMONTH, and EXDATE support.",
+    },
+  ],
+  "regex-input": [
+    {
+      name: "RegexInput",
+      description:
+        "A live regular expression pattern input with flags toggles, syntax error feedback, configurable match limits, sample text match highlights, and capture groups inspection.",
+      props: [
+        {
+          name: "value",
+          type: "string",
+          description:
+            "Controlled regex pattern string (without slash delimiters).",
+        },
+        {
+          name: "defaultValue",
+          type: "string",
+          default: '""',
+          description: "Initial regex pattern string when uncontrolled.",
+        },
+        {
+          name: "onValueChange",
+          type: "(pattern: string) => void",
+          description: "Called when the pattern changes.",
+        },
+        {
+          name: "flags",
+          type: "string",
+          description:
+            'Controlled active flags string, such as "i", "m", "ims".',
+        },
+        {
+          name: "defaultFlags",
+          type: "string",
+          default: '""',
+          description: "Initial flags string when uncontrolled.",
+        },
+        {
+          name: "onFlagsChange",
+          type: "(flags: string) => void",
+          description: "Called when active flags change.",
+        },
+        {
+          name: "availableFlags",
+          type: "readonly string[]",
+          default: '["i", "m", "s"]',
+          description: "Flag toggle buttons to show next to the input.",
+        },
+        {
+          name: "sample",
+          type: "string",
+          description:
+            "Sample text to test the pattern against and highlight matches.",
+        },
+        {
+          name: "placeholder",
+          type: "string",
+          default: '"pattern"',
+          description: "Placeholder text for the pattern input.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables the pattern input and flag toggles.",
+        },
+        {
+          name: "readOnly",
+          type: "boolean",
+          default: "false",
+          description: "Makes the pattern input and flag toggles read-only.",
+        },
+        {
+          name: "name",
+          type: "string",
+          description:
+            "Form field name for submitting the pattern through a hidden input.",
+        },
+        {
+          name: "showDelimiters",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to display leading and trailing slashes (/ ... /).",
+        },
+        {
+          name: "showFlags",
+          type: "boolean",
+          default: "true",
+          description: "Whether to display flag toggle buttons.",
+        },
+        {
+          name: "showError",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to render constructor syntax errors below the input.",
+        },
+        {
+          name: "showSamplePreview",
+          type: "boolean",
+          default: "true",
+          description:
+            "Whether to display highlighted sample text and capture groups.",
+        },
+        {
+          name: "maxMatches",
+          type: "number",
+          default: "100",
+          description: "Cap on number of matches to find in the sample.",
+        },
+        {
+          name: "maxSampleLength",
+          type: "number",
+          default: "20000",
+          description: "Cap on sample text character length for matching.",
+        },
+        {
+          name: "inputRef",
+          type: "React.Ref<HTMLInputElement>",
+          description: "Ref forwarded to the pattern input element.",
+        },
+        {
+          name: "inputProps",
+          type: 'Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "disabled" | "readOnly">',
+          description:
+            "Additional props forwarded to the underlying text input element.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "validateRegex, findRegexMatches, findRegexMatchesAsync, highlightSampleText, toggleFlag, normalizeFlags",
+      signature:
+        "validateRegex(pattern: string, flags?: string): RegexValidationResult; findRegexMatches(pattern: string, flags: string, sample: string, options?: RegexMatchOptions): RegexMatchResult; findRegexMatchesAsync(pattern: string, flags: string, sample: string, options?: RegexMatchOptions & { signal?: AbortSignal }): Promise<RegexMatchResult>; highlightSampleText(sample: string, matches: RegexMatch[]): RegexSegment[]; toggleFlag(flags: string, flag: string): string; normalizeFlags(flags: string): string",
+      description:
+        "Pure logic functions for validating patterns, length- and match-capped regex execution (with interruptible Web Worker support via findRegexMatchesAsync), sample text segmenting, and flag manipulation. Import from @/lib/regex-input-utils.",
+    },
+  ],
+  "request-inspector": [
+    {
+      name: "RequestInspector",
+      description:
+        "Inspect HTTP requests and responses with status badge, duration, headers, query parameters, body format detection, and cURL generation.",
+      props: [
+        {
+          name: "request",
+          type: "RequestInspectorRequest",
+          required: true,
+          description:
+            "Request details including method, url, optional headers, and body.",
+        },
+        {
+          name: "response",
+          type: "RequestInspectorResponse",
+          description:
+            "Response details including status, statusText, headers, body, and durationMs.",
+        },
+        {
+          name: "defaultTab",
+          type: '"request" | "response" | "headers" | "timing"',
+          default: '"request"',
+          description: "Initial active tab when uncontrolled.",
+        },
+        {
+          name: "tab",
+          type: '"request" | "response" | "headers" | "timing"',
+          description: "Controlled active tab.",
+        },
+        {
+          name: "onTabChange",
+          type: '(tab: "request" | "response" | "headers" | "timing") => void',
+          description: "Callback fired when the active tab changes.",
+        },
+        {
+          name: "sensitiveHeaders",
+          type: "string[]",
+          default: "DEFAULT_SENSITIVE_HEADERS",
+          description:
+            "List of header names to mask by default and reveal with secret-field. Passing this replaces defaults; spread DEFAULT_SENSITIVE_HEADERS to retain them.",
+        },
+        {
+          name: "hideCurl",
+          type: "boolean",
+          default: "false",
+          description: "Whether to hide the Copy as cURL action button.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "buildCurlCommand, quoteShell, isSensitiveHeader, normalizeHeaders, parseQueryParams, parseBody, formatDuration, getStatusBadgeClass, getStatusText",
+      signature:
+        "buildCurlCommand(request: RequestInspectorRequest, options?: { maskSensitive?: boolean; sensitiveHeaders?: string[] }): string; quoteShell(arg: string): string; isSensitiveHeader(name: string, sensitiveHeaders?: string[]): boolean; normalizeHeaders(headers?: RequestInspectorHeaders | [string, string][]): [string, string][]; parseQueryParams(url: string): [string, string][]; parseBody(body: unknown): { isJson: boolean; jsonValue?: unknown; text: string }; formatDuration(ms?: number): string; getStatusBadgeClass(status: number): { className: string; label: string }; getStatusText(status: number): string",
+      description:
+        "Pure logic helpers imported from @/lib/request-inspector-utils.",
     },
   ],
   "saved-views": [
@@ -2809,6 +3694,93 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<div>",
     },
   ],
+  "snooze-picker": [
+    {
+      name: "SnoozePicker",
+      description:
+        "A menu component for scheduling reminders, snoozing notifications, or deferring tasks with quick presets and an embedded custom date-time picker.",
+      props: [
+        STATE_PROPS.value("Date | null", "snooze date"),
+        STATE_PROPS.defaultValue("Date | null", "null"),
+        STATE_PROPS.onValueChange(
+          "(date: Date | null) => void",
+          "when the snooze date changes"
+        ),
+        {
+          name: "onSelect",
+          type: "(date: Date, presetId?: string) => void",
+          description: "Called when a preset or custom date is picked.",
+        },
+        {
+          name: "presets",
+          type: "SnoozePreset[]",
+          default: '["later-today", "tomorrow", "this-weekend", "next-week"]',
+          description: "List of preset identifiers or custom preset configs.",
+        },
+        {
+          name: "times",
+          type: "SnoozeTimes",
+          description:
+            "Custom target times for presets (morning, afternoon, evening, weekendDay, workweekDay).",
+        },
+        {
+          name: "timeZone",
+          type: "string",
+          description: "IANA time zone name (e.g. 'America/New_York').",
+        },
+        {
+          name: "locale",
+          type: "string",
+          default: '"en-US"',
+          description: "BCP 47 language tag for date and time formatting.",
+        },
+        {
+          name: "hourCycle",
+          type: "12 | 24",
+          default: "24",
+          description: "12-hour or 24-hour cycle for time formatting.",
+        },
+        {
+          name: "min",
+          type: "Date",
+          description: "Earliest date selectable in custom picker.",
+        },
+        {
+          name: "max",
+          type: "Date",
+          description: "Latest date selectable in custom picker.",
+        },
+        {
+          name: "now",
+          type: "Date",
+          description: "Pinned reference date instead of current time.",
+        },
+        {
+          name: "placeholder",
+          type: "string",
+          default: '"Snooze"',
+          description: "Trigger button label when no value is selected.",
+        },
+        {
+          name: "open",
+          type: "boolean",
+          description: "Controlled open state of the popover.",
+        },
+        {
+          name: "defaultOpen",
+          type: "boolean",
+          default: "false",
+          description: "Initial open state when uncontrolled.",
+        },
+        {
+          name: "onOpenChange",
+          type: "(open: boolean) => void",
+          description: "Called when the popover opens or closes.",
+        },
+      ],
+      rest: "<button>",
+    },
+  ],
   "sortable-list": [
     {
       name: "SortableList",
@@ -3003,6 +3975,42 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<input>",
     },
   ],
+  "template-input": [
+    {
+      name: "TemplateInput",
+      description:
+        "A textarea that suggests variables after {{. Arrow keys move through the list, Enter or Tab inserts {{value}}, and Escape closes it. Known variables are highlighted and unknown ones get a wavy underline.",
+      props: [
+        STATE_PROPS.value("string", "template"),
+        STATE_PROPS.defaultValue("string", '""'),
+        STATE_PROPS.onValueChange(
+          "(value: string) => void",
+          "when the template changes"
+        ),
+        {
+          name: "variables",
+          type: "MentionOption[]",
+          required: true,
+          description:
+            "The variables that can be inserted, each { value, label, description? }. Typing after {{ filters on value and label.",
+        },
+        {
+          name: "className",
+          type: "string",
+          description:
+            "Applied to the bordered wrapper, which also sets the font for the text and its highlights.",
+        },
+      ],
+      rest: "<textarea>",
+    },
+    {
+      name: "findUnknownVariables",
+      signature:
+        "findUnknownVariables(text: string, variables: MentionOption[]): string[]",
+      description:
+        "Names used as {{name}} in the text that are not in variables, without duplicates. Exported from the lib file.",
+    },
+  ],
   "time-field": [
     {
       name: "TimeField",
@@ -3089,6 +4097,123 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         },
       ],
       rest: "<button>",
+    },
+  ],
+  toast: [
+    {
+      name: "Toaster",
+      description:
+        "Render once near the root of the app. On Radix it takes every prop of shadcn's Sonner Toaster, and on Base UI every prop of shadcn's toast Toaster. The default duration it sets is the shortest a toast stays up.",
+      props: [
+        {
+          name: "duration",
+          type: "number",
+          default: "4000",
+          description:
+            "Radix. Default time on screen in ms. Toasts with long text stay longer.",
+        },
+        {
+          name: "timeout",
+          type: "number",
+          default: "5000",
+          description:
+            "Base UI. Default time on screen in ms. Toasts with long text stay longer.",
+        },
+      ],
+      rest: "Sonner Toaster (Radix) or Toast.Provider (Base UI)",
+    },
+    {
+      name: "toast",
+      signature:
+        "toast(message, options?) and toast.success, info, warning, error, loading, promise, dismiss (Radix); toast.add(options), close, update, promise (Base UI)",
+      description:
+        "The same calls as shadcn. Import it from the toast file, not from sonner, to get merging, reading-time durations and toast.undo. Error toasts are announced assertively.",
+      props: [
+        {
+          name: "id",
+          type: "string | number",
+          description:
+            "Radix. A toast of the same type with an id that is already showing merges into it: the newest content wins, a count badge appears and the timer restarts. Reusing the id with another type, such as loading then success, updates the toast without a count.",
+        },
+        {
+          name: "key",
+          type: "string",
+          description: "Base UI. Same merging as id on Radix.",
+        },
+        {
+          name: "duration",
+          type: "number",
+          description:
+            "Radix. Time on screen in ms. When unset it grows with the length of the title and description.",
+        },
+        {
+          name: "timeout",
+          type: "number",
+          description:
+            "Base UI. Time on screen in ms, 0 to stay until closed. When unset it grows with the length of the title and description, unless the Toaster timeout is 0, which keeps every toast up until closed.",
+        },
+        {
+          name: "persist",
+          type: "boolean",
+          description:
+            "Hands the toast to onToastPersist listeners when it closes, ready for the notification inbox. Only text titles and descriptions are passed on, so a toast whose title is a React element is not persisted.",
+        },
+      ],
+    },
+    {
+      name: "toast.undo",
+      signature:
+        "toast.undo(message, options) on Radix, toast.undo(options) with a title on Base UI",
+      description:
+        "Shows a toast with an Undo button and a countdown ring that pauses while the toasts are hovered or focused. The action is delayed until the toast goes away.",
+      props: [
+        {
+          name: "onCommit",
+          type: "() => void",
+          required: true,
+          description:
+            "Runs once when the toast times out, is swiped away or closed, or the page unloads. Because it can run during pagehide, send its request with fetch(url, { keepalive: true }) or navigator.sendBeacon, which the browser finishes after the tab closes.",
+        },
+        {
+          name: "onUndo",
+          type: "() => void",
+          description: "Runs when Undo is clicked. onCommit then never runs.",
+        },
+        {
+          name: "undoLabel",
+          type: "ReactNode",
+          default: '"Undo"',
+          description: "Text of the Undo button.",
+        },
+        {
+          name: "shortcut",
+          type: "string",
+          description:
+            'Shortcut such as "Mod+Z" that triggers Undo on the newest undo toast while it is open. Shown as ⌘Z on a Mac and Ctrl+Z elsewhere, and ignored while focus is in a text field.',
+        },
+      ],
+    },
+    {
+      name: "toast.progress",
+      signature:
+        "toast.progress(message, options) on Radix, toast.progress(options) with a title on Base UI",
+      description:
+        "Shows a determinate progress bar that stays up until replaced. Call it again with the same id to move the bar, then show a success or error toast with that id.",
+      props: [
+        {
+          name: "value",
+          type: "number",
+          required: true,
+          description: "Progress from 0 to 100. Values outside are clamped.",
+        },
+      ],
+    },
+    {
+      name: "onToastPersist",
+      signature:
+        "onToastPersist(listener: (toast: PersistedToast) => void): () => void",
+      description:
+        "Subscribes to toasts shown with persist. Each one arrives as { id, title, body?, createdAt } when it closes, which fits NotificationInbox items. Returns an unsubscribe function.",
     },
   ],
   tour: [
@@ -3554,6 +4679,155 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       rest: "<div>",
     },
   ],
+  "usage-meter": [
+    {
+      name: "UsageMeter",
+      description:
+        "Progress meter for storage, seats, rate limits and quota tracking with thresholds, segmented categories and overage support.",
+      props: [
+        {
+          name: "value",
+          type: "number",
+          description: "Current numeric usage value in single-value mode.",
+        },
+        {
+          name: "max",
+          type: "number",
+          default: "100",
+          description: "Maximum capacity or quota limit.",
+        },
+        {
+          name: "min",
+          type: "number",
+          default: "0",
+          description: "Minimum value.",
+        },
+        {
+          name: "unit",
+          type: "string",
+          description:
+            "Unit label appended to values, e.g. 'GB', 'seats', 'calls', '%'.",
+        },
+        {
+          name: "warningAt",
+          type: "number",
+          default: "0.8",
+          description:
+            "Threshold (ratio 0-1 or absolute number) where warning state is triggered.",
+        },
+        {
+          name: "dangerAt",
+          type: "number",
+          default: "1.0",
+          description:
+            "Threshold (ratio 0-1 or absolute number) where danger or overage state is triggered.",
+        },
+        {
+          name: "segments",
+          type: "UsageMeterSegment[]",
+          description: "Array of category segments for stacked breakdown.",
+        },
+        {
+          name: "label",
+          type: "ReactNode",
+          description: "Primary header label displayed above the meter.",
+        },
+        {
+          name: "description",
+          type: "ReactNode",
+          description: "Secondary helper text displayed below the label.",
+        },
+        {
+          name: "showValue",
+          type: "boolean",
+          default: "true",
+          description: "Shows current and maximum formatted values.",
+        },
+        {
+          name: "showLegend",
+          type: "boolean",
+          default: "true when segments provided",
+          description: "Displays the segment legend below the meter track.",
+        },
+        {
+          name: "showStatusBadge",
+          type: "boolean",
+          default: "true",
+          description: "Displays warning or overage badges.",
+        },
+        {
+          name: "size",
+          type: '"sm" | "md" | "lg"',
+          default: '"md"',
+          description: "Height size variant of the meter track.",
+        },
+        {
+          name: "locale",
+          type: "string",
+          default: '"en-US"',
+          description: "Locale for number formatting.",
+        },
+        {
+          name: "decimals",
+          type: "number",
+          description: "Explicit decimal places for formatted numbers.",
+        },
+        {
+          name: "formatOptions",
+          type: "Intl.NumberFormatOptions",
+          description: "Custom Intl.NumberFormat formatting options.",
+        },
+        {
+          name: "renderValue",
+          type: "(value: number, max: number, percentage: number) => ReactNode",
+          description: "Custom value formatter function.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "UsageMeterLegend",
+      description:
+        "List of colored category segments with labels and formatted amounts.",
+      props: [
+        {
+          name: "segments",
+          type: "CalculatedSegment[]",
+          required: true,
+          description: "Calculated segments to display in the legend.",
+        },
+        {
+          name: "unit",
+          type: "string",
+          description: "Unit label appended to values.",
+        },
+        {
+          name: "locale",
+          type: "string",
+          default: '"en-US"',
+          description: "Locale for number formatting.",
+        },
+        {
+          name: "decimals",
+          type: "number",
+          description: "Explicit decimal places for formatted numbers.",
+        },
+        {
+          name: "formatOptions",
+          type: "Intl.NumberFormatOptions",
+          description: "Custom Intl.NumberFormat formatting options.",
+        },
+      ],
+      rest: "<ul>",
+    },
+    {
+      name: "usage-meter-utils",
+      signature:
+        "resolveThreshold(threshold: number | undefined, max: number, defaultRatio: number, min?: number): number; calculateMeterStatus(options: MeterStatusOptions): UsageMeterStatus; calculatePercentage(value: number, max: number, decimals?: number, min?: number): number; calculateSegments(segments: readonly UsageMeterSegment[], max: number, colors?: readonly string[], min?: number): CalculatedSegment[]; formatUsageValue(value: number, options?: FormatUsageOptions): string; getUsageAriaValueText(options: AriaValueTextOptions): string",
+      description:
+        "Pure utility functions for status determination, segment calculation, and Intl formatting. Import from @/lib/usage-meter-utils.",
+    },
+  ],
   "virtual-list": [
     {
       name: "VirtualList",
@@ -3592,6 +4866,62 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           default: "index",
           description:
             "Stable identity for a row, so measured heights and focus follow it when the list changes.",
+        },
+      ],
+      rest: "<div>",
+    },
+  ],
+  "weekly-hours": [
+    {
+      name: "WeeklyHours",
+      description:
+        "One row per weekday with a checkbox to mark the day available and one or more start and end times. Days can hold split shifts, and each day's hours can be copied to every other available day. Ranges that end at or before their start, or overlap another range on the same day, are flagged.",
+      props: [
+        STATE_PROPS.value(
+          "WeeklyHoursRange[]",
+          "the hours as { day, start, end } entries, times as HH:mm"
+        ),
+        STATE_PROPS.defaultValue("WeeklyHoursRange[]", "an empty array"),
+        STATE_PROPS.onValueChange(
+          "(value: WeeklyHoursRange[]) => void",
+          "when hours change: a day is turned on or off, a time is edited, a range is added or removed, or a day's hours are copied"
+        ),
+        {
+          name: "weekdays",
+          type: "Weekday[]",
+          default: "WEEKDAYS",
+          description:
+            'Days to show, in order. Pass ["MO", "TU", "WE", "TH", "FR"] for a workweek or start with "SU".',
+        },
+        {
+          name: "defaultRange",
+          type: "{ start: string; end: string }",
+          default: '{ start: "09:00", end: "17:00" }',
+          description: "Hours given to a day when it is turned on.",
+        },
+        {
+          name: "hourCycle",
+          type: "12 | 24",
+          default: "24",
+          description: "Shows times as 24-hour or with AM and PM.",
+        },
+        {
+          name: "minuteStep",
+          type: "number",
+          default: "15",
+          description: "Minutes added or removed per arrow key press.",
+        },
+        {
+          name: "disabled",
+          type: "boolean",
+          default: "false",
+          description: "Disables every control.",
+        },
+        {
+          name: "unavailableLabel",
+          type: "ReactNode",
+          default: '"Unavailable"',
+          description: "Text shown for a day with no hours.",
         },
       ],
       rest: "<div>",

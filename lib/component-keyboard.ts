@@ -11,6 +11,7 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ARROWS, action: "Move through the calendar grid" },
     { keys: HOME_END, action: "First or last week in the row" },
     { keys: ["Enter", "Space"], action: "Select the focused day" },
+    { keys: ["Escape"], action: "Dismiss the hover or focus tooltip" },
   ],
   "bulk-action-bar": [
     { keys: LEFT_RIGHT, action: "Move between actions" },
@@ -43,6 +44,18 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: PAGE, action: "Previous or next category" },
     { keys: ["Enter", "Space"], action: "Pick the focused emoji" },
   ],
+  "histogram-range": [
+    { keys: LEFT_RIGHT, action: "Adjust the focused thumb by step" },
+    { keys: UP_DOWN, action: "Adjust the focused thumb by step" },
+    { keys: PAGE, action: "Adjust the focused thumb by larger step" },
+    { keys: HOME_END, action: "Set the focused thumb to min or max" },
+  ],
+  "icon-picker": [
+    { keys: ARROWS, action: "Move through the grid" },
+    { keys: HOME_END, action: "First or last icon in the row" },
+    { keys: PAGE, action: "Previous or next section" },
+    { keys: ["Enter", "Space"], action: "Pick the focused icon" },
+  ],
   "image-cropper": [
     { keys: ARROWS, action: "Pan, hold Shift for larger steps" },
     { keys: ["]", "["], action: "Zoom in or out" },
@@ -58,6 +71,17 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: LEFT_RIGHT, action: "Collapse or expand" },
     { keys: ["Mod+C"], action: "Copy the value" },
     { keys: ["Mod+Shift+C"], action: "Copy the path" },
+  ],
+  "kanban-board": [
+    { keys: ["Space", "Enter"], action: "Pick up or drop a card" },
+    { keys: UP_DOWN, action: "Move card within column" },
+    { keys: LEFT_RIGHT, action: "Move card across columns" },
+    { keys: ["Escape"], action: "Cancel the move" },
+  ],
+  "locale-picker": [
+    { keys: UP_DOWN, action: "Open, then move through locales" },
+    { keys: ["Enter"], action: "Pick the locale" },
+    { keys: ["Escape"], action: "Close the picker" },
   ],
   "log-viewer": [
     { keys: UP_DOWN, action: "Scroll through log lines" },
@@ -107,6 +131,17 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: ARROWS, action: "Change by one step" },
     { keys: HOME_END, action: "Lowest or highest score" },
   ],
+  "regex-input": [
+    { keys: ["Space", "Enter"], action: "Toggle the focused flag button" },
+    {
+      keys: ["Tab"],
+      action: "Move focus between pattern input and flag buttons",
+    },
+  ],
+  "request-inspector": [
+    { keys: LEFT_RIGHT, action: "Switch between tabs" },
+    { keys: HOME_END, action: "First or last tab" },
+  ],
   "saved-views": [
     { keys: LEFT_RIGHT, action: "Move between views" },
     { keys: HOME_END, action: "First or last view" },
@@ -120,6 +155,15 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
   "shortcut-recorder": [
     { keys: ["Escape"], action: "Stop recording" },
     { keys: ["Backspace"], action: "Clear the shortcut" },
+  ],
+  "snooze-picker": [
+    { keys: UP_DOWN, action: "Move through snooze presets" },
+    {
+      keys: ["Enter", "Space"],
+      action: "Select a preset or open the custom picker",
+    },
+    { keys: ["ArrowRight"], action: "Open custom date and time picker" },
+    { keys: ["Escape"], action: "Close the picker" },
   ],
   "sortable-list": [
     { keys: ["Space", "Enter"], action: "Pick up or drop an item" },
@@ -141,6 +185,16 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
   "timezone-picker": [
     { keys: UP_DOWN, action: "Move through zones" },
     { keys: ["Enter"], action: "Pick the zone" },
+  ],
+  toast: [
+    { keys: ["Alt+T"], action: "Focus the toasts (Radix)" },
+    { keys: ["F6"], action: "Focus the toasts (Base UI)" },
+    { keys: ["Mod+Z"], action: "Undo the newest undo toast that sets it" },
+    { keys: ["Tab"], action: "Move to Undo and other actions" },
+    {
+      keys: ["Escape"],
+      action: "Collapse the stack (Radix) or close the toast (Base UI)",
+    },
   ],
   tour: [
     { keys: LEFT_RIGHT, action: "Previous or next step" },
@@ -184,9 +238,17 @@ export const COMPONENT_KEYBOARD: Record<string, KeyBinding[]> = {
     { keys: HOME_END, action: "First or last segment" },
     { keys: ["Enter"], action: "Open the segment's details" },
   ],
+  "usage-meter": [
+    { keys: ["Tab"], action: "Focus the meter to read its value and status" },
+  ],
   "virtual-list": [
     { keys: UP_DOWN, action: "Move between rows" },
     { keys: PAGE, action: "Move a page at a time" },
     { keys: HOME_END, action: "First or last row" },
+  ],
+  "weekly-hours": [
+    { keys: ["Space"], action: "Turn a day on or off" },
+    { keys: UP_DOWN, action: "Change the focused time segment" },
+    { keys: LEFT_RIGHT, action: "Move between time segments" },
   ],
 }

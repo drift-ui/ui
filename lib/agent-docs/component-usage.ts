@@ -10,7 +10,7 @@ const SAME_AS_SHADCN =
 export const COMPONENT_USAGE: Record<string, ComponentUsage> = {
   "activity-heatmap": {
     notes:
-      "ActivityHeatmap displays activity and contributions over a year on a grid of weeks by weekdays. Intensity levels 0 to 4 are mapped from counts using theme tokens (bg-muted/40 through bg-primary). Follows the WAI-ARIA grid pattern with a single tab stop and 2D arrow key navigation across cells. Includes accessible labels, customizable week start day, optional summary header, and a legend.",
+      "ActivityHeatmap displays activity and contributions over a year on a grid of weeks by weekdays. Intensity levels 0 to 4 are mapped from counts using theme tokens (bg-muted/40 through bg-primary). Follows the WAI-ARIA grid pattern with a single tab stop and 2D arrow key navigation across cells. Includes accessible labels, customizable week start day, optional summary header, floating tooltips on hover and focus (with custom renderTooltip support), and a legend.",
     example: `import { ActivityHeatmap } from "@/components/ui/activity-heatmap"
 
 const DATA = [
@@ -24,6 +24,35 @@ export function ContributionGraph() {
       data={DATA}
       weekStartsOn={1}
       onDaySelect={(day) => console.log(day.date, day.count)}
+    />
+  )
+}`,
+  },
+  "address-input": {
+    notes:
+      'AddressInput renders a country select and the address fields for that country, holding a flat { country, line1, line2, city, region, postalCode } object through value/defaultValue and onValueChange. defaultValue may be partial. defaultCountry (default "US") is an ISO 3166-1 alpha-2 code. Built-in layouts for AU, CA, DE, FR, GB, IN, JP and US set field order, required fields, labels and a postal code pattern, so Japan starts with the postal code, Germany and France put it before the city, and the UK and France have no region field. Every other country gets a generic layout (line 1 and city required; line 2, region and postal code optional, with no postal code check) unless you pass layouts, a record of country code to { rows, required, labels?, postalCode?: { pattern, format } }. Switching country keeps the fields both layouts share and clears the rest. Required fields get the required attribute and optional ones show "(optional)". A postal code that does not match its pattern, or is only spaces, shows an error built from the label and format of the layout, such as "ZIP code must be 5 digits, like 94105." for the US, after the field loses focus, sets aria-invalid and aria-describedby, and blocks form submit through setCustomValidity. Every field has its autocomplete token (country, address-line1, address-line2, address-level2, address-level1, postal-code); addressType="shipping" or "billing" prefixes them. name submits each field as name.country, name.line1 and so on. countries limits and orders the list, though the current country is always listed, first if it is missing from countries, and locale names the countries. Other props go to the role="group" wrapper, so pass aria-label or aria-labelledby. The country select is native so browser autofill can fill it. Address lookup from a provider is not included.',
+    example: `"use client"
+
+import * as React from "react"
+
+import { AddressInput, type Address } from "@/components/ui/address-input"
+
+export function ShippingAddress() {
+  const [address, setAddress] = React.useState<Address>({
+    country: "DE",
+    line1: "",
+    line2: "",
+    city: "",
+    region: "",
+    postalCode: "",
+  })
+
+  return (
+    <AddressInput
+      aria-label="Shipping address"
+      addressType="shipping"
+      value={address}
+      onValueChange={setAddress}
     />
   )
 }`,
@@ -137,6 +166,29 @@ export function ReviewThread() {
         if (!response.ok) throw new Error("Could not save the comment")
       }}
     />
+  )
+}`,
+  },
+  "cron-input": {
+    notes:
+      "A standard five-field cron expression input (minute, hour, day-of-month, month, day-of-week) for scheduling jobs. Validates standard cron grammar with wildcards (*), comma lists, ranges (-), and steps (/), explicitly excluding non-standard extensions. When both day-of-month and day-of-week are set, cron matches either one (POSIX standard). Displays a plain-English schedule readout (e.g., 'At 09:00, Monday through Friday') and lists the next 5 upcoming run times deterministically. Invalid input sets aria-invalid and shows an accessible role='alert' error; field-specific validation errors also name the offending field. Pure logic helpers are exported from @/lib/cron-input.",
+    example: `"use client"
+
+import { useState } from "react"
+import { CronInput } from "@/components/ui/cron-input"
+
+export function BackupSchedule() {
+  const [schedule, setSchedule] = useState("0 9 * * 1-5")
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label htmlFor="cron" className="text-sm font-medium">Backup schedule</label>
+      <CronInput
+        value={schedule}
+        onValueChange={setSchedule}
+        inputProps={{ id: "cron" }}
+      />
+    </div>
   )
 }`,
   },
@@ -359,6 +411,55 @@ export function IssueFilters({ issues }: { issues: { status: string; title: stri
   )
 }`,
   },
+  "histogram-range": {
+    notes:
+      "A dual-thumb range slider sitting below a distribution histogram bar chart, designed for filtering datasets where distribution matters such as price, file size, or duration. Values inside the active range default to bg-primary (customizable via barColor, e.g., bg-chart-1) while values outside default to bg-muted-foreground/20 (customizable via mutedBarColor). Bucketing logic in @/lib/histogram-range ensures values equal to max land strictly in the last bucket. Accessible thumb labeling (minThumbLabel, maxThumbLabel), aria-valuetext generated via formatValue, and decorative bars (aria-hidden) with screen-reader result announcements via an aria-live region. Supports controlled and uncontrolled states via use-controllable-state.",
+    example: `"use client"
+
+import { useState } from "react"
+import { HistogramRange } from "@/components/ui/histogram-range"
+
+const prices = [25, 45, 60, 75, 80, 110, 120, 150, 180, 220, 260, 310, 450]
+
+export function PriceFilter() {
+  const [range, setRange] = useState<[number, number]>([50, 200])
+
+  return (
+    <HistogramRange
+      data={prices}
+      min={0}
+      max={500}
+      value={range}
+      onValueChange={setRange}
+      formatValue={(n) => \`$\${n}\`}
+      minThumbLabel="Minimum price"
+      maxThumbLabel="Maximum price"
+      showValues
+      showCount
+    />
+  )
+}`,
+  },
+  "icon-picker": {
+    notes:
+      "A searchable Lucide icon picker with arrow-key navigation, roving tabindex, recently used icons, and tags matching. Icons are dynamically loaded on demand via lucide-react/dynamic to keep bundle sizes lean. Supports controlled (value, onValueChange) and uncontrolled (defaultValue) states. Users can provide a curated subset via the icons prop or pass extra synonym tags via tags. Supports Enter from the search input to immediately pick the first matching result.",
+    example: `"use client"
+
+import { useState } from "react"
+import { IconPicker } from "@/components/ui/icon-picker"
+
+export function Example() {
+  const [icon, setIcon] = useState("folder-open")
+
+  return (
+    <IconPicker
+      value={icon}
+      onValueChange={setIcon}
+      aria-label="Choose icon"
+    />
+  )
+}`,
+  },
   "image-cropper": {
     notes:
       "Interactive image crop component for avatars and covers. Supports pointer drag-to-pan, 2-finger pinch zoom, mouse wheel / slider zoom, 90-degree step rotation, rule-of-thirds grid, and fixed aspect ratios (1 for square, 16/9 for banner, 4/3 for photo). cropShape can be 'rect' or 'round'. Emits a cropped Blob and pixel crop coordinates through onCropComplete(blob, pixelCrop) when user clicks Apply or presses Enter. Shows a pulsing stage while the image loads and a message if it fails, keeps Apply disabled until it has loaded, and reports load or canvas errors via onCropError(error). The Reset button restores defaultZoom, defaultRotation and defaultCrop. Wheel and trackpad pinch zoom scale with the scroll delta, and the wheel falls through to page scroll at the zoom limits. Full keyboard support with Arrow keys to pan (Shift for 10x larger steps), + / - or [ / ] to zoom, R to rotate, and Enter to apply crop.",
@@ -424,6 +525,43 @@ export function WebhookPayload({ payload }: { payload: unknown }) {
   )
 }`,
   },
+  "kanban-board": {
+    notes:
+      "Multi-column task board for moving cards between workflow stages. Value is a Record<string, T[]> keyed by column id, managed through value/defaultValue and onValueChange. onMove reports the exact card, previous column, destination column, and index so transitions can be persisted without diffing the full board. Cards support HTML5 pointer drag-and-drop and full keyboard interaction: Space or Enter picks up the focused card, Up/Down moves it within the column, Left/Right moves it to adjacent columns, Space or Enter drops it, and Escape cancels. Live region announces every pickup, movement, drop, and cancellation. The board container scrolls horizontally on narrow viewports.",
+    example: `"use client"
+
+import { useState } from "react"
+import { KanbanBoard } from "@/components/ui/kanban-board"
+
+interface Task {
+  id: string
+  title: string
+}
+
+export function ProjectBoard() {
+  const [tasks, setTasks] = useState<Record<string, Task[]>>({
+    todo: [{ id: "1", title: "Refactor API" }],
+    doing: [{ id: "2", title: "Add unit tests" }],
+    done: [{ id: "3", title: "Update docs" }],
+  })
+
+  return (
+    <KanbanBoard
+      aria-label="Sprint tasks"
+      columns={[
+        { id: "todo", title: "To do" },
+        { id: "doing", title: "In progress" },
+        { id: "done", title: "Done" },
+      ]}
+      value={tasks}
+      onValueChange={setTasks}
+      onMove={(task, from, to, index) => {
+        console.log(\`Moved \${task.title} from \${from} to \${to} at index \${index}\`)
+      }}
+    />
+  )
+}`,
+  },
   "key-value-editor": {
     notes:
       "Rows of key and value for env vars, HTTP headers, query params or metadata. Each row is { id, key, value }; value/defaultValue/onValueChange hold the array. Enter in the last row adds a row and focuses its key, Enter elsewhere moves to the next row's key. Pasting text that contains KEY=value into a key field splits it into rows: comments, blank lines, an export prefix, quoted values and = inside a value are handled, multi-line values are not. Keys used more than once (after trimming) are marked aria-invalid with a Duplicate key message. secretValues masks every value with password-input, each with its own reveal button. Inputs are labelled Key 1, Value 1 and Remove row 1; rename with keyLabel and valueLabel. Pass aria-label to name the group.",
@@ -457,6 +595,27 @@ export function NameField() {
       <Label htmlFor="name">Display name</Label>
       <Input id="name" />
     </div>
+  )
+}`,
+  },
+  "locale-picker": {
+    notes:
+      'LocalePicker holds a BCP 47 language tag such as "ja-JP" or "de" through value/defaultValue and onValueChange; an empty string shows the placeholder. Language names come from Intl.DisplayNames, so no locale dictionary ships in the bundle. Each option displays its native name and, when different, its name in the display language ("Deutsch (Deutschland) · German (Germany)"). Options with 2-letter ISO country regions display the regional country flag emoji. Search matches both names, the BCP 47 tag, and the region code. locales limits the list to specified tags. name renders a hidden input for form submission. Remaining props go to the trigger button, so label it with a Label and id or with aria-label.',
+    example: `"use client"
+
+import { useState } from "react"
+import { LocalePicker } from "@/components/ui/locale-picker"
+
+export function LanguageSetting() {
+  const [locale, setLocale] = useState("en-US")
+
+  return (
+    <LocalePicker
+      aria-label="Language"
+      value={locale}
+      onValueChange={setLocale}
+      locales={["en-US", "de-DE", "ja-JP", "pt-BR"]}
+    />
   )
 }`,
   },
@@ -520,6 +679,28 @@ async function searchChannels(query: string, { signal }: { signal: AbortSignal }
 
 export function CommentBox() {
   return <MentionTextarea aria-label="Comment" placeholder="Write a comment" triggers={{ "@": people, "#": searchChannels }} />
+}`,
+  },
+  "merge-resolver": {
+    notes:
+      'Field-by-field merge resolver for structured records encountering simultaneous or offline edits. fields: MergeField[] with name, ours, theirs, and optional label/base. Non-conflicting fields (ours === theirs) are marked as resolved automatically. Conflicting fields display word-level diffs with semantic <ins> and <del> tags. Radiogroup per field supports picking ours, theirs, or custom with an inline text input. Features live polite screen-reader announcements of remaining conflicts, batch "Accept all ours" / "Accept all theirs" actions, and a save button that stays disabled until every conflict is resolved.',
+    example: `"use client"
+
+import { MergeResolver } from "@/components/ui/merge-resolver"
+
+const fields = [
+  { name: "title", label: "Title", ours: "Draft Roadmap", theirs: "Final Roadmap" },
+  { name: "status", label: "Status", ours: "published", theirs: "published" },
+  { name: "description", label: "Description", ours: "Sprint dates added", theirs: "Milestones updated" },
+]
+
+export function DocumentMerge() {
+  return (
+    <MergeResolver
+      fields={fields}
+      onResolve={(merged) => console.log("Merged record:", merged)}
+    />
+  )
 }`,
   },
   "multi-select": {
@@ -741,6 +922,24 @@ export function ExportPopover() {
   )
 }`,
   },
+  "query-input": {
+    notes:
+      'Single-line search that reads key:value terms into Filter objects, the same type filter-builder uses. fields: FilterField[] ({ id, label, type: text | select | number | date, options? }); keys match field ids case-insensitively. Syntax: key:value is is, -key:value is is-not, key:a,b on a text or select field is is-any-of (is-none-of with -; a trailing comma, as in key:a, keeps a one-item list), key:*text* on a text field is contains, key:>7 and key:<7 compare numbers (gt, lt; key:7 is eq; >= and <= are not supported), dates take >, < and from..to (a bare date is a one-day between). Quote values with spaces: label:"needs review". A term with an unknown key, or a negated number or date, stays in the free text; a trailing key: gives a filter with an empty value, which matchesFilter treats as matching everything. onFiltersChange(filters, text) fires on every edit; value/defaultValue/onValueChange hold the raw string. Typing at the end of a term suggests keys, then select options, in a combobox: ArrowUp and ArrowDown move (ArrowDown on an empty term opens the key list, up to eight keys), Enter or Tab inserts the highlighted suggestion, Escape closes. Key suggestions start with nothing highlighted, so Enter on a plain word like auth still reaches the form; value suggestions start on the first option. Matched terms are highlighted behind the input. The lib exports parseQuery(query, fields) and formatQuery(filters, text) to convert both ways. className goes on the bordered wrapper and other props on the input.',
+    example: `"use client"
+
+import type { FilterField } from "@/lib/filter"
+import { QueryInput } from "@/components/ui/query-input"
+
+const fields: FilterField[] = [
+  { id: "is", label: "State", type: "select", options: [{ value: "open", label: "Open" }, { value: "closed", label: "Closed" }] },
+  { id: "author", label: "Author", type: "text" },
+  { id: "age", label: "Age in days", type: "number" },
+]
+
+export function IssueSearch({ onSearch }: { onSearch: (filters: unknown[], text: string) => void }) {
+  return <QueryInput aria-label="Search issues" fields={fields} defaultValue="is:open author:me" onFiltersChange={onSearch} />
+}`,
+  },
   rating: {
     notes:
       'Radio group of icons for a score. Controlled with value/onValueChange or uncontrolled with defaultValue (0 means no rating). max sets the icon count (default 5), step={0.5} allows half scores, icon swaps the default lucide Star for any SVG icon. Arrow keys change the score, Home and End jump to the ends. readOnly renders a role=img labelled like "3.5 out of 5". The fill color is the root\'s text color (text-primary), so className="text-chart-4" recolors it. Pass aria-label.',
@@ -766,6 +965,71 @@ export function StandupRepeat({ start }: { start: Date }) {
   const [rule, setRule] = useState("FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR")
 
   return <RecurrenceEditor aria-label="Repeat" value={rule} onValueChange={setRule} start={start} showPreview={3} />
+}`,
+  },
+  "regex-input": {
+    notes:
+      "RegexInput is an interactive regular expression pattern field with flags toggles, syntax validation, match execution limits (length, iteration and count caps), and sample text match highlights. In browser environments, matching runs off-render in an interruptible Web Worker via findRegexMatchesAsync (with timeout termination and AbortSignal cancellation, falling back to synchronous findRegexMatches when Workers are unavailable). It supports controlled and uncontrolled use for both pattern (value/defaultValue/onValueChange) and flags (flags/defaultFlags/onFlagsChange). Invalid patterns set aria-invalid; when showError is enabled (the default), constructor error messages appear with role=alert. Flags buttons toggle with Space/Enter or click. When a sample string is provided, matches are highlighted in a pre-wrap preview with a match count and capture groups inspection ($name or Group n). Pure logic functions live in @/lib/regex-input-utils: validateRegex, findRegexMatches, findRegexMatchesAsync, highlightSampleText, toggleFlag, and normalizeFlags. Installs badge.",
+    example: `"use client"
+
+import { useState } from "react"
+import { RegexInput } from "@/components/ui/regex-input"
+
+export function LogPatternFilter() {
+  const [pattern, setPattern] = useState("\\\\[(ERROR|WARN)\\\\]\\\\s+(?<message>.*)")
+  const [flags, setFlags] = useState("i")
+
+  return (
+    <RegexInput
+      aria-label="Log filter regex"
+      value={pattern}
+      onValueChange={setPattern}
+      flags={flags}
+      onFlagsChange={setFlags}
+      sample="[2026-05-18] [ERROR] Database connection lost"
+      placeholder="Type regex pattern..."
+    />
+  )
+}`,
+  },
+  "request-inspector": {
+    notes:
+      "RequestInspector displays HTTP request and response details with tabs for Request, Response, Headers, and Timing. Object and array JSON request and response bodies render automatically with json-viewer (including search and collapsible trees); non-JSON bodies render with a wrap toggle like log-viewer. The summary bar shows the HTTP method badge, URL with copy button, response status badge with theme token color classes (2xx chart-2, 3xx chart-4, 4xx warning, 5xx destructive), duration, and a 'Copy as cURL' button (which includes raw secrets by default for terminal replay). In the Headers tab, sensitive headers (Authorization, Cookie, Set-Cookie, X-Api-Key, Api-Key, Proxy-Authorization, X-Auth-Token, X-Access-Token) are masked by default and revealable via secret-field. Passing sensitiveHeaders replaces the default list; spread DEFAULT_SENSITIVE_HEADERS from @/lib/request-inspector-utils to keep defaults when adding custom names. Pure utilities including shell-quoted cURL generation live in @/lib/request-inspector-utils. Installs badge, button, json-viewer, and secret-field.",
+    example: `"use client"
+
+import { RequestInspector } from "@/components/ui/request-inspector"
+
+export function ApiLogDetail() {
+  return (
+    <RequestInspector
+      request={{
+        method: "POST",
+        url: "https://api.example.com/v1/orders",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer sec_test_token123",
+        },
+        body: {
+          items: [{ sku: "DRIFT-TSHIRT", quantity: 2 }],
+          currency: "usd",
+        },
+      }}
+      response={{
+        status: 201,
+        statusText: "Created",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Request-Id": "req_8849b2",
+        },
+        body: {
+          id: "ord_91823",
+          status: "confirmed",
+          total: 5800,
+        },
+        durationMs: 142,
+      }}
+    />
+  )
 }`,
   },
   "saved-views": {
@@ -899,6 +1163,26 @@ export function DeliveryConfirmation() {
   return <SignaturePad aria-label="Delivery signature" value={signature} onValueChange={setSignature} format="svg" penColor="currentColor" />
 }`,
   },
+  "snooze-picker": {
+    notes:
+      "SnoozePicker provides a popover menu for deferring tasks, snoozing notifications, or scheduling reminders. It includes standard quick presets ('Later today', 'Tomorrow', 'This weekend', 'Next week') with relative time labels, timezone awareness, dynamic cutoff for evening presets, and a custom date-and-time picker with an embedded Calendar and TimeField. Supports controlled or uncontrolled value/open, custom preset definitions via presets, custom target hours via times, and custom trigger content. Pure logic lives in @/lib/snooze-picker-utils. Installs button, calendar, popover, and time-field.",
+    example: `"use client"
+
+import { useState } from "react"
+import { SnoozePicker } from "@/components/ui/snooze-picker"
+
+export function ReminderSnooze() {
+  const [snoozeUntil, setSnoozeUntil] = useState<Date | null>(null)
+
+  return (
+    <SnoozePicker
+      value={snoozeUntil}
+      onValueChange={setSnoozeUntil}
+      placeholder="Snooze reminder"
+    />
+  )
+}`,
+  },
   "sortable-list": {
     notes:
       "Reorderable list built on Motion's Reorder: the dragged row follows the pointer, neighbours spring out of the way, and the page or a scrollable parent scrolls near its edges. Controlled with value/onValueChange or uncontrolled with defaultValue. onValueChange fires once, on drop, and only if the order changed; the render function gets the live index during a move. Space/Enter picks up or drops an item, ArrowUp/ArrowDown (or ArrowLeft/ArrowRight for horizontal) moves it, Home/End jump to the ends, and Escape cancels a keyboard or pointer move. Moving focus away drops the item. Screen readers receive live status announcements. Add SortableDragHandle to limit dragging to a grip, which also leaves touch scrolling and text selection working on the row. Without a handle, the row drags from anywhere except links, buttons and form controls inside it. If the list sits in an overflow container that can scroll, wrap that container in motion.div with layoutScroll.",
@@ -977,6 +1261,20 @@ export function EnvironmentsField() {
   )
 }`,
   },
+  "template-input": {
+    notes:
+      "Textarea for text with {{placeholders}}, such as email subjects, notification templates and webhook payloads. Typing {{ opens a list of variables filtered on value and label; ArrowUp and ArrowDown move, Enter or Tab inserts {{value}}, Escape closes. {{ works after any character, as in id-{{name. variables: { value, label, description? }[] (the MentionOption type). The value stays a plain string with value/defaultValue/onValueChange. Variables are highlighted in a layer drawn behind the textarea, so native undo, selection and caret behaviour are untouched. A {{name}} that is not in variables gets a wavy underline and is named in the textarea's accessible description; findUnknownVariables(text, variables) from the lib returns those names for form validation. className goes on the bordered wrapper and other props go on the textarea, so aria-label, placeholder, rows and aria-invalid work.",
+    example: `import { TemplateInput } from "@/components/ui/template-input"
+
+const variables = [
+  { value: "first_name", label: "First name" },
+  { value: "order_id", label: "Order number" },
+]
+
+export function SubjectField() {
+  return <TemplateInput aria-label="Subject" variables={variables} defaultValue="Hi {{first_name}}, order {{order_id}} shipped" />
+}`,
+  },
   theme: {
     notes:
       "Neutral oklch tokens for light and dark mode, written into the project's global CSS. Optional: components read whatever tokens the project already has.",
@@ -1027,6 +1325,47 @@ export function TimezoneSetting() {
   const [timeZone, setTimeZone] = useState("Europe/London")
 
   return <TimezonePicker aria-label="Time zone" value={timeZone} onValueChange={setTimeZone} />
+}`,
+  },
+  toast: {
+    notes:
+      'Radix: registry/default/ui/sonner.tsx installs as components/ui/sonner.tsx and wraps sonner, so every shadcn Sonner call and Toaster prop works. Base UI installs components/ui/toast.tsx with shadcn\'s toast API (toast.add({ title, type })). Render Toaster once near the root. Import toast from the component file instead of from sonner to get the additions. toast.undo delays a destructive action until the toast goes away (onCommit) unless Undo or its shortcut ("Mod+Z") runs onUndo, and it commits on pagehide, so send the request in onCommit with fetch keepalive: true or navigator.sendBeacon so it survives the tab closing. toast.progress shows a determinate bar; update it by id and finish with a success toast on the same id. Toasts that reuse an id (Radix) or key (Base UI) merge into one with a ×N badge and a restarted timer. Durations grow with text length. Error toasts are announced assertively. persist: true sends the toast to onToastPersist listeners when it closes, ready for NotificationInbox.',
+    example: `"use client"
+
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/sonner"
+
+export function DeleteFiles({ ids, setHidden }: { ids: string[]; setHidden: (hidden: boolean) => void }) {
+  function remove() {
+    setHidden(true)
+    toast.undo(\`Deleted \${ids.length} files\`, {
+      shortcut: "Mod+Z",
+      onCommit: () =>
+        fetch("/api/files/delete", { method: "POST", body: JSON.stringify(ids), keepalive: true }),
+      onUndo: () => setHidden(false),
+    })
+  }
+
+  return <Button variant="destructive" onClick={remove}>Delete</Button>
+}`,
+    baseExample: `"use client"
+
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/toast"
+
+export function DeleteFiles({ ids, setHidden }: { ids: string[]; setHidden: (hidden: boolean) => void }) {
+  function remove() {
+    setHidden(true)
+    toast.undo({
+      title: \`Deleted \${ids.length} files\`,
+      shortcut: "Mod+Z",
+      onCommit: () =>
+        fetch("/api/files/delete", { method: "POST", body: JSON.stringify(ids), keepalive: true }),
+      onUndo: () => setHidden(false),
+    })
+  }
+
+  return <Button variant="destructive" onClick={remove}>Delete</Button>
 }`,
   },
   tour: {
@@ -1129,7 +1468,7 @@ export function MemoryLimitField({
   },
   "uptime-bar": {
     notes:
-      "Renders daily service health segments with overall uptime percentage, single tab stop roving keyboard navigation, and popover day details. Days with no data do not count against uptime. Degraded days count as partial uptime via degradedWeight (default 0.5). Arrow keys (ArrowLeft, ArrowRight, Home, End) move focus between segments, and Enter or Space opens the Popover. Theme tokens bg-chart-2 (operational), bg-chart-5 (degraded), bg-destructive (down), and bg-muted (no-data) provide color coding.",
+      "Renders daily service health segments with overall uptime percentage, single tab stop roving keyboard navigation, and popover day details. Days with no data do not count against uptime. Degraded days count as partial uptime via degradedWeight (default 0.5). Arrow keys (ArrowLeft, ArrowRight, Home, End) move focus between segments, and Enter or Space opens the Popover. Theme tokens bg-chart-2 (operational), bg-warning (degraded), bg-destructive (down), and bg-muted (no-data) provide color coding.",
     example: `import { UptimeBar } from "@/components/ui/uptime-bar"
 
 const days = [
@@ -1139,6 +1478,26 @@ const days = [
 
 export function ServiceHealth() {
   return <UptimeBar title="API" days={days} />
+}`,
+  },
+  "usage-meter": {
+    notes:
+      "UsageMeter displays resource quotas such as disk storage, user seats, or rate limits. It supports both single numeric values with warning and danger thresholds and segmented multi-category breakdowns with automatic legend formatting. When usage exceeds capacity, it displays an overage badge, and segmented mode additionally renders a limit boundary marker showing the quota threshold. Complies with WAI-ARIA role='meter' using aria-valuenow (clamped to min and max), aria-valuemin, aria-valuemax, and descriptive aria-valuetext.",
+    example: `"use client"
+
+import { UsageMeter } from "@/components/ui/usage-meter"
+
+export function StorageUsage() {
+  return (
+    <UsageMeter
+      label="Cloud Storage"
+      description="Allocated quota across your team"
+      value={7.2}
+      max={10}
+      unit="GB"
+      warningAt={0.8}
+    />
+  )
 }`,
   },
   "use-controllable-state": {
@@ -1170,6 +1529,29 @@ export function DeployLog({ lines }: { lines: { id: string; text: string }[] }) 
       {(line) => <div className="px-3 py-1.5 font-mono text-xs">{line.text}</div>}
     </VirtualList>
   )
+}`,
+  },
+  "weekly-hours": {
+    notes:
+      "WeeklyHours edits recurring hours as a list, one row per weekday, like the working hours screen in a booking app. Tick a day to give it defaultRange, untick it to clear it, use the plus button to add a split shift, and the copy button to apply a day's hours to every other ticked day. The value is a flat array of { day, start, end } entries sorted by weekday, with times as HH:mm, so it can be stored as is. Times use TimeField: ArrowUp and ArrowDown step the focused segment (hour, minute, or AM/PM with hourCycle 12) and ArrowLeft and ArrowRight move between segments. A range that ends at or before its start, or overlaps another range on the same day, shows an error under it and sets aria-invalid. Adding another range is blocked while a day has a range with a missing time.",
+    example: `"use client"
+
+import * as React from "react"
+
+import {
+  WeeklyHours,
+  type WeeklyHoursRange,
+} from "@/components/ui/weekly-hours"
+
+export function OpeningHours() {
+  const [hours, setHours] = React.useState<WeeklyHoursRange[]>([
+    { day: "MO", start: "09:00", end: "17:00" },
+    { day: "TU", start: "09:00", end: "12:00" },
+    { day: "TU", start: "13:00", end: "17:00" },
+    { day: "SA", start: "10:00", end: "14:00" },
+  ])
+
+  return <WeeklyHours value={hours} onValueChange={setHours} />
 }`,
   },
 }

@@ -1,100 +1,131 @@
 import Link from "next/link"
-import { ArrowRightIcon, HashIcon, MessagesSquareIcon } from "lucide-react"
+import { ArrowRightIcon } from "lucide-react"
 import { siDiscord } from "simple-icons"
 
 import { Button } from "@/registry/default/ui/button"
 import { ContributorAvatar } from "@/components/contributors/contributor-avatar"
 import { SectionHeading } from "@/components/landing/section-heading"
-import { fetchCommunity, MAINTAINERS } from "@/lib/contributors"
+import {
+  fetchCommunity,
+  fetchFirstIssues,
+  githubProfileOf,
+  MAINTAINERS,
+  type FirstIssue,
+} from "@/lib/contributors"
 import { siteConfig } from "@/lib/site-config"
 
-const AVATARS_SHOWN = 6
+function FirstIssues({ issues }: { issues: FirstIssue[] }) {
+  if (issues.length === 0) {
+    return (
+      <p className="border-y py-6 text-sm text-muted-foreground">
+        No good first issues to show right now.{" "}
+        <a
+          href={`${siteConfig.repo}/issues`}
+          className="text-foreground underline underline-offset-4"
+        >
+          See all open issues
+        </a>
+        .
+      </p>
+    )
+  }
 
-const CHANNELS = [
-  {
-    name: "help",
-    Icon: MessagesSquareIcon,
-    description: "Stuck on a component? Ask here.",
-  },
-  {
-    name: "showcase",
-    Icon: MessagesSquareIcon,
-    description: "Show what you built with drift-ui.",
-  },
-  {
-    name: "ideas",
-    Icon: MessagesSquareIcon,
-    description: "Talk through a component before it becomes an issue.",
-  },
-  {
-    name: "contributing",
-    Icon: HashIcon,
-    description: "Get unstuck on an issue or a pull request.",
-  },
-  {
-    name: "github-feed",
-    Icon: HashIcon,
-    description: "Follow pull requests, issues and releases as they land.",
-  },
-]
+  return (
+    <ul className="border-t">
+      {issues.map((issue) => (
+        <li key={issue.number}>
+          <a
+            href={issue.url}
+            className="group flex items-baseline gap-4 border-b py-3.5 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+            <span className="w-12 shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
+              #{issue.number}
+            </span>
+            <span className="underline-offset-4 group-hover:underline">
+              {issue.title}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
-async function ContributorsLink() {
-  const community = await fetchCommunity()
-  const logins = [
-    ...MAINTAINERS.map((maintainer) => maintainer.login),
-    ...community.map((contributor) => contributor.login),
-  ]
-  const hidden = logins.length - AVATARS_SHOWN
-
+function ContributorCount({ total }: { total: number }) {
   return (
     <Link
       href="/contributors"
       prefetch={false}
-      className="group flex max-w-md reveal items-center gap-4 rounded-2xl border bg-muted/30 p-4 transition-colors outline-none hover:bg-muted/60 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      className="group flex w-fit items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-brand"
     >
-      <span className="flex shrink-0 -space-x-2.5">
-        {logins.slice(0, AVATARS_SHOWN).map((login) => (
-          <ContributorAvatar
-            key={login}
-            login={login}
-            sizePx={32}
-            className="size-8 ring-2 ring-background"
-          />
-        ))}
-        {hidden > 0 && (
-          <span className="flex size-8 items-center justify-center rounded-full border bg-muted text-[11px] font-medium text-muted-foreground tabular-nums ring-2 ring-background">
-            +{hidden}
-          </span>
-        )}
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span className="text-sm font-medium">Meet the contributors</span>
-        <span className="text-sm text-muted-foreground">
-          {logins.length} people have shipped code to drift-ui
-        </span>
-      </span>
-      <ArrowRightIcon
-        aria-hidden
-        className="ml-auto size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground motion-reduce:transition-none"
-      />
+      {total} people have shipped code to drift-ui
+      <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" />
     </Link>
   )
 }
 
-export function CommunitySection() {
+export async function CommunitySection() {
+  const [issues, community] = await Promise.all([
+    fetchFirstIssues(),
+    fetchCommunity(),
+  ])
+
   return (
     <section
       id="community"
       className="mx-auto max-w-7xl scroll-mt-24 px-4 pb-24 md:px-10 md:pb-36"
     >
-      <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,6fr)_minmax(0,6fr)] lg:gap-16">
-        <div className="flex min-w-0 flex-col gap-10">
-          <SectionHeading
-            eyebrow="Community"
-            title="Built in the open"
-            lead="The code, the issues and the pull requests are all public. Join the Discord to get help, show what you built and work on the next component with the maintainers."
-          />
-          <div className="flex reveal flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <SectionHeading
+        title="Built in the open"
+        lead="MIT licensed. Every component starts as an issue, and a merged pull request puts you on the contributors page."
+      />
+      <div className="mt-12 grid gap-12 md:mt-16 lg:grid-cols-2 lg:gap-16">
+        <div className="flex min-w-0 reveal flex-col gap-5">
+          <h3 className="font-display text-xl font-semibold tracking-tight">
+            Good first issues
+          </h3>
+          <FirstIssues issues={issues} />
+          <p className="text-sm text-muted-foreground">
+            New to open source?{" "}
+            <Link
+              href="/resources"
+              className="text-foreground underline underline-offset-4"
+            >
+              Read the guides
+            </Link>{" "}
+            before you claim one.
+          </p>
+        </div>
+        <div className="flex min-w-0 reveal flex-col gap-5">
+          <h3 className="font-display text-xl font-semibold tracking-tight">
+            Maintainers
+          </h3>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {MAINTAINERS.map((maintainer) => (
+              <li key={maintainer.login}>
+                <a
+                  href={githubProfileOf(maintainer.login)}
+                  className="flex items-center gap-3 rounded-2xl border bg-card/40 p-4 transition-colors outline-none hover:bg-card/70 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                >
+                  <ContributorAvatar
+                    login={maintainer.login}
+                    sizePx={40}
+                    className="size-10"
+                  />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate font-medium">
+                      {maintainer.name}
+                    </span>
+                    <span className="truncate font-mono text-xs text-muted-foreground">
+                      @{maintainer.login}
+                    </span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <ContributorCount total={MAINTAINERS.length + community.length} />
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Button asChild size="lg" className="h-11 px-5 active:scale-[0.98]">
               <a href={siteConfig.discord} target="_blank" rel="noreferrer">
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -118,28 +149,6 @@ export function CommunitySection() {
               </a>
             </Button>
           </div>
-          <ContributorsLink />
-        </div>
-        <div className="min-w-0 reveal overflow-hidden rounded-2xl border">
-          <div className="flex h-10 items-center border-b px-4 font-mono text-xs text-muted-foreground">
-            drift-ui on Discord
-          </div>
-          <ul className="divide-y bg-muted/30">
-            {CHANNELS.map(({ name, Icon, description }) => (
-              <li key={name} className="flex gap-3 px-4 py-4">
-                <Icon
-                  aria-hidden
-                  className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                />
-                <div className="flex min-w-0 flex-col gap-1">
-                  <span className="font-mono text-sm font-medium">{name}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {description}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     </section>
