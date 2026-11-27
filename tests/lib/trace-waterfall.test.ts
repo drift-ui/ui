@@ -266,7 +266,7 @@ describe("getSpanColorClass", () => {
         duration: 10,
         status: "error",
       })
-    ).toBe("bg-destructive text-destructive-foreground")
+    ).toBe("bg-destructive")
   })
 
   it("prefers explicit custom color", () => {
