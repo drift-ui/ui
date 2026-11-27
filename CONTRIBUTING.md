@@ -53,7 +53,7 @@ The page finds the folder by name, so no other file changes.
 ## Opening a pull request
 
 1. Branch from `main` in your fork as `<type>/<issue>-<slug>`, for example `feat/14-avatar-group` or `fix/31-stepper-focus-ring`.
-2. Run `bun run format`, then make sure `bun run typecheck`, `bun run lint` and `bun run test` pass.
+2. Run `bun run format`, then make sure `bun run typecheck`, `bun run lint` and `bun run test` pass. Check your diff against [Automated review](#automated-review).
 3. Open the pull request and fill in the template. Put `Closes #<issue>` in the description, and add a screenshot or a short recording for visual changes.
 
 New to pull requests from a fork? GitHub has a [walkthrough][fork-pr-guide]. If nobody has replied after a few days, say so in Discord.
@@ -130,6 +130,52 @@ The Base UI build at `/r/base` uses a file from `registry/base` wherever one exi
 ### Avoiding merge conflicts
 
 Insert at your alphabetical position in `registry.json`, `lib/catalog.ts` (within the category), `component-usage.ts` and `component-api.ts`. Appending makes two pull requests conflict at the same spot, and `tests/lib/sorted-lists.test.ts` fails if a list is out of order. If two components sort next to each other and you still get a conflict, keep both entries.
+
+## Automated review
+
+Two bots check every pull request. [cubic](https://cubic.dev) leaves line comments on each push, and Codecov reports how much of your diff the tests run. On the component pull requests from #155 to #177, cubic left 215 comments, and most of them repeat the mistakes below. Go through your diff with this list before you push.
+
+### What cubic flags
+
+Ordered by how often each came up.
+
+| Area                    | What went wrong                                                                                                                                                                                                 | Check before pushing                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Docs that drift         | `component-api.ts`, `component-usage.ts`, `component-keyboard.ts` and example descriptions promised behavior the component lacks (#168 promised ReDoS protection) or left out public props (#167 `defaultOpen`) | Every exported prop and helper is in `component-api.ts` with its real type, written out (#160 shipped `...` inside a type). The keyboard table lists every key the component handles and none it ignores. Each example description claims only what that example shows. A usage snippet that passes a callback starts with `"use client"` (#155, #161). Lib files install to `@/lib/<name>`, so document that path (#156)                                                                 |
+| Tests that can't fail   | Assertions checked that an element exists, or a test was named for a branch it never ran (#166, #168, #172)                                                                                                     | For each test, ask whether it would fail if you broke the behavior. Assert content, order and position. Use `toHaveBeenCalledTimes(1)` for one-action callbacks (#163). Assert what must be absent as well as present (#155). Check `aria-live` and `aria-checked`, not only text (#157, #161). Test keys, not only `user.click` (#161, #174). Use fake timers, never short real ones (#157). Don't depend on the runner's time zone (#160)                                               |
+| Accessibility           | Ids collided between two instances, state was shown only visually, and focus was lost when a view changed                                                                                                       | Prefix ids and native radio `name`s with `useId()` (#161, #172). Link descriptions with `aria-describedby` (#161, #173). A checkmark needs `aria-checked` (#167), and a "copied" icon needs a polite status message (#162). An `aria-label` on a plain `div` needs `role="group"` (#165). Clamp `aria-valuenow` to the range (#173). Move focus when a view removes the focused element (#167). Internal buttons get `type="button"` (#166), and hidden form inputs get `disabled` (#167) |
+| Previews that pretend   | A Copy button said "copied" without writing to the clipboard, action buttons had empty handlers (#157), and Reset left stale results on screen (#161, #163)                                                     | Every control in a preview and example does what its label says. Reset clears derived state too. Clean up timers and intervals on unmount and on reset                                                                                                                                                                                                                                                                                                                                    |
+| Numeric props           | `columns={0}` and `slotMinutes={0}` looped forever (#163, #166), `Math.min(...data)` threw on 200,000 values (#156), and `duration: Infinity` overflowed `setTimeout` and fired at once (#157)                  | Decide what 0, negative numbers, `NaN` and `Infinity` do for each numeric prop, and test them. Find extremes with a loop instead of spreading the array                                                                                                                                                                                                                                                                                                                                   |
+| Dates and time zones    | A DST gap scheduled reminders an hour early, calendar days were read in the wrong zone, and Sunday as weekday `0` failed a `>= 0` guard (#167). A leap-day cron ran past a five-year search cap (#160)          | Test one DST transition, one zone east of UTC+9, a Sunday, and February 29                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Prop spreading          | `{...props}` after internal handlers replaced them: a caller's `onKeyDown` disabled the keyboard logic (#171), and `inputProps` overwrote `className` and `aria-describedby` (#160, #168)                       | Spread consumer props first, then the component's own attributes. Compose event handlers and merge refs instead of overwriting them                                                                                                                                                                                                                                                                                                                                                       |
+| Strings and object keys | `constructor` and `__proto__` passed as valid keys (#160, #161), search dropped non-ASCII queries (#162) and ignored accents (#171), and a copied cURL command left the method unquoted (#174)                  | Use `Object.hasOwn` when looking up user input, and a `Map` for records keyed by it. Normalize search text with NFD. Quote everything that goes into a shell command. Wrap `JSON.stringify` of unknown values in `try` (#174)                                                                                                                                                                                                                                                             |
+| React                   | Reading `localStorage` in a `useState` initializer broke hydration (#166), and a new tuple on every render invalidated a `useMemo` (#156)                                                                       | Read browser storage in an effect after mount. Keep memo dependencies primitive or stable                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Tailwind                | `xs:` is not a breakpoint here, so a label never appeared (#174), and classes named tokens that don't exist (#176)                                                                                              | Use Tailwind's default breakpoints (`sm` and up) and only tokens defined in `app/globals.css`                                                                                                                                                                                                                                                                                                                                                                                             |
+
+### Replying to cubic
+
+- cubic reviews every push on its own. Don't comment `@cubic-dev-ai review`.
+- Fix comments that are right. For one that is wrong or out of scope, reply in its thread with the reason and resolve it.
+- A common false positive is "the Base UI file has no tests". `bun run test` runs `tests/ui` twice, and the `base` project in `vitest.config.ts` swaps `@/registry/default/ui/<name>` for the Base UI file, so importing through that path covers both.
+- New code gets reviewed too. In #168, the worker added to answer a ReDoS comment drew six more comments, so leave time for a second round.
+
+### Codecov
+
+`codecov/patch` fails when the lines you changed are less covered than the project as a whole. The target is `auto`, which has been between 80% and 84% lately.
+
+Nearly every miss from #155 to #177 was a partial branch, not a line that never ran: the kanban board had 41 partials and 2 missing lines (#172). Each `??`, `?.`, `||`, ternary, default parameter and early `return` has two sides, and Codecov wants a test that takes each one. Check your files before pushing:
+
+```bash
+bunx vitest run tests/ui/<name>.test.tsx tests/lib/<name>.test.ts --coverage \
+  --coverage.include=registry/default/ui/<name>.tsx \
+  --coverage.include=registry/default/lib/<name>-utils.ts \
+  --coverage.reporter=text
+```
+
+Add an `--coverage.include` for the Base UI file, the preview and each example. `Uncovered Line #s` lists every line with an untaken branch.
+
+- If a branch can't happen, delete it rather than writing a test to reach it.
+- `components/**` counts. `tests/ui/component-examples.test.tsx` renders every example, but only a `tests/ui/<name>-examples.test.tsx` that clicks through the controls covers their handlers. See `icon-picker-examples.test.tsx`.
 
 ## Code style
 
