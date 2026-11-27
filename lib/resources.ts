@@ -1,6 +1,7 @@
 import type { ComponentType } from "react"
 
 import { AccessibilityTreeFix } from "@/components/resources/accessibility-tree-fix"
+import { CachingCiBuilds } from "@/components/resources/caching-ci-builds"
 import { CodingAgentGuide } from "@/components/resources/coding-agent-guide"
 import { CollegeGuide } from "@/components/resources/college-guide"
 import { FirstPrReview } from "@/components/resources/first-pr-review"
@@ -48,6 +49,37 @@ export type Resource = {
 const [GAUTAM_ANAND] = MAINTAINERS
 
 export const RESOURCES: Resource[] = [
+  {
+    slug: "caching-ci-builds",
+    title: "What caching our CI build saved, and what it cost",
+    description:
+      "A nine-line cache step made the Next.js build in drift-ui’s CI 10 seconds faster and each run 9 seconds slower. The numbers, and where the time goes.",
+    publishedAt: "2026-11-17",
+    readMinutes: 4,
+    author: GAUTAM_ANAND,
+    tags: ["Contributing", "drift-ui"],
+    tldr: [
+      "Caching .next/cache cut Turbopack’s compile from 11.7 to 4.3 seconds and the build step from 38 to 28.",
+      "35 of 39 runs restored a cache. The four misses all came within 20 minutes of the merge.",
+      "Every run uploads a new cache of about 376 MB, which takes 15 seconds, so each run ends up about 9 seconds slower.",
+      "Saving the cache only from main should fix that. We haven’t made that change yet.",
+    ],
+    image: {
+      src: "/images/resources/caching-ci-builds.png",
+      alt: "A CI job's step times with the build at 28 seconds and a new 15 second cache save step, with a blue card labelled +9s per run, beside the headline Faster build. Slower run.",
+    },
+    sections: [],
+    Content: CachingCiBuilds,
+    outline: [
+      { id: "the-change", label: "The change" },
+      { id: "the-key", label: "How the key works" },
+      { id: "the-numbers", label: "Before and after" },
+      { id: "misses", label: "The four misses" },
+      { id: "the-cost", label: "Where the time goes" },
+      { id: "next-change", label: "What the numbers point to" },
+      { id: "your-pr", label: "What this means for your PR" },
+    ],
+  },
   {
     slug: "radix-and-base-ui",
     title: "One registry for Radix and Base UI",
