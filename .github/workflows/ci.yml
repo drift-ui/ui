@@ -41,12 +41,15 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Registry
+        run: bun run registry:build
+
       - name: Test
-        run: bun run test --coverage
+        run: bunx vitest run --coverage
 
       - uses: codecov/codecov-action@v7
         with:
           use_oidc: ${{ !github.event.pull_request.head.repo.fork }}
 
       - name: Build
-        run: bun run build
+        run: bunx next build
