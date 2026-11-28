@@ -237,7 +237,7 @@ describe("RecurrenceEditor", () => {
     )
   })
 
-  it("warns when a rule never occurs", () => {
+  it("warns when a rule has no occurrences in the search window", () => {
     render(
       <RecurrenceEditor
         aria-label="Repeat"
@@ -249,7 +249,7 @@ describe("RecurrenceEditor", () => {
 
     expect(
       screen.getByText(
-        "This rule never occurs. Check the days, months and end date."
+        "No occurrences in the next 100 years. Check the days, months and end date."
       )
     ).toBeInTheDocument()
   })
@@ -282,7 +282,7 @@ describe("RecurrenceEditor", () => {
 
     expect(screen.getByLabelText("Frequency")).toHaveDisplayValue("hours")
     expect(summary()).toHaveTextContent("Every 2 hours")
-    expect(screen.queryByText(/never occurs/)).toBeNull()
+    expect(screen.queryByText(/No occurrences/)).toBeNull()
     expect(screen.queryByRole("group", { name: "Repeat on" })).toBeNull()
 
     await user.click(screen.getByLabelText("Repeat every"))

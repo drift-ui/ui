@@ -696,23 +696,18 @@ function matchesDayRules(
   return dayMatches && monthDayMatches
 }
 
-const setPosCache = new WeakMap<Recurrence, Map<string, Set<number>>>()
+type SetPosCache = Map<string, Set<number>>
 
 function selectedForPeriod(
-  recurrence: Recurrence,
+  cache: SetPosCache,
   setPos: number[],
   key: string,
   build: () => number[]
 ): Set<number> {
-  let byPeriod = setPosCache.get(recurrence)
-  if (!byPeriod) {
-    byPeriod = new Map()
-    setPosCache.set(recurrence, byPeriod)
-  }
-  let selected = byPeriod.get(key)
+  let selected = cache.get(key)
   if (!selected) {
     selected = new Set(resolveSetPos(build(), setPos))
-    byPeriod.set(key, selected)
+    cache.set(key, selected)
   }
   return selected
 }
@@ -721,13 +716,14 @@ function matchesSetPos(
   recurrence: Recurrence,
   setPos: number[],
   date: Date,
-  period: "month" | "year"
+  period: "month" | "year",
+  cache: SetPosCache
 ): boolean {
   const year = date.getFullYear()
 
   if (period === "month") {
     const selectedDays = selectedForPeriod(
-      recurrence,
+      cache,
       setPos,
       `m${year}-${date.getMonth()}`,
       () => {
@@ -743,7 +739,7 @@ function matchesSetPos(
   }
 
   const selectedTimestamps = selectedForPeriod(
-    recurrence,
+    cache,
     setPos,
     `y${year}`,
     () => {
@@ -775,9 +771,14 @@ function matchesSetPos(
   )
 }
 
-function matchesDayOfMonth(recurrence: Recurrence, start: Date, date: Date) {
+function matchesDayOfMonth(
+  recurrence: Recurrence,
+  start: Date,
+  date: Date,
+  cache: SetPosCache
+) {
   if (recurrence.bySetPos && recurrence.bySetPos.length > 0) {
-    return matchesSetPos(recurrence, recurrence.bySetPos, date, "month")
+    return matchesSetPos(recurrence, recurrence.bySetPos, date, "month", cache)
   }
 
   if (recurrence.byDay.length > 0 || recurrence.byMonthDay.length > 0) {
@@ -787,7 +788,12 @@ function matchesDayOfMonth(recurrence: Recurrence, start: Date, date: Date) {
   return date.getDate() === start.getDate()
 }
 
-function matches(recurrence: Recurrence, start: Date, date: Date) {
+function matches(
+  recurrence: Recurrence,
+  start: Date,
+  date: Date,
+  cache: SetPosCache
+) {
   const { frequency, interval } = recurrence
   const days = dayNumber(date) - dayNumber(start)
   const months =
@@ -813,7 +819,8 @@ function matches(recurrence: Recurrence, start: Date, date: Date) {
     }
     case "MONTHLY":
       return (
-        months % interval === 0 && matchesDayOfMonth(recurrence, start, date)
+        months % interval === 0 &&
+        matchesDayOfMonth(recurrence, start, date, cache)
       )
     case "YEARLY": {
       const years = date.getFullYear() - start.getFullYear()
@@ -829,7 +836,13 @@ function matches(recurrence: Recurrence, start: Date, date: Date) {
       }
 
       if (recurrence.bySetPos && recurrence.bySetPos.length > 0) {
-        return matchesSetPos(recurrence, recurrence.bySetPos, date, "year")
+        return matchesSetPos(
+          recurrence,
+          recurrence.bySetPos,
+          date,
+          "year",
+          cache
+        )
       }
 
       if (recurrence.byDay.length > 0 || recurrence.byMonthDay.length > 0) {
@@ -885,6 +898,7 @@ export function occurrences(
   const allExdates = [...(recurrence.exdates ?? []), ...parsedOptionExdates]
 
   let generatedCount = 0
+  const setPosCache: SetPosCache = new Map()
 
   for (let dayOffset = 0; dayOffset < SEARCH_LIMIT_DAYS; dayOffset++) {
     const refDate = new Date(
@@ -901,7 +915,7 @@ export function occurrences(
     )
     const testDate = new Date(curYear, curMonth, curDay)
 
-    if (matches(recurrence, anchorDate, testDate)) {
+    if (matches(recurrence, anchorDate, testDate, setPosCache)) {
       const occurrence = makeZonedDate(
         curYear,
         curMonth,

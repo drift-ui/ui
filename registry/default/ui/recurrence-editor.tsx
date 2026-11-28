@@ -372,7 +372,8 @@ function RecurrenceEditor({
             data-slot="recurrence-editor-never"
             className="text-xs text-warning"
           >
-            This rule never occurs. Check the days, months and end date.
+            No occurrences in the next 100 years. Check the days, months and end
+            date.
           </p>
         )}
       </div>

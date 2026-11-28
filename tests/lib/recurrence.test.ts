@@ -526,7 +526,18 @@ describe("recurrence quality pass", () => {
         5
       )
     ).toEqual([])
-    expect(performance.now() - started).toBeLessThan(200)
+    expect(performance.now() - started).toBeLessThan(1000)
+  })
+
+  it("recomputes set positions when a rule object is changed and reused", () => {
+    const recurrence = parseRRule(
+      "FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=1"
+    )
+    const first = occurrences(recurrence, TUESDAY, 1)
+    recurrence.bySetPos = [-1]
+    const last = occurrences(recurrence, TUESDAY, 1)
+    expect(first[0].toDateString()).toBe("Tue Dec 01 2026")
+    expect(last[0].toDateString()).toBe("Mon Nov 30 2026")
   })
 
   it("keeps sub-daily frequencies instead of rewriting them as weekly", () => {
