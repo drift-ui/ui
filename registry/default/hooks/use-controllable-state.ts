@@ -16,14 +16,24 @@ export function useControllableState<T>({
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
   const isControlled = value !== undefined
   const currentValue = isControlled ? value : uncontrolledValue
+  const pendingRef = React.useRef<{ value: T } | null>(null)
 
   const setValue = React.useCallback(
     (update: StateUpdate<T>) => {
+      const previous = pendingRef.current
+        ? pendingRef.current.value
+        : currentValue
       const next =
         typeof update === "function"
-          ? (update as (previous: T) => T)(currentValue)
+          ? (update as (previous: T) => T)(previous)
           : update
-      if (Object.is(next, currentValue)) return
+      if (Object.is(next, previous)) return
+      if (!pendingRef.current) {
+        queueMicrotask(() => {
+          pendingRef.current = null
+        })
+      }
+      pendingRef.current = { value: next }
       if (!isControlled) setUncontrolledValue(next)
       onChange?.(next)
     },
