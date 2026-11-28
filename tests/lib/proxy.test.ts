@@ -80,9 +80,7 @@ describe("registry install counting", () => {
     expect(event.waitUntil).toHaveBeenCalledTimes(1)
     await event.waitUntil.mock.calls[0][0]
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body)[0][2]).toBe(
-      "cron-input"
-    )
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)[0][2]).toBe("cron-input")
   })
 
   it("passes the registry index through without counting it", () => {
