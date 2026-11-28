@@ -1240,7 +1240,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       signature:
         "parseFilters(query: string, options?: { asGroup?: boolean }): Filter[] | FilterGroup",
       description:
-        "Parses a DSL string, URL search parameters, or JSON into Filter[] or FilterGroup.",
+        "Parses a DSL string, URL search parameters, or JSON into Filter[] or FilterGroup. Drops unknown operators and malformed entries, turns values into strings and caps nesting at 8 levels, so it is safe on untrusted links.",
     },
   ],
   "histogram-range": [

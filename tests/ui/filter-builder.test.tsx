@@ -305,4 +305,71 @@ describe("FilterBuilder", () => {
       })
     )
   })
+
+  it("moves focus to the add button after a keyboard remove or clear", async () => {
+    const user = userEvent.setup()
+    render(
+      <FilterBuilder
+        fields={FIELDS}
+        defaultValue={[
+          { id: "a", fieldId: "status", operator: "is", value: "open" },
+          { id: "b", fieldId: "title", operator: "contains", value: "invoice" },
+        ]}
+      />
+    )
+    const addButton = screen.getByRole("button", { name: "Add filter" })
+
+    screen.getByRole("button", { name: "Remove Status filter" }).focus()
+    await user.keyboard("{Enter}")
+    await waitFor(() => expect(addButton).toHaveFocus())
+
+    screen.getByRole("button", { name: "Clear" }).focus()
+    await user.keyboard("{Enter}")
+    await waitFor(() => expect(addButton).toHaveFocus())
+  })
+
+  it("moves focus to the add button after removing a group", async () => {
+    const user = userEvent.setup()
+    render(
+      <FilterBuilder
+        fields={FIELDS}
+        defaultValue={{
+          id: "root",
+          conjunction: "and",
+          filters: [
+            {
+              id: "nested",
+              conjunction: "or",
+              filters: [
+                { id: "1", fieldId: "status", operator: "is", value: "open" },
+              ],
+            },
+          ],
+        }}
+      />
+    )
+
+    screen.getByRole("button", { name: "Remove filter group" }).focus()
+    await user.keyboard("{Enter}")
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Add filter" })).toHaveFocus()
+    )
+  })
+
+  it("leaves focus alone when the value changes from outside", () => {
+    const { rerender } = render(
+      <FilterBuilder
+        fields={FIELDS}
+        value={[{ id: "a", fieldId: "status", operator: "is", value: "open" }]}
+      />
+    )
+    const outside = document.createElement("button")
+    document.body.append(outside)
+    outside.focus()
+
+    rerender(<FilterBuilder fields={FIELDS} value={[]} />)
+
+    expect(outside).toHaveFocus()
+    outside.remove()
+  })
 })

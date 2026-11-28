@@ -386,7 +386,7 @@ export function AttachmentsField() {
   },
   "filter-builder": {
     notes:
-      "Chip based filters with nested AND/OR groups, date fields, multi-select, and URL serialization. fields: FilterField[] with { id, label, type: 'text' | 'number' | 'select' | 'date', options? }. Value is Filter[] or FilterGroup. Use matchesFilters(row, filters) from @/lib/filter. Scale limit: up to 2 nested levels and 20 filters recommended in UI.",
+      "Chip based filters with nested AND/OR groups, date fields, multi-select, and URL serialization. fields: FilterField[] with { id, label, type: 'text' | 'number' | 'select' | 'date', options? }. Value is Filter[] or FilterGroup. Use matchesFilters(row, filters) from @/lib/filter. Scale limit: up to 2 nested levels and 20 filters recommended in UI. parseFilters treats its input as untrusted: unknown operators and malformed JSON entries are dropped, values become strings, list and range operators always get arrays, and nesting is capped at 8 levels, so a crafted share link cannot crash matchesFilters. After a filter, group or Clear is removed, focus moves to the Add filter button.",
     example: `"use client"
 
 import { useState } from "react"

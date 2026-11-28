@@ -504,3 +504,149 @@ describe("filter", () => {
     })
   })
 })
+
+function depthOf(value: unknown): number {
+  if (!isFilterGroup(value)) return 0
+  return 1 + Math.max(0, ...value.filters.map((item) => depthOf(item)))
+}
+
+describe("parseFilters with untrusted input", () => {
+  const row = { status: "open", n: 1 }
+
+  it("fills a missing value instead of crashing the match", () => {
+    const parsed = parseFilters('[{"fieldId":"status","operator":"is"}]')
+    expect(parsed).toEqual([
+      { id: expect.any(String), fieldId: "status", operator: "is", value: "" },
+    ])
+    expect(matchesFilters(row, parsed)).toBe(true)
+  })
+
+  it("drops null and malformed children of a JSON group", () => {
+    const parsed = parseFilters(
+      '{"conjunction":"and","filters":[null,7,"x",{"fieldId":"status","operator":"is","value":"open"}]}'
+    )
+    expect(isFilterGroup(parsed) && parsed.filters).toHaveLength(1)
+    expect(matchesFilters(row, parsed)).toBe(true)
+  })
+
+  it("turns non-string values into strings", () => {
+    const parsed = parseFilters('[{"fieldId":"n","operator":"eq","value":1}]')
+    expect(parsed).toEqual([
+      { id: expect.any(String), fieldId: "n", operator: "eq", value: "1" },
+    ])
+    expect(matchesFilters(row, parsed)).toBe(true)
+  })
+
+  it("drops filters with an unknown operator", () => {
+    expect(parseFilters("status:hacked:x")).toEqual([])
+    expect(
+      parseFilters('[{"fieldId":"status","operator":"hacked","value":"x"}]')
+    ).toEqual([])
+  })
+
+  it("keeps list and range values as arrays after a round trip", () => {
+    const single = parseFilters(
+      serializeFilters([
+        { id: "a", fieldId: "status", operator: "is-any-of", value: ["open"] },
+        { id: "b", fieldId: "due", operator: "between", value: ["2026-01-01"] },
+      ])
+    )
+    expect(single).toEqual([
+      expect.objectContaining({ value: ["open"] }),
+      expect.objectContaining({ value: ["2026-01-01"] }),
+    ])
+  })
+
+  it("sanitizes every JSON shape it accepts", () => {
+    expect(
+      parseFilters(
+        '[{"id":"keep","fieldId":"status","operator":"is-any-of","value":["open",1]}]'
+      )
+    ).toEqual([
+      {
+        id: "keep",
+        fieldId: "status",
+        operator: "is-any-of",
+        value: ["open", "1"],
+      },
+    ])
+    expect(parseFilters("status:is-any-of:")).toEqual([
+      expect.objectContaining({ value: [] }),
+    ])
+    expect(parseFilters('{"conjunction":"xor","filters":[]}')).toEqual({
+      id: expect.any(String),
+      conjunction: "and",
+      filters: [],
+    })
+    const withGroup = parseFilters(
+      '[{"conjunction":"or","filters":[{"conjunction":"xor","filters":[]}]}]'
+    )
+    expect(withGroup).toEqual({
+      id: expect.any(String),
+      conjunction: "and",
+      filters: [{ id: expect.any(String), conjunction: "or", filters: [] }],
+    })
+    expect(
+      parseFilters('[{"fieldId":"status","operator":"is","value":"open"}]', {
+        asGroup: true,
+      })
+    ).toEqual({
+      id: "root",
+      conjunction: "and",
+      filters: [expect.objectContaining({ fieldId: "status" })],
+    })
+  })
+
+  it("keeps a single value for scalar operators", () => {
+    const parsed = parseFilters(
+      '[{"fieldId":"status","operator":"is","value":["open","closed"]}]'
+    )
+    expect(parsed).toEqual([expect.objectContaining({ value: "open" })])
+    expect(matchesFilters({ status: "open" }, parsed)).toBe(true)
+    expect(serializeFilters(parsed)).toBe("status:is:open")
+    expect(
+      parseFilters('[{"fieldId":"title","operator":"contains","value":[]}]')
+    ).toEqual([expect.objectContaining({ value: "" })])
+  })
+
+  it("drops only the entry whose value cannot be read as text", () => {
+    const parsed = parseFilters(
+      JSON.stringify([
+        {
+          fieldId: "status",
+          operator: "is",
+          value: { toString: 1, valueOf: 1 },
+        },
+        { fieldId: "status", operator: "is-any-of", value: ["open", {}] },
+        { fieldId: "flag", operator: "is", value: true },
+        { fieldId: "status", operator: "is", value: "open" },
+      ])
+    )
+    expect(parsed).toEqual([
+      expect.objectContaining({ fieldId: "flag", value: "true" }),
+      expect.objectContaining({ fieldId: "status", value: "open" }),
+    ])
+  })
+
+  it("caps nesting so a huge link stays fast and cannot overflow the stack", () => {
+    const levels = 20000
+    const link = "and(".repeat(levels) + "status:is:open" + ")".repeat(levels)
+    const started = performance.now()
+    const parsed = parseFilters(link)
+    expect(performance.now() - started).toBeLessThan(1000)
+    expect(depthOf(parsed)).toBeLessThanOrEqual(8)
+    expect(
+      depthOf(parseFilters(JSON.stringify(nest(2000))))
+    ).toBeLessThanOrEqual(8)
+  })
+})
+
+function nest(levels: number): unknown {
+  let group: unknown = {
+    conjunction: "and",
+    filters: [{ fieldId: "status", operator: "is", value: "open" }],
+  }
+  for (let i = 0; i < levels; i++)
+    group = { conjunction: "and", filters: [group] }
+  return group
+}
