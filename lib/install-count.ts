@@ -21,6 +21,42 @@ export function installWeekKey(now: Date) {
   return `installs:${monday.toISOString().slice(0, 10)}`
 }
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+
+export function recentInstallWeeks(now: Date, count: number) {
+  return Array.from({ length: count }, (_, index) =>
+    installWeekKey(new Date(now.getTime() - index * WEEK_MS))
+  )
+}
+
+export function installTable(weeks: string[], hashes: (string[] | null)[]) {
+  const counts = hashes.map((hash) => {
+    const flat = hash ?? []
+    const byItem = new Map<string, number>()
+    for (let i = 0; i < flat.length; i += 2) {
+      byItem.set(flat[i], Number(flat[i + 1]))
+    }
+    return byItem
+  })
+  const latest = counts[0]
+  const items = [...new Set(counts.flatMap((byItem) => [...byItem.keys()]))]
+    .filter((item) => item !== "_total")
+    .sort(
+      (a, b) =>
+        (latest.get(b) ?? 0) - (latest.get(a) ?? 0) || a.localeCompare(b)
+    )
+
+  return [...items, "_total"].map((item) => ({
+    item,
+    ...Object.fromEntries(
+      weeks.map((week, index) => [
+        week.slice("installs:".length),
+        counts[index]?.get(item) ?? 0,
+      ])
+    ),
+  }))
+}
+
 export async function countInstall(item: string, now = new Date()) {
   const url = process.env.KV_REST_API_URL
   const token = process.env.KV_REST_API_TOKEN

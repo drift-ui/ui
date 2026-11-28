@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   countInstall,
+  installTable,
   installWeekKey,
+  recentInstallWeeks,
   registryItemName,
 } from "@/lib/install-count"
 
@@ -45,6 +47,40 @@ describe("installWeekKey", () => {
     expect(installWeekKey(new Date("2027-01-01T08:00:00Z"))).toBe(
       "installs:2026-12-28"
     )
+  })
+})
+
+describe("recentInstallWeeks", () => {
+  it("lists the current week first, then each week before it", () => {
+    expect(recentInstallWeeks(new Date("2026-12-02T10:00:00Z"), 3)).toEqual([
+      "installs:2026-11-30",
+      "installs:2026-11-23",
+      "installs:2026-11-16",
+    ])
+  })
+})
+
+describe("installTable", () => {
+  it("puts one row per item, busiest this week first, and the total last", () => {
+    const weeks = ["installs:2026-11-30", "installs:2026-11-23"]
+    const table = installTable(weeks, [
+      ["cron-input", "3", "utils", "9", "_total", "12"],
+      ["filter-builder", "2", "date-time-range", "1", "_total", "3"],
+    ])
+
+    expect(table).toEqual([
+      { item: "utils", "2026-11-30": 9, "2026-11-23": 0 },
+      { item: "cron-input", "2026-11-30": 3, "2026-11-23": 0 },
+      { item: "date-time-range", "2026-11-30": 0, "2026-11-23": 1 },
+      { item: "filter-builder", "2026-11-30": 0, "2026-11-23": 2 },
+      { item: "_total", "2026-11-30": 12, "2026-11-23": 3 },
+    ])
+  })
+
+  it("shows zeros for weeks with no key yet", () => {
+    expect(installTable(["installs:2026-11-30"], [null])).toEqual([
+      { item: "_total", "2026-11-30": 0 },
+    ])
   })
 })
 
