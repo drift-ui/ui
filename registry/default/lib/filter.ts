@@ -428,17 +428,76 @@ function splitTopLevel(input: string, delimiter = ","): string[] {
   return parts
 }
 
-function parseItem(itemStr: string): FilterItem | null {
+const MAX_PARSE_DEPTH = 8
+
+function isOperator(value: unknown): value is FilterOperator {
+  return typeof value === "string" && Object.hasOwn(OPERATOR_LABEL, value)
+}
+
+function normalizeValue(
+  operator: FilterOperator,
+  value: string | string[]
+): string | string[] {
+  if (
+    operator === "is-any-of" ||
+    operator === "is-none-of" ||
+    operator === "between"
+  ) {
+    if (Array.isArray(value)) return value
+    return value ? [value] : []
+  }
+  return value
+}
+
+function sanitizeItems(raw: unknown[], depth: number): FilterItem[] {
+  return raw
+    .map((item) => sanitizeItem(item, depth))
+    .filter((item): item is FilterItem => item !== null)
+}
+
+function sanitizeItem(raw: unknown, depth: number): FilterItem | null {
+  if (!raw || typeof raw !== "object") return null
+  const item = raw as Record<string, unknown>
+  const id = typeof item.id === "string" ? item.id : generateId()
+
+  if (Array.isArray(item.filters)) {
+    if (depth >= MAX_PARSE_DEPTH) return null
+    if (item.conjunction !== "and" && item.conjunction !== "or") return null
+    return {
+      id,
+      conjunction: item.conjunction,
+      filters: sanitizeItems(item.filters, depth + 1),
+    }
+  }
+
+  if (typeof item.fieldId !== "string" || !isOperator(item.operator)) {
+    return null
+  }
+  const value = Array.isArray(item.value)
+    ? item.value.map(String)
+    : item.value == null
+      ? ""
+      : String(item.value)
+  return {
+    id,
+    fieldId: item.fieldId,
+    operator: item.operator,
+    value: normalizeValue(item.operator, value),
+  }
+}
+
+function parseItem(itemStr: string, depth = 0): FilterItem | null {
   const trimmed = itemStr.trim()
   if (!trimmed) return null
 
   // Check for group: and(...) or or(...)
   const groupMatch = /^(and|or)\(([\s\S]*)\)$/.exec(trimmed)
   if (groupMatch) {
+    if (depth >= MAX_PARSE_DEPTH) return null
     const conjunction = groupMatch[1] as FilterConjunction
     const inner = groupMatch[2]
     const children = splitTopLevel(inner)
-      .map(parseItem)
+      .map((child) => parseItem(child, depth + 1))
       .filter((item): item is FilterItem => item !== null)
     return {
       id: generateId(),
@@ -462,7 +521,9 @@ function parseItem(itemStr: string): FilterItem | null {
     rawValue = trimmed.slice(firstColon + 1)
   } else {
     fieldId = safeDecodeURIComponent(trimmed.slice(0, firstColon))
-    operator = trimmed.slice(firstColon + 1, secondColon) as FilterOperator
+    const rawOperator = trimmed.slice(firstColon + 1, secondColon)
+    if (!isOperator(rawOperator)) return null
+    operator = rawOperator
     rawValue = trimmed.slice(secondColon + 1)
   }
 
@@ -482,7 +543,7 @@ function parseItem(itemStr: string): FilterItem | null {
     id: generateId(),
     fieldId,
     operator,
-    value,
+    value: normalizeValue(operator, value),
   }
 }
 
@@ -510,12 +571,19 @@ export function parseFilters(
   // Handle JSON fallback
   if (raw.startsWith("[") || raw.startsWith("{")) {
     try {
-      const parsedJson = JSON.parse(raw)
+      const parsedJson: unknown = JSON.parse(raw)
       if (isFilterGroup(parsedJson)) {
-        return parsedJson
+        const group = sanitizeItem(parsedJson, 0)
+        return group && isFilterGroup(group) ? group : createFilterGroup("and")
       }
       if (Array.isArray(parsedJson)) {
-        return options?.asGroup ? toFilterGroup(parsedJson) : parsedJson
+        const items = sanitizeItems(parsedJson, 1)
+        if (items.some(isFilterGroup)) {
+          return { id: generateId(), conjunction: "and", filters: items }
+        }
+        return options?.asGroup
+          ? toFilterGroup(items as Filter[])
+          : (items as Filter[])
       }
     } catch {
       // Continue to DSL parsing
@@ -532,7 +600,7 @@ export function parseFilters(
   }
 
   const items = splitTopLevel(raw)
-    .map(parseItem)
+    .map((item) => parseItem(item, 1))
     .filter((item): item is FilterItem => item !== null)
 
   const hasNestedGroups = items.some(isFilterGroup)

@@ -88,6 +88,14 @@ function FilterBuilder({
 
   const [newFilterId, setNewFilterId] = React.useState<string | null>(null)
   const didAddFilterRef = React.useRef(false)
+  const addButtonRef = React.useRef<HTMLButtonElement>(null)
+  const focusAddButtonRef = React.useRef(false)
+
+  React.useEffect(() => {
+    if (!focusAddButtonRef.current) return
+    focusAddButtonRef.current = false
+    addButtonRef.current?.focus()
+  })
   const fieldsById = React.useMemo(
     () => new Map(fields.map((field) => [field.id, field])),
     [fields]
@@ -126,6 +134,7 @@ function FilterBuilder({
   }
 
   function removeFilterFlat(id: string) {
+    focusAddButtonRef.current = true
     setFilters((current) =>
       Array.isArray(current)
         ? current.filter((filter) => filter.id !== id)
@@ -211,6 +220,7 @@ function FilterBuilder({
   }
 
   function removeItemFromGroup(id: string) {
+    focusAddButtonRef.current = true
     setFilters((current) => {
       if (!isFilterGroup(current)) return current
       return updateInGroup(current, id, () => null)
@@ -218,6 +228,7 @@ function FilterBuilder({
   }
 
   function handleClear() {
+    focusAddButtonRef.current = true
     if (isGrouped) {
       setFilters({ ...(filters as FilterGroup), filters: [] })
     } else {
@@ -289,6 +300,7 @@ function FilterBuilder({
           }}
           trigger={
             <Button
+              ref={isRoot ? addButtonRef : undefined}
               variant="outline"
               size="sm"
               data-slot="filter-builder-add"
@@ -361,6 +373,7 @@ function FilterBuilder({
             }}
             trigger={
               <Button
+                ref={addButtonRef}
                 variant="outline"
                 size="sm"
                 data-slot="filter-builder-add"
