@@ -2,9 +2,13 @@
 
 ![drift-ui, the components shadcn left out](public/brand/exports/drift-ui-github-social-1280x640.png)
 
-A shadcn-compatible component registry built on React 19, Tailwind v4, and Radix or Base UI. It covers the components shadcn/ui leaves out, like a tags input, stepper, tree view and file dropzone, and installs them with the shadcn CLI.
+The hard components shadcn/ui doesn't ship: a [cron input](https://drift-ui.dev/components/cron-input) that reads the schedule back in plain English, a [filter builder](https://drift-ui.dev/components/filter-builder) with AND/OR groups saved to the URL, and a [recurrence editor](https://drift-ui.dev/components/recurrence-editor) for RRULE repeat rules. You install them with the shadcn CLI, on Radix or Base UI, with React 19 and Tailwind v4.
 
-Browse the live previews at [drift-ui.dev](https://drift-ui.dev).
+```bash
+npx shadcn add @drift-ui/theme @drift-ui/cron-input
+```
+
+Every component runs live in the [gallery](https://drift-ui.dev/components).
 
 ![Tags input, tree view and saved views in use](.github/assets/demo.gif)
 
