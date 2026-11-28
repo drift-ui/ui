@@ -112,7 +112,7 @@ export async function generateMetadata({
   if (!entry || !isPrimitiveLibrary(library)) return {}
 
   return createPageMetadata({
-    title: entry.name,
+    title: `${entry.name} for shadcn/ui`,
     description: `${entry.description} Install with npx shadcn@latest add @drift-ui/${entry.slug}.`,
     path: componentPath(entry.slug, DEFAULT_PRIMITIVE_LIBRARY),
     imageBasePath: componentPath(entry.slug, library),
