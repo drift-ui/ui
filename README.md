@@ -2,7 +2,7 @@
 
 ![drift-ui, the components shadcn left out](public/brand/exports/drift-ui-github-social-1280x640.png)
 
-The hard components shadcn/ui doesn't ship: a [cron input](https://drift-ui.dev/components/cron-input) that reads the schedule back in plain English, a [filter builder](https://drift-ui.dev/components/filter-builder) with AND/OR groups that serialize to a URL query string, and a [recurrence editor](https://drift-ui.dev/components/recurrence-editor) for RRULE repeat rules. You install them with the shadcn CLI, on Radix or Base UI, with React 19 and Tailwind v4.
+The hard components shadcn/ui doesn't ship: a [cron input](https://drift-ui.dev/components/cron-input) that reads the schedule back in plain English, a [filter builder](https://drift-ui.dev/components/filter-builder) with AND/OR groups that serialize to a URL-safe string for a query parameter, and a [recurrence editor](https://drift-ui.dev/components/recurrence-editor) for RRULE repeat rules. You install them with the shadcn CLI, on Radix or Base UI, with React 19 and Tailwind v4.
 
 ```bash
 npx shadcn add @drift-ui/theme @drift-ui/cron-input
