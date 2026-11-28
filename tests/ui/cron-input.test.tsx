@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
+import { hydrateRoot } from "react-dom/client"
 import { renderToString } from "react-dom/server"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
@@ -134,7 +135,7 @@ describe("CronInput", () => {
     expect(input).toHaveValue("*/5 * * * *")
   })
 
-  it("leaves upcoming runs out of the server render unless nextRunsFrom is set", () => {
+  it("leaves upcoming runs out of the server render", () => {
     expect(
       renderToString(<CronInput defaultValue="0 9 * * 1-5" />)
     ).not.toContain("cron-input-run-item")
@@ -145,7 +146,32 @@ describe("CronInput", () => {
           nextRunsFrom={new Date(2026, 10, 13, 8, 30)}
         />
       )
-    ).toContain("cron-input-run-item")
+    ).not.toContain("cron-input-run-item")
+  })
+
+  it("hydrates server markup without a mismatch, then lists upcoming runs", async () => {
+    const element = (
+      <CronInput
+        defaultValue="0 9 * * 1-5"
+        nextRunsFrom={new Date(2026, 10, 13, 8, 30)}
+      />
+    )
+    const container = document.createElement("div")
+    container.innerHTML = renderToString(element)
+    document.body.append(container)
+    const onRecoverableError = vi.fn()
+
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, element, { onRecoverableError })
+    })
+
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(
+      container.querySelectorAll("[data-slot=cron-input-run-item]")
+    ).toHaveLength(5)
+    act(() => root?.unmount())
+    container.remove()
   })
 
   it("says so when a valid schedule can never run", () => {
@@ -188,6 +214,17 @@ describe("CronInput", () => {
       .getAttribute("aria-describedby")
     expect(describedBy?.split(" ")).toContain("schedule-help")
     expect(describedBy?.split(" ")).toHaveLength(2)
+  })
+
+  it("lets inputProps turn autocorrect back on", () => {
+    render(
+      <CronInput
+        defaultValue="0 9 * * 1-5"
+        inputProps={{ autoCorrect: "on" }}
+      />
+    )
+
+    expect(screen.getByRole("textbox")).toHaveAttribute("autocorrect", "on")
   })
 
   it("turns off autocorrect and spellcheck so mobile keyboards leave the expression alone", () => {

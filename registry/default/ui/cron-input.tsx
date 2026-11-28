@@ -88,10 +88,7 @@ function CronInput({
     () => false
   )
   const canListRuns =
-    parsed.isValid &&
-    showNextRuns &&
-    nextRunsCount > 0 &&
-    (isClient || nextRunsFrom !== undefined)
+    parsed.isValid && showNextRuns && nextRunsCount > 0 && isClient
 
   const nextRuns = React.useMemo(() => {
     if (!canListRuns) return []
@@ -149,7 +146,7 @@ function CronInput({
           )}
         />
 
-        <div aria-live="polite">
+        <div aria-live="polite" className="empty:-mt-1.5">
           {isInvalid ? (
             <div
               id={errorId}
