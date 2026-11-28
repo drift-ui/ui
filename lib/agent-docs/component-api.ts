@@ -3108,7 +3108,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           type: "Date",
           default: "today",
           description:
-            "First occurrence. Sets the default weekday, month day and time, and where the preview starts.",
+            "First occurrence. Sets the default weekday, month day and time, and where the preview starts. Pass it when server-rendering: the default, today, can differ between server and browser.",
         },
         {
           name: "showPreview",

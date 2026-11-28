@@ -4,6 +4,17 @@ export type Weekday = "MO" | "TU" | "WE" | "TH" | "FR" | "SA" | "SU"
 
 export type WeekdayRule = { weekday: Weekday; ordinal?: number }
 
+export type SubdailyFrequency = "HOURLY" | "MINUTELY" | "SECONDLY"
+
+export const SUBDAILY_UNITS: Record<
+  SubdailyFrequency,
+  { unit: string; once: string }
+> = {
+  HOURLY: { unit: "hour", once: "Hourly" },
+  MINUTELY: { unit: "minute", once: "Every minute" },
+  SECONDLY: { unit: "second", once: "Every second" },
+}
+
 export type Recurrence = {
   frequency: Frequency
   interval: number
@@ -16,6 +27,7 @@ export type Recurrence = {
   exdates?: Date[]
   tzid?: string
   unknownParts?: Record<string, string>
+  unsupportedFrequency?: SubdailyFrequency
 }
 
 export const FREQUENCIES: Frequency[] = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]
@@ -470,7 +482,11 @@ export function parseRRule(rule: string): Recurrence {
     }
   }
 
-  const frequency = parts.get("FREQ")?.toUpperCase() as Frequency
+  const rawFrequency = parts.get("FREQ")?.toUpperCase() ?? ""
+  const unsupportedFrequency = Object.hasOwn(SUBDAILY_UNITS, rawFrequency)
+    ? (rawFrequency as SubdailyFrequency)
+    : undefined
+  const frequency = unsupportedFrequency ? "DAILY" : (rawFrequency as Frequency)
   const byMonthDay = (parts.get("BYMONTHDAY") ?? "")
     .split(",")
     .map(Number)
@@ -499,6 +515,8 @@ export function parseRRule(rule: string): Recurrence {
   if (bySetPos.length > 0) recurrence.bySetPos = bySetPos
   if (exdates.length > 0) recurrence.exdates = exdates
   if (tzid) recurrence.tzid = tzid
+  if (unsupportedFrequency)
+    recurrence.unsupportedFrequency = unsupportedFrequency
   if (Object.keys(unknownParts).length > 0)
     recurrence.unknownParts = unknownParts
 
@@ -522,7 +540,7 @@ export function formatRRule(
     exdates,
   } = recurrence
 
-  const parts = [`FREQ=${frequency}`]
+  const parts = [`FREQ=${recurrence.unsupportedFrequency ?? frequency}`]
   if (interval > 1) parts.push(`INTERVAL=${interval}`)
   if (byMonth && byMonth.length > 0) parts.push(`BYMONTH=${byMonth.join(",")}`)
   if (byDay.length > 0) {
@@ -678,59 +696,88 @@ function matchesDayRules(
   return dayMatches && monthDayMatches
 }
 
+const setPosCache = new WeakMap<Recurrence, Map<string, Set<number>>>()
+
+function selectedForPeriod(
+  recurrence: Recurrence,
+  setPos: number[],
+  key: string,
+  build: () => number[]
+): Set<number> {
+  let byPeriod = setPosCache.get(recurrence)
+  if (!byPeriod) {
+    byPeriod = new Map()
+    setPosCache.set(recurrence, byPeriod)
+  }
+  let selected = byPeriod.get(key)
+  if (!selected) {
+    selected = new Set(resolveSetPos(build(), setPos))
+    byPeriod.set(key, selected)
+  }
+  return selected
+}
+
 function matchesSetPos(
   recurrence: Recurrence,
+  setPos: number[],
   date: Date,
   period: "month" | "year"
 ): boolean {
-  if (!recurrence.bySetPos || recurrence.bySetPos.length === 0) return true
+  const year = date.getFullYear()
 
   if (period === "month") {
-    const totalDays = daysInMonth(date)
-    const candidates: number[] = []
-    for (let day = 1; day <= totalDays; day++) {
-      const d = new Date(date.getFullYear(), date.getMonth(), day)
-      if (matchesDayRules(recurrence, d, "month")) {
-        candidates.push(day)
+    const selectedDays = selectedForPeriod(
+      recurrence,
+      setPos,
+      `m${year}-${date.getMonth()}`,
+      () => {
+        const candidates: number[] = []
+        for (let day = 1; day <= daysInMonth(date); day++) {
+          const d = new Date(year, date.getMonth(), day)
+          if (matchesDayRules(recurrence, d, "month")) candidates.push(day)
+        }
+        return candidates
       }
-    }
-    const selectedDays = resolveSetPos(candidates, recurrence.bySetPos)
-    return selectedDays.includes(date.getDate())
+    )
+    return selectedDays.has(date.getDate())
   }
 
-  const year = date.getFullYear()
-  const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
-  const totalYearDays = isLeap ? 366 : 365
-  const cur = new Date(year, 0, 1)
-  const matchingDates: number[] = []
-
-  for (let i = 0; i < totalYearDays; i++) {
-    const month = cur.getMonth() + 1
-    if (
-      (!recurrence.byMonth || recurrence.byMonth.includes(month)) &&
-      matchesDayRules(
-        recurrence,
-        cur,
-        recurrence.byMonth && recurrence.byMonth.length > 0 ? "month" : "year"
-      )
-    ) {
-      matchingDates.push(cur.getTime())
+  const selectedTimestamps = selectedForPeriod(
+    recurrence,
+    setPos,
+    `y${year}`,
+    () => {
+      const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+      const totalYearDays = isLeap ? 366 : 365
+      const cur = new Date(year, 0, 1)
+      const matchingDates: number[] = []
+      for (let i = 0; i < totalYearDays; i++) {
+        const month = cur.getMonth() + 1
+        if (
+          (!recurrence.byMonth || recurrence.byMonth.includes(month)) &&
+          matchesDayRules(
+            recurrence,
+            cur,
+            recurrence.byMonth && recurrence.byMonth.length > 0
+              ? "month"
+              : "year"
+          )
+        ) {
+          matchingDates.push(cur.getTime())
+        }
+        cur.setDate(cur.getDate() + 1)
+      }
+      return matchingDates
     }
-    cur.setDate(cur.getDate() + 1)
-  }
-
-  const selectedTimestamps = resolveSetPos(matchingDates, recurrence.bySetPos)
-  const target = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
-  ).getTime()
-  return selectedTimestamps.includes(target)
+  )
+  return selectedTimestamps.has(
+    new Date(year, date.getMonth(), date.getDate()).getTime()
+  )
 }
 
 function matchesDayOfMonth(recurrence: Recurrence, start: Date, date: Date) {
   if (recurrence.bySetPos && recurrence.bySetPos.length > 0) {
-    return matchesSetPos(recurrence, date, "month")
+    return matchesSetPos(recurrence, recurrence.bySetPos, date, "month")
   }
 
   if (recurrence.byDay.length > 0 || recurrence.byMonthDay.length > 0) {
@@ -782,7 +829,7 @@ function matches(recurrence: Recurrence, start: Date, date: Date) {
       }
 
       if (recurrence.bySetPos && recurrence.bySetPos.length > 0) {
-        return matchesSetPos(recurrence, date, "year")
+        return matchesSetPos(recurrence, recurrence.bySetPos, date, "year")
       }
 
       if (recurrence.byDay.length > 0 || recurrence.byMonthDay.length > 0) {
@@ -824,7 +871,7 @@ export function occurrences(
   limit: number,
   options?: { exdates?: (Date | string)[]; tzid?: string }
 ): Date[] {
-  if (limit <= 0) return []
+  if (limit <= 0 || recurrence.unsupportedFrequency) return []
   const found: Date[] = []
   const timeZone = options?.tzid ?? recurrence.tzid
   const startParts = getZonedDateTimeParts(start, timeZone)
@@ -901,8 +948,17 @@ function joinWords(words: string[]) {
   return `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`
 }
 
-function ordinalWord(ordinal: number) {
-  return ORDINALS[ordinal] ?? String(ordinal)
+function withSuffix(n: number) {
+  const tens = n % 100
+  if (tens >= 11 && tens <= 13) return `${n}th`
+  const suffixes: Record<number, string> = { 1: "st", 2: "nd", 3: "rd" }
+  return `${n}${suffixes[n % 10] ?? "th"}`
+}
+
+function ordinalWord(ordinal: number): string {
+  if (ORDINALS[ordinal]) return ORDINALS[ordinal]
+  if (ordinal < 0) return `${ordinalWord(-ordinal)} to last`
+  return withSuffix(ordinal)
 }
 
 function isWorkweekDays(byDay: WeekdayRule[]) {
@@ -1036,12 +1092,19 @@ export function describeRecurrence(recurrence: Recurrence, start: Date) {
     WEEKDAYS.slice(0, 5).every((weekday) =>
       byDay.some((rule) => rule.weekday === weekday)
     )
-  const base = isWorkweek
-    ? "Every weekday"
-    : interval === 1
-      ? ADVERBS[frequency]
-      : `Every ${interval} ${UNITS[frequency]}s`
-  const days = isWorkweek ? "" : describeDays(recurrence, start)
+  const subdaily = recurrence.unsupportedFrequency
+    ? SUBDAILY_UNITS[recurrence.unsupportedFrequency]
+    : undefined
+  const base = subdaily
+    ? interval === 1
+      ? subdaily.once
+      : `Every ${interval} ${subdaily.unit}s`
+    : isWorkweek
+      ? "Every weekday"
+      : interval === 1
+        ? ADVERBS[frequency]
+        : `Every ${interval} ${UNITS[frequency]}s`
+  const days = subdaily || isWorkweek ? "" : describeDays(recurrence, start)
   const end = count
     ? count === 1
       ? ", once"
