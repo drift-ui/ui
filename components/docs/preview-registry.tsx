@@ -64,6 +64,7 @@ import { RecurrenceEditorPreview } from "@/components/preview/recurrence-editor-
 import { RegexInputPreview } from "@/components/preview/regex-input-preview"
 import { RequestInspectorPreview } from "@/components/preview/request-inspector-preview"
 import { SavedViewsPreview } from "@/components/preview/saved-views-preview"
+import { SchemaViewerPreview } from "@/components/preview/schema-viewer-preview"
 import { SecretFieldPreview } from "@/components/preview/secret-field-preview"
 import { ShortcutCheatsheetPreview } from "@/components/preview/shortcut-cheatsheet-preview"
 import { ShortcutRecorderPreview } from "@/components/preview/shortcut-recorder-preview"
@@ -136,6 +137,7 @@ export const PREVIEWS: Record<string, ComponentType> = {
   "regex-input": RegexInputPreview,
   "request-inspector": RequestInspectorPreview,
   "saved-views": SavedViewsPreview,
+  "schema-viewer": SchemaViewerPreview,
   "secret-field": SecretFieldPreview,
   "shortcut-cheatsheet": ShortcutCheatsheetPreview,
   "shortcut-recorder": ShortcutRecorderPreview,

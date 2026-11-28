@@ -97,6 +97,7 @@ const ENTRY_LAYOUT: {
   { slug: "kanban-board", category: "structure" },
   { slug: "log-viewer", category: "structure" },
   { slug: "request-inspector", category: "structure" },
+  { slug: "schema-viewer", category: "structure" },
   { slug: "sortable-list", category: "structure" },
   { slug: "stepper", category: "structure" },
   { slug: "timeline", category: "structure" },

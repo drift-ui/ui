@@ -1096,6 +1096,29 @@ export function IssueViewSwitcher({
   )
 }`,
   },
+  "schema-viewer": {
+    notes:
+      "SchemaViewer renders a semantic HTML table of database table columns showing column name, type, nullability (NOT NULL for primary keys or nullable={false}, NULL otherwise), default value, and badges for primary key (PK), foreign key (FK), unique (UQ), and indexed (IDX) constraints. Foreign key references render as accessible links that call onReferenceClick(ref, column). Includes a column-name filter field controlled via filter/defaultFilter/onFilterChange or hidden with searchable={false}. Pure helpers (parseReference, getColumnBadges, isColumnNullable, filterColumns, formatTableName, summarizeColumns) live in @/lib/schema-viewer-utils. Installs badge, button, input.",
+    example: `"use client"
+
+import { SchemaViewer } from "@/components/ui/schema-viewer"
+
+export function OrdersSchema() {
+  return (
+    <SchemaViewer
+      table={{
+        name: "orders",
+        columns: [
+          { name: "id", type: "uuid", primaryKey: true },
+          { name: "user_id", type: "uuid", nullable: false, references: "users.id" },
+          { name: "total", type: "numeric(10,2)", nullable: false, default: "0" },
+        ],
+      }}
+      onReferenceClick={(ref) => console.log("Open", ref)}
+    />
+  )
+}`,
+  },
   "secret-field": {
     notes:
       "SecretField displays a value the user cannot edit, such as an API key or webhook secret. It shows a fixed run of 8 dots plus the last visibleChars characters (default 4); values that short or shorter stay fully masked. The reveal button is a toggle with aria-pressed, and reveal state is controlled with revealed/onRevealedChange or uncontrolled with defaultRevealed. Copy always writes the full value, even while masked, and announces Copied through a status region. Name it with aria-label or aria-labelledby. For a field the user types a secret into, use password-input.",
