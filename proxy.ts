@@ -1,5 +1,10 @@
-import { NextResponse, type NextRequest } from "next/server"
+import {
+  NextResponse,
+  type NextFetchEvent,
+  type NextRequest,
+} from "next/server"
 
+import { countInstall, registryItemName } from "@/lib/install-count"
 import {
   componentPath,
   DEFAULT_PRIMITIVE_LIBRARY,
@@ -7,8 +12,16 @@ import {
   PRIMITIVE_LIBRARY_COOKIE,
 } from "@/lib/primitive-library"
 
-export function proxy(request: NextRequest) {
-  const slug = request.nextUrl.pathname.split("/")[2]
+export function proxy(request: NextRequest, event: NextFetchEvent) {
+  const { pathname } = request.nextUrl
+
+  if (pathname.startsWith("/r/")) {
+    const item = registryItemName(pathname)
+    if (item) event.waitUntil(countInstall(item))
+    return NextResponse.next()
+  }
+
+  const slug = pathname.split("/")[2]
   if (isPrimitiveLibrary(slug)) {
     return NextResponse.redirect(new URL("/components", request.url))
   }
@@ -24,5 +37,11 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/components/:slug",
+  matcher: [
+    "/components/:slug",
+    {
+      source: "/r/:path+",
+      has: [{ type: "header", key: "user-agent", value: "shadcn" }],
+    },
+  ],
 }

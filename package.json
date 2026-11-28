@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.base-ui.json",
     "registry:build": "shadcn build && bun scripts/build-base-ui-registry.ts && shadcn build registry.base.json --output public/r/base && bun scripts/build-style-registry.ts",
     "test": "bun run registry:build && vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "installs": "bun --env-file=.env.redis scripts/installs.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
