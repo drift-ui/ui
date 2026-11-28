@@ -40,7 +40,7 @@ export const config = {
   matcher: [
     "/components/:slug",
     {
-      source: "/r/:path*",
+      source: "/r/:path+",
       has: [{ type: "header", key: "user-agent", value: "shadcn" }],
     },
   ],

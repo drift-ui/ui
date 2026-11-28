@@ -52,6 +52,7 @@ describe("countInstall", () => {
   afterEach(() => {
     vi.unstubAllEnvs()
     vi.unstubAllGlobals()
+    vi.restoreAllMocks()
   })
 
   it("does nothing without Redis credentials", async () => {
@@ -70,9 +71,11 @@ describe("countInstall", () => {
     vi.stubEnv("KV_REST_API_TOKEN", "secret")
     const fetchMock = vi.fn().mockResolvedValue(new Response("[]"))
     vi.stubGlobal("fetch", fetchMock)
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
     await countInstall("cron-input", new Date("2026-11-28T12:00:00Z"))
 
+    expect(errorSpy).not.toHaveBeenCalled()
     expect(fetchMock).toHaveBeenCalledWith("https://redis.example/pipeline", {
       method: "POST",
       headers: { Authorization: "Bearer secret" },
@@ -83,22 +86,30 @@ describe("countInstall", () => {
     })
   })
 
-  it("swallows a failed request so an install never breaks", async () => {
+  it("logs a network failure and still resolves", async () => {
     vi.stubEnv("KV_REST_API_URL", "https://redis.example")
     vi.stubEnv("KV_REST_API_TOKEN", "secret")
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")))
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
     await expect(countInstall("cron-input")).resolves.toBeUndefined()
+    expect(errorSpy).toHaveBeenCalledWith(
+      "install count for cron-input failed: network error"
+    )
   })
 
-  it("resolves when Upstash rejects the token", async () => {
+  it("logs a rejected token and still resolves", async () => {
     vi.stubEnv("KV_REST_API_URL", "https://redis.example")
     vi.stubEnv("KV_REST_API_TOKEN", "wrong")
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(new Response("", { status: 401 }))
     )
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {})
 
     await expect(countInstall("cron-input")).resolves.toBeUndefined()
+    expect(errorSpy).toHaveBeenCalledWith(
+      "install count for cron-input failed: 401"
+    )
   })
 })

@@ -64,6 +64,10 @@ describe("registry install counting", () => {
     expect(matches("/r/new-york/cron-input.json")).toBe(false)
   })
 
+  it("leaves a bare /r alone", () => {
+    expect(matches("/r", "shadcn")).toBe(false)
+  })
+
   it("passes the request through and counts the item after responding", async () => {
     vi.stubEnv("KV_REST_API_URL", "https://redis.example")
     vi.stubEnv("KV_REST_API_TOKEN", "secret")

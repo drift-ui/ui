@@ -27,7 +27,7 @@ export async function countInstall(item: string, now = new Date()) {
   if (!url || !token) return
 
   const key = installWeekKey(now)
-  await fetch(`${url}/pipeline`, {
+  const response = await fetch(`${url}/pipeline`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify([
@@ -35,4 +35,9 @@ export async function countInstall(item: string, now = new Date()) {
       ["HINCRBY", key, "_total", 1],
     ]),
   }).catch(() => null)
+  if (!response?.ok) {
+    console.error(
+      `install count for ${item} failed: ${response?.status ?? "network error"}`
+    )
+  }
 }
