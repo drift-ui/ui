@@ -446,7 +446,15 @@ function normalizeValue(
     if (Array.isArray(value)) return value
     return value ? [value] : []
   }
-  return value
+  return Array.isArray(value) ? (value[0] ?? "") : value
+}
+
+function toText(value: unknown): string | null {
+  if (typeof value === "string") return value
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value)
+  }
+  return null
 }
 
 function sanitizeItems(raw: unknown[], depth: number): FilterItem[] {
@@ -473,11 +481,13 @@ function sanitizeItem(raw: unknown, depth: number): FilterItem | null {
   if (typeof item.fieldId !== "string" || !isOperator(item.operator)) {
     return null
   }
+  const texts = Array.isArray(item.value)
+    ? item.value.map(toText)
+    : [item.value == null ? "" : toText(item.value)]
+  if (texts.some((text) => text === null)) return null
   const value = Array.isArray(item.value)
-    ? item.value.map(String)
-    : item.value == null
-      ? ""
-      : String(item.value)
+    ? (texts as string[])
+    : (texts[0] as string)
   return {
     id,
     fieldId: item.fieldId,

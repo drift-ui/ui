@@ -597,6 +597,37 @@ describe("parseFilters with untrusted input", () => {
     })
   })
 
+  it("keeps a single value for scalar operators", () => {
+    const parsed = parseFilters(
+      '[{"fieldId":"status","operator":"is","value":["open","closed"]}]'
+    )
+    expect(parsed).toEqual([expect.objectContaining({ value: "open" })])
+    expect(matchesFilters({ status: "open" }, parsed)).toBe(true)
+    expect(serializeFilters(parsed)).toBe("status:is:open")
+    expect(
+      parseFilters('[{"fieldId":"title","operator":"contains","value":[]}]')
+    ).toEqual([expect.objectContaining({ value: "" })])
+  })
+
+  it("drops only the entry whose value cannot be read as text", () => {
+    const parsed = parseFilters(
+      JSON.stringify([
+        {
+          fieldId: "status",
+          operator: "is",
+          value: { toString: 1, valueOf: 1 },
+        },
+        { fieldId: "status", operator: "is-any-of", value: ["open", {}] },
+        { fieldId: "flag", operator: "is", value: true },
+        { fieldId: "status", operator: "is", value: "open" },
+      ])
+    )
+    expect(parsed).toEqual([
+      expect.objectContaining({ fieldId: "flag", value: "true" }),
+      expect.objectContaining({ fieldId: "status", value: "open" }),
+    ])
+  })
+
   it("caps nesting so a huge link stays fast and cannot overflow the stack", () => {
     const levels = 20000
     const link = "and(".repeat(levels) + "status:is:open" + ")".repeat(levels)
