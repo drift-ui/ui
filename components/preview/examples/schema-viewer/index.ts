@@ -14,7 +14,7 @@ export const examples: ComponentExample[] = [
     id: "constraints",
     title: "Constraints and descriptions",
     description:
-      "Display primary keys, unique constraints, indexes, column descriptions, and compact mode without the filter bar.",
+      "Display primary keys, unique constraints, indexes, and column descriptions without the filter bar.",
     Preview: SchemaViewerConstraintsPreview,
   },
 ]

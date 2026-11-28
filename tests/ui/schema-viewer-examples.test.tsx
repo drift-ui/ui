@@ -25,16 +25,32 @@ describe("SchemaViewer previews", () => {
     expect(
       screen.getByRole("table", { name: "orders schema" })
     ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "orders" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    )
+    expect(screen.getByRole("button", { name: "users" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    )
 
     await user.click(screen.getByRole("link", { name: "References users.id" }))
     expect(
       screen.getByRole("table", { name: "users schema" })
     ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "users" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    )
 
     await user.click(screen.getByRole("button", { name: "orgs" }))
     expect(
       screen.getByRole("table", { name: "orgs schema" })
     ).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "orgs" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    )
   })
 
   it("renders SchemaViewerConstraintsPreview without a filter bar", () => {

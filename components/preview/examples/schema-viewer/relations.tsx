@@ -64,6 +64,7 @@ export function SchemaViewerRelationsPreview() {
             type="button"
             size="sm"
             variant={activeTable === name ? "default" : "outline"}
+            aria-pressed={activeTable === name}
             onClick={() => setActiveTable(name)}
           >
             {name}

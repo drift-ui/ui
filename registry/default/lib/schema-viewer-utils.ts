@@ -35,6 +35,11 @@ export const SCHEMA_BADGE_META: Record<
   index: { shortLabel: "IDX", label: "Indexed" },
 }
 
+/**
+ * Parse a foreign-key reference string into table and column parts.
+ * Dotted strings are assumed to end with a column name (`table.column` or
+ * `schema.table.column`); a bare name without dots returns `column: ""`.
+ */
 export function parseReference(ref: string): SchemaForeignKeyRef | null {
   const trimmed = ref.trim()
   if (!trimmed) return null

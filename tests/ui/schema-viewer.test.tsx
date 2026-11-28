@@ -187,12 +187,17 @@ describe("SchemaViewer", () => {
       screen.getByRole("searchbox", { name: "Filter columns" }),
       "s"
     )
-    expect(onFilterChange).toHaveBeenCalled()
+    expect(onFilterChange).toHaveBeenCalledWith("totals")
 
-    rerender(<SchemaViewer table={ORDERS_TABLE} searchable={false} />)
+    rerender(
+      <SchemaViewer table={ORDERS_TABLE} filter="total" searchable={false} />
+    )
     expect(
       screen.queryByRole("searchbox", { name: "Filter columns" })
     ).not.toBeInTheDocument()
+    expect(screen.getByText("5 columns")).toBeInTheDocument()
+    expect(screen.getByRole("rowheader", { name: "id" })).toBeInTheDocument()
+    expect(screen.getByRole("status")).toBeEmptyDOMElement()
   })
 
   it("renders empty table message and singular column label when 1 column exists", () => {

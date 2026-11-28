@@ -3551,7 +3551,8 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           name: "searchable",
           type: "boolean",
           default: "true",
-          description: "Whether to render the column filter input.",
+          description:
+            "Whether to render the column filter input and apply filtering (filter and defaultFilter are ignored when false).",
         },
       ],
       rest: "<div>",

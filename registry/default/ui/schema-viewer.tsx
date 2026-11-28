@@ -71,10 +71,10 @@ function SchemaViewer({
   )
 
   const tableName = formatTableName(table)
-  const needle = filterQuery.trim()
+  const needle = searchable ? filterQuery.trim() : ""
   const visibleColumns = React.useMemo(
-    () => (searchable ? filterColumns(table.columns, needle) : table.columns),
-    [searchable, table.columns, needle]
+    () => (needle ? filterColumns(table.columns, needle) : table.columns),
+    [table.columns, needle]
   )
 
   const totalCount = table.columns.length
@@ -261,7 +261,9 @@ function SchemaViewer({
                           {column.default}
                         </span>
                       ) : (
-                        <span aria-label="No default">—</span>
+                        <span role="img" aria-label="No default">
+                          —
+                        </span>
                       )}
                     </td>
                     <td className="px-3.5 py-2.5 align-top">
@@ -271,6 +273,7 @@ function SchemaViewer({
                           return (
                             <Badge
                               key={kind}
+                              role="img"
                               variant={BADGE_VARIANT[kind]}
                               title={meta.label}
                               aria-label={meta.label}
@@ -301,6 +304,7 @@ function SchemaViewer({
                         )}
                         {badges.length === 0 && !reference && (
                           <span
+                            role="img"
                             aria-label="No constraints"
                             className="text-muted-foreground"
                           >
