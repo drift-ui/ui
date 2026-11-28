@@ -236,4 +236,61 @@ describe("RecurrenceEditor", () => {
       )
     )
   })
+
+  it("warns when a rule has no occurrences in the search window", () => {
+    render(
+      <RecurrenceEditor
+        aria-label="Repeat"
+        defaultValue="FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=30"
+        start={TUESDAY}
+        showPreview={3}
+      />
+    )
+
+    expect(
+      screen.getByText(
+        "No occurrences in the next 100 years. Check the days, months and end date."
+      )
+    ).toBeInTheDocument()
+  })
+
+  it("labels a single hour in the singular", () => {
+    render(
+      <RecurrenceEditor
+        aria-label="Repeat"
+        defaultValue="FREQ=HOURLY"
+        start={TUESDAY}
+      />
+    )
+
+    expect(screen.getByLabelText("Frequency")).toHaveDisplayValue("hour")
+    expect(summary()).toHaveTextContent("Hourly")
+  })
+
+  it("keeps an hourly rule hourly while its interval changes", async () => {
+    const user = userEvent.setup()
+    const onValueChange = vi.fn()
+    render(
+      <RecurrenceEditor
+        aria-label="Repeat"
+        defaultValue="FREQ=HOURLY;INTERVAL=2"
+        start={TUESDAY}
+        showPreview={3}
+        onValueChange={onValueChange}
+      />
+    )
+
+    expect(screen.getByLabelText("Frequency")).toHaveDisplayValue("hours")
+    expect(summary()).toHaveTextContent("Every 2 hours")
+    expect(screen.queryByText(/No occurrences/)).toBeNull()
+    expect(screen.queryByRole("group", { name: "Repeat on" })).toBeNull()
+
+    await user.click(screen.getByLabelText("Repeat every"))
+    await user.keyboard("{ArrowUp}")
+    expect(onValueChange).toHaveBeenLastCalledWith("FREQ=HOURLY;INTERVAL=3")
+
+    await user.selectOptions(screen.getByLabelText("Frequency"), "DAILY")
+    expect(onValueChange).toHaveBeenLastCalledWith("FREQ=DAILY;INTERVAL=3")
+    expect(screen.getByLabelText("Frequency")).toHaveDisplayValue("days")
+  })
 })

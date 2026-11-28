@@ -34,7 +34,7 @@ describe("recurrence", () => {
   })
 
   it("falls back to weekly every 1 for missing or invalid parts", () => {
-    expect(parseRRule("FREQ=HOURLY;INTERVAL=0;BYDAY=XX;COUNT=-2")).toEqual({
+    expect(parseRRule("FREQ=BOGUS;INTERVAL=0;BYDAY=XX;COUNT=-2")).toEqual({
       frequency: "WEEKLY",
       interval: 1,
       byDay: [],
@@ -513,5 +513,79 @@ describe("recurrence", () => {
       exdates: ["20261103"],
     })
     expect(dateOnlyExdate[0].getDate()).toBe(4)
+  })
+})
+
+describe("recurrence quality pass", () => {
+  it("answers a rule that never matches without freezing", () => {
+    const started = performance.now()
+    expect(
+      occurrences(
+        parseRRule("FREQ=YEARLY;BYDAY=MO;BYSETPOS=60"),
+        new Date(2026, 10, 28, 9, 0),
+        5
+      )
+    ).toEqual([])
+    expect(performance.now() - started).toBeLessThan(1000)
+  })
+
+  it("recomputes set positions when a rule object is changed and reused", () => {
+    const recurrence = parseRRule(
+      "FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=1"
+    )
+    const first = occurrences(recurrence, TUESDAY, 1)
+    recurrence.bySetPos = [-1]
+    const last = occurrences(recurrence, TUESDAY, 1)
+    expect(first[0].toDateString()).toBe("Tue Dec 01 2026")
+    expect(last[0].toDateString()).toBe("Mon Nov 30 2026")
+  })
+
+  it("keeps sub-daily frequencies instead of rewriting them as weekly", () => {
+    for (const [frequency, unit] of [
+      ["HOURLY", "hour"],
+      ["MINUTELY", "minute"],
+      ["SECONDLY", "second"],
+    ]) {
+      const recurrence = parseRRule(`FREQ=${frequency};INTERVAL=3;COUNT=4`)
+      expect(recurrence.unsupportedFrequency).toBe(frequency)
+      expect(formatRRule(recurrence)).toBe(
+        `FREQ=${frequency};INTERVAL=3;COUNT=4`
+      )
+      expect(describeRecurrence(recurrence, TUESDAY)).toBe(
+        `Every 3 ${unit}s, 4 times`
+      )
+      expect(occurrences(recurrence, TUESDAY, 3)).toEqual([])
+    }
+    expect(describeRecurrence(parseRRule("FREQ=HOURLY"), TUESDAY)).toBe(
+      "Hourly"
+    )
+    expect(parseRRule("FREQ=BOGUS").unsupportedFrequency).toBeUndefined()
+    expect(parseRRule("INTERVAL=2")).toMatchObject({
+      frequency: "WEEKLY",
+      interval: 2,
+    })
+  })
+
+  it("writes ordinals past fifth as numbers with suffixes", () => {
+    const describe = (rule: string) =>
+      describeRecurrence(parseRRule(rule), TUESDAY)
+    expect(describe("FREQ=YEARLY;BYDAY=MO;BYSETPOS=60")).toBe(
+      "Yearly on the 60th Monday"
+    )
+    expect(describe("FREQ=YEARLY;BYDAY=MO;BYSETPOS=22")).toBe(
+      "Yearly on the 22nd Monday"
+    )
+    expect(describe("FREQ=MONTHLY;BYDAY=MO;BYSETPOS=6")).toBe(
+      "Monthly on the 6th Monday"
+    )
+    expect(describe("FREQ=MONTHLY;BYDAY=MO;BYSETPOS=-3")).toBe(
+      "Monthly on the third to last Monday"
+    )
+    expect(describe("FREQ=YEARLY;BYDAY=FR;BYSETPOS=-10")).toBe(
+      "Yearly on the 10th to last Friday"
+    )
+    expect(describe("FREQ=YEARLY;BYDAY=TU;BYSETPOS=11,12,13")).toBe(
+      "Yearly on the 11th, 12th and 13th Tuesday"
+    )
   })
 })

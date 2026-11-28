@@ -12,6 +12,7 @@ import {
   occurrences,
   ordinalWeekOf,
   parseRRule,
+  SUBDAILY_UNITS,
   WEEKDAY_NAMES,
   WEEKDAYS,
   weekdayOf,
@@ -141,13 +142,21 @@ function RecurrenceEditor({
       ? recurrence.byDay.map((day) => day.weekday)
       : [weekdayOf(anchor)]
   const monthly = monthlyChoices(recurrence, anchor)
-  const upcoming =
-    showPreview > 0
-      ? occurrences(recurrence, anchor, showPreview, {
-          tzid: tzid ?? recurrence.tzid,
-          exdates: exdates ?? recurrence.exdates,
-        })
-      : []
+  const anchorTime = anchor.getTime()
+  const upcoming = React.useMemo(() => {
+    if (showPreview <= 0) return []
+    const parsed = parseRRule(rule)
+    return occurrences(parsed, new Date(anchorTime), showPreview, {
+      tzid: tzid ?? parsed.tzid,
+      exdates: exdates ?? parsed.exdates,
+    })
+  }, [rule, anchorTime, showPreview, tzid, exdates])
+  const neverOccurs =
+    showPreview > 0 &&
+    isClient &&
+    upcoming.length === 0 &&
+    !recurrence.unsupportedFrequency
+  const subdaily = recurrence.unsupportedFrequency
   const dateFormatter = new Intl.DateTimeFormat(undefined, {
     weekday: "short",
     month: "short",
@@ -174,6 +183,7 @@ function RecurrenceEditor({
       byMonthDay: next === "MONTHLY" ? [anchor.getDate()] : [],
       bySetPos: undefined,
       byMonth: undefined,
+      unsupportedFrequency: undefined,
     })
   }
 
@@ -224,10 +234,16 @@ function RecurrenceEditor({
         />
         <select
           aria-label="Frequency"
-          value={frequency}
+          value={subdaily ?? frequency}
           onChange={(event) => changeFrequency(event.target.value as Frequency)}
           className={SELECT_CLASS_NAME}
         >
+          {subdaily && (
+            <option value={subdaily}>
+              {SUBDAILY_UNITS[subdaily].unit}
+              {interval === 1 ? "" : "s"}
+            </option>
+          )}
           {FREQUENCIES.map((option) => (
             <option key={option} value={option}>
               {UNIT_LABELS[option][interval === 1 ? 0 : 1]}
@@ -347,13 +363,20 @@ function RecurrenceEditor({
         </div>
       </fieldset>
 
-      <p
-        data-slot="recurrence-editor-summary"
-        aria-live="polite"
-        className="font-medium"
-      >
-        {describeRecurrence(recurrence, anchor)}
-      </p>
+      <div aria-live="polite" className="grid gap-1.5">
+        <p data-slot="recurrence-editor-summary" className="font-medium">
+          {describeRecurrence(recurrence, anchor)}
+        </p>
+        {neverOccurs && (
+          <p
+            data-slot="recurrence-editor-never"
+            className="text-xs text-warning"
+          >
+            No occurrences in the next 100 years. Check the days, months and end
+            date.
+          </p>
+        )}
+      </div>
 
       {recurrence.unknownParts &&
         Object.keys(recurrence.unknownParts).length > 0 && (
