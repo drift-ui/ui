@@ -288,3 +288,73 @@ describe("getNextRunTimes", () => {
     expect(runs[0].getHours()).toBe(9)
   })
 })
+
+describe("describeCron wording", () => {
+  it("never leaks cron syntax into the description", () => {
+    const expressions = [
+      "* 9 * * *",
+      "* 9-17 * * 1-5",
+      "*/1 * * * *",
+      "0/15 * * * *",
+      "5/20 * * * *",
+      "0 */1 * * *",
+      "0 9/2 * * *",
+      "0 */2 * * 1",
+      "*/10 */3 * * 1-5",
+      "5,10 * * * *",
+      "0-30/10 * * * *",
+      "0 9-17/4 * * *",
+    ]
+    for (const expression of expressions) {
+      const description = describeCron(expression)
+      expect(description, expression).not.toBe("")
+      expect(description, expression).not.toMatch(/[*/]/)
+    }
+  })
+
+  it("describes every minute of a fixed hour", () => {
+    expect(describeCron("* 9 * * *")).toBe(
+      "Every minute from 09:00 through 09:59"
+    )
+  })
+
+  it("uses singular units for a step of one", () => {
+    expect(describeCron("*/1 * * * *")).toBe("Every minute")
+    expect(describeCron("0 */1 * * *")).toBe("Every hour, at minute 0")
+  })
+
+  it("describes a step that starts at a minute", () => {
+    expect(describeCron("0/15 * * * *")).toBe("Every 15 minutes")
+    expect(describeCron("5/20 * * * *")).toBe("Every 20 minutes from minute 5")
+  })
+
+  it("lists several minutes of every hour", () => {
+    expect(describeCron("5,10 * * * *")).toBe(
+      "At minutes 5 and 10 of every hour"
+    )
+  })
+})
+
+describe("cron shortcuts", () => {
+  it("expands the standard @ shortcuts", () => {
+    expect(describeCron("@daily")).toBe("At 00:00 every day")
+    expect(describeCron("@midnight")).toBe("At 00:00 every day")
+    expect(describeCron("@hourly")).toBe("Every hour, at minute 0")
+    expect(describeCron("@weekly")).toBe("At 00:00, on Sunday")
+    expect(describeCron("@monthly")).toBe("At 00:00, on day 1 of the month")
+    expect(describeCron("@yearly")).toBe(
+      "At 00:00, on day 1 of the month, in January"
+    )
+    expect(describeCron("@ANNUALLY")).toBe(describeCron("@yearly"))
+    expect(getNextRunTimes("@daily", 1, new Date(2026, 10, 28, 12, 0))).toEqual(
+      [new Date(2026, 10, 29, 0, 0)]
+    )
+  })
+
+  it("explains @reboot and unknown shortcuts", () => {
+    expect(parseCron("@reboot").error).toBe(
+      "@reboot runs once at startup, so it has no schedule"
+    )
+    expect(parseCron("@often").error).toBe('Unknown shortcut "@often"')
+  })
+})

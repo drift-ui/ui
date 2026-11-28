@@ -679,7 +679,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           name: "nextRunsFrom",
           type: "Date",
           description:
-            "Reference date for upcoming runs calculation. Defaults to current time.",
+            "Reference date for upcoming runs. Defaults to the current time in the browser; without it, upcoming runs are left out of the server render to avoid a hydration mismatch.",
         },
         {
           name: "formatNextRun",
