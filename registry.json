@@ -1035,6 +1035,31 @@
       ]
     },
     {
+      "name": "schema-viewer",
+      "type": "registry:ui",
+      "title": "Schema Viewer",
+      "description": "Database table schema inspector displaying columns, types, nullability, defaults, key badges, and clickable foreign key links.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "badge",
+        "button",
+        "input",
+        "utils",
+        "@drift-ui/use-controllable-state",
+        "@drift-ui/shape"
+      ],
+      "files": [
+        {
+          "path": "registry/default/ui/schema-viewer.tsx",
+          "type": "registry:ui"
+        },
+        {
+          "path": "registry/default/lib/schema-viewer-utils.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
       "name": "secret-field",
       "type": "registry:ui",
       "title": "Secret Field",

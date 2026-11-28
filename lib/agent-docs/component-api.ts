@@ -3513,6 +3513,57 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
         'Map a ?view= search param to an active id and back, keeping other params. A missing or unknown id resolves to the current default view, or the first view when none is the default, so activeId stays controlled. The active view can then change without onActiveChange (back and forward, or a new default while the URL has no param), so derive the working data from activeId. key defaults to "view".',
     },
   ],
+  "schema-viewer": [
+    {
+      name: "SchemaViewer",
+      description:
+        "Renders a database table schema in a semantic HTML table with column name, type, nullability, default value, constraint badges (PK, FK, UQ, IDX), clickable foreign key links, and a column filter input.",
+      props: [
+        {
+          name: "table",
+          type: "SchemaTable",
+          required: true,
+          description:
+            "Table definition including name, optional schema, optional description, and columns array.",
+        },
+        {
+          name: "onReferenceClick",
+          type: "(ref: string, column: SchemaColumn) => void",
+          description: "Called when a foreign key reference link is activated.",
+        },
+        {
+          name: "filter",
+          type: "string",
+          description: "Controlled column-name filter query.",
+        },
+        {
+          name: "defaultFilter",
+          type: "string",
+          default: '""',
+          description: "Initial column-name filter query when uncontrolled.",
+        },
+        {
+          name: "onFilterChange",
+          type: "(filter: string) => void",
+          description: "Called when the filter query changes.",
+        },
+        {
+          name: "searchable",
+          type: "boolean",
+          default: "true",
+          description: "Whether to render the column filter input.",
+        },
+      ],
+      rest: "<div>",
+    },
+    {
+      name: "parseReference, getColumnBadges, isColumnNullable, filterColumns, formatTableName, summarizeColumns",
+      signature:
+        "parseReference(ref: string): SchemaForeignKeyRef | null; getColumnBadges(column: SchemaColumn): SchemaBadgeKind[]; isColumnNullable(column: SchemaColumn): boolean; filterColumns(columns: SchemaColumn[], query: string): SchemaColumn[]; formatTableName(table: Pick<SchemaTable, 'name' | 'schema'>): string; summarizeColumns(columns: SchemaColumn[]): { total: number; primaryKeys: number; foreignKeys: number; unique: number; indexed: number }",
+      description:
+        "Pure schema helpers for parsing foreign key references, computing constraint badges, resolving SQL nullability, filtering columns, formatting table names, and summarizing counts. Import from @/lib/schema-viewer-utils.",
+    },
+  ],
   "secret-field": [
     {
       name: "SecretField",
