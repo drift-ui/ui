@@ -17,6 +17,8 @@ describe("registryItemName", () => {
 
   it("skips the registry index and anything that is not an item", () => {
     expect(registryItemName("/r/registry.json")).toBeNull()
+    expect(registryItemName("/r/not-a-component.json")).toBeNull()
+    expect(registryItemName("/r/new-york/_total.json")).toBeNull()
     expect(registryItemName("/r/")).toBeNull()
     expect(registryItemName("/r/.json")).toBeNull()
     expect(registryItemName("/r/cron-input")).toBeNull()
@@ -85,6 +87,17 @@ describe("countInstall", () => {
     vi.stubEnv("KV_REST_API_URL", "https://redis.example")
     vi.stubEnv("KV_REST_API_TOKEN", "secret")
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")))
+
+    await expect(countInstall("cron-input")).resolves.toBeUndefined()
+  })
+
+  it("resolves when Upstash rejects the token", async () => {
+    vi.stubEnv("KV_REST_API_URL", "https://redis.example")
+    vi.stubEnv("KV_REST_API_TOKEN", "wrong")
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("", { status: 401 }))
+    )
 
     await expect(countInstall("cron-input")).resolves.toBeUndefined()
   })

@@ -1,9 +1,12 @@
+import registry from "@/registry.json"
+
+const ITEM_NAMES = new Set(registry.items.map((item) => item.name))
+
 export function registryItemName(pathname: string) {
-  const file = pathname.split("/").pop() ?? ""
+  const file = pathname.slice(pathname.lastIndexOf("/") + 1)
   if (!file.endsWith(".json")) return null
   const name = file.slice(0, -".json".length)
-  if (!name || name === "registry") return null
-  return name
+  return ITEM_NAMES.has(name) ? name : null
 }
 
 export function installWeekKey(now: Date) {
