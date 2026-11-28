@@ -679,7 +679,7 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
           name: "nextRunsFrom",
           type: "Date",
           description:
-            "Reference date for upcoming runs calculation. Defaults to current time.",
+            "Reference date for upcoming runs. Defaults to the current time. Upcoming runs are always computed in the browser, because their wall-clock times depend on the time zone.",
         },
         {
           name: "formatNextRun",
@@ -712,20 +712,20 @@ export const COMPONENT_API: Record<string, ApiPart[]> = {
       signature:
         "parseCron(expression: string | undefined | null): ParseCronResult",
       description:
-        "Pure logic helper in @/lib/cron-input that parses, validates, and expands a standard 5-field cron expression.",
+        "Pure logic helper in @/lib/cron-input-utils that parses, validates, and expands a standard 5-field cron expression.",
     },
     {
       name: "describeCron",
       signature: "describeCron(expression: string | undefined | null): string",
       description:
-        "Pure logic helper in @/lib/cron-input that turns a 5-field cron expression into a plain-English sentence.",
+        "Pure logic helper in @/lib/cron-input-utils that turns a 5-field cron expression into a plain-English sentence.",
     },
     {
       name: "getNextRunTimes",
       signature:
         "getNextRunTimes(expression: string | undefined | null, count?: number, from?: Date): Date[]",
       description:
-        "Pure logic helper in @/lib/cron-input that computes the next N run times starting from a reference date, following POSIX matching rules.",
+        "Pure logic helper in @/lib/cron-input-utils that computes the next N run times starting from a reference date, following POSIX matching rules.",
     },
   ],
   "csv-importer": [

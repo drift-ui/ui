@@ -1,4 +1,6 @@
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
+import { hydrateRoot } from "react-dom/client"
+import { renderToString } from "react-dom/server"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -25,7 +27,11 @@ describe("CronInput", () => {
     const input = screen.getByRole("textbox")
     expect(input).toHaveAttribute("aria-invalid", "true")
 
-    const error = screen.getByRole("alert")
+    const error = document.querySelector(
+      "[data-slot=cron-input-error]"
+    ) as HTMLElement
+    expect(error.closest("[aria-live=polite]")).not.toBeNull()
+    expect(screen.queryByRole("alert")).toBeNull()
     expect(error).toHaveTextContent(/minute/i)
     expect(error).toHaveTextContent("65")
     expect(input).toHaveAttribute("aria-describedby", error.id)
@@ -127,5 +133,107 @@ describe("CronInput", () => {
     await user.click(every5mBtn)
 
     expect(input).toHaveValue("*/5 * * * *")
+  })
+
+  it("leaves upcoming runs out of the server render", () => {
+    expect(
+      renderToString(<CronInput defaultValue="0 9 * * 1-5" />)
+    ).not.toContain("cron-input-run-item")
+    expect(
+      renderToString(
+        <CronInput
+          defaultValue="0 9 * * 1-5"
+          nextRunsFrom={new Date(2026, 10, 13, 8, 30)}
+        />
+      )
+    ).not.toContain("cron-input-run-item")
+  })
+
+  it("hydrates server markup without a mismatch, then lists upcoming runs", async () => {
+    const element = (
+      <CronInput
+        defaultValue="0 9 * * 1-5"
+        nextRunsFrom={new Date(2026, 10, 13, 8, 30)}
+      />
+    )
+    const container = document.createElement("div")
+    container.innerHTML = renderToString(element)
+    document.body.append(container)
+    const onRecoverableError = vi.fn()
+
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, element, { onRecoverableError })
+    })
+
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(
+      container.querySelectorAll("[data-slot=cron-input-run-item]")
+    ).toHaveLength(5)
+    act(() => root?.unmount())
+    container.remove()
+  })
+
+  it("says so when a valid schedule can never run", () => {
+    render(
+      <CronInput
+        defaultValue="0 0 30 2 *"
+        nextRunsFrom={new Date(2026, 10, 13, 8, 30)}
+      />
+    )
+
+    expect(
+      screen.getByText(
+        "This schedule never runs: no date matches its day and month."
+      )
+    ).toBeInTheDocument()
+  })
+
+  it("uses the singular for a single upcoming run", () => {
+    render(
+      <CronInput
+        defaultValue="0 9 * * 1-5"
+        nextRunsFrom={new Date(2026, 10, 13, 8, 30)}
+        nextRunsCount={1}
+      />
+    )
+
+    expect(screen.getByText("Upcoming run")).toBeInTheDocument()
+  })
+
+  it("keeps an aria-describedby passed through inputProps", () => {
+    render(
+      <CronInput
+        defaultValue="0 9 * * 1-5"
+        inputProps={{ "aria-describedby": "schedule-help" }}
+      />
+    )
+
+    const describedBy = screen
+      .getByRole("textbox")
+      .getAttribute("aria-describedby")
+    expect(describedBy?.split(" ")).toContain("schedule-help")
+    expect(describedBy?.split(" ")).toHaveLength(2)
+  })
+
+  it("lets inputProps turn autocorrect back on", () => {
+    render(
+      <CronInput
+        defaultValue="0 9 * * 1-5"
+        inputProps={{ autoCorrect: "on" }}
+      />
+    )
+
+    expect(screen.getByRole("textbox")).toHaveAttribute("autocorrect", "on")
+  })
+
+  it("turns off autocorrect and spellcheck so mobile keyboards leave the expression alone", () => {
+    render(<CronInput defaultValue="0 9 * * 1-5" />)
+
+    const input = screen.getByRole("textbox")
+    expect(input).toHaveAttribute("autocomplete", "off")
+    expect(input).toHaveAttribute("autocorrect", "off")
+    expect(input).toHaveAttribute("autocapitalize", "off")
+    expect(input).toHaveAttribute("spellcheck", "false")
   })
 })

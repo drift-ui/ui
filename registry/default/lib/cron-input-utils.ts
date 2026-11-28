@@ -68,6 +68,16 @@ const WEEKDAY_FULL_NAMES = [
   "Saturday",
 ]
 
+const SHORTCUTS: Record<string, string> = {
+  "@yearly": "0 0 1 1 *",
+  "@annually": "0 0 1 1 *",
+  "@monthly": "0 0 1 * *",
+  "@weekly": "0 0 * * 0",
+  "@daily": "0 0 * * *",
+  "@midnight": "0 0 * * *",
+  "@hourly": "0 * * * *",
+}
+
 interface FieldConfig {
   name: CronFieldName
   min: number
@@ -229,7 +239,22 @@ export function parseCron(
     }
   }
 
-  const parts = expression.trim().split(/\s+/)
+  const trimmed = expression.trim()
+  if (trimmed.startsWith("@")) {
+    const shortcut = trimmed.toLowerCase()
+    if (shortcut === "@reboot") {
+      return {
+        isValid: false,
+        error: "@reboot runs once at startup, so it has no schedule",
+      }
+    }
+    if (!Object.hasOwn(SHORTCUTS, shortcut)) {
+      return { isValid: false, error: `Unknown shortcut "${trimmed}"` }
+    }
+    return parseCron(SHORTCUTS[shortcut])
+  }
+
+  const parts = trimmed.split(/\s+/)
   if (parts.length !== 5) {
     return {
       isValid: false,
@@ -411,6 +436,39 @@ function formatList(items: string[]): string {
   return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`
 }
 
+function every(step: string, unit: "minute" | "hour"): string {
+  return Number(step) === 1 ? `Every ${unit}` : `Every ${step} ${unit}s`
+}
+
+function describeMinutes(raw: string, minutes: number[]): string {
+  if (raw === "*") return "Every minute"
+  if (raw.includes("/")) {
+    const [base, step] = raw.split("/")
+    const text = every(step, "minute")
+    if (base === "*" || base === "0") return text
+    const [from, to] = base.split("-")
+    return to
+      ? `${text} from minute ${from} through ${to}`
+      : `${text} from minute ${from}`
+  }
+  const list = formatList(minutes.map(String))
+  return minutes.length === 1 ? `At minute ${list}` : `At minutes ${list}`
+}
+
+function describeHours(raw: string, hours: number[]): string {
+  if (raw.startsWith("*/"))
+    return `, ${every(raw.slice(2), "hour").toLowerCase()}`
+  const [range, step] = raw.split("/")
+  if (range.includes("-")) {
+    const [h1, h2] = range.split("-")
+    const span = `${padTwo(parseInt(h1, 10))}:00 through ${padTwo(parseInt(h2, 10))}:59`
+    return step
+      ? `, ${every(step, "hour").toLowerCase()} from ${span}`
+      : `, ${span}`
+  }
+  return ` past hour ${formatList(hours.map(String))}`
+}
+
 /**
  * Returns a plain-English description of a cron expression.
  */
@@ -441,8 +499,7 @@ export function describeCron(expression: string | undefined | null): string {
     rawMonth === "*" &&
     rawDow === "*"
   ) {
-    const step = rawMin.slice(2)
-    return `Every ${step} minutes`
+    return every(rawMin.slice(2), "minute")
   }
 
   // Case 3: Every hour at a minute (e.g. 0 * * * *)
@@ -457,7 +514,7 @@ export function describeCron(expression: string | undefined | null): string {
     if (rawMin === "0") {
       return "Every hour, at minute 0"
     }
-    return `At minute ${rawMin} of every hour`
+    return `${describeMinutes(rawMin, parsed.fields!.minute)} of every hour`
   }
 
   // Case 4: Every N hours at minute (e.g. 0 */2 * * *)
@@ -467,13 +524,12 @@ export function describeCron(expression: string | undefined | null): string {
     rawMonth === "*" &&
     rawDow === "*"
   ) {
-    const step = rawHour.slice(2)
-    if (rawMin.startsWith("*/")) {
-      const minStep = rawMin.slice(2)
-      return `Every ${minStep} minutes, every ${step} hours`
+    const hours = every(rawHour.slice(2), "hour")
+    if (rawMin.includes("*") || rawMin.includes("/")) {
+      return `${describeMinutes(rawMin, parsed.fields!.minute)}, ${hours.toLowerCase()}`
     }
-    const minText = rawMin === "0" ? "at minute 0" : `at minute ${rawMin}`
-    return `Every ${step} hours, ${minText}`
+    const minText = describeMinutes(rawMin, parsed.fields!.minute)
+    return `${hours}, ${minText.charAt(0).toLowerCase()}${minText.slice(1)}`
   }
 
   // Build time description:
@@ -492,31 +548,19 @@ export function describeCron(expression: string | undefined | null): string {
     } else {
       timeStr = `At minute ${rawMin} past hour ${rawHour}`
     }
-  } else if (rawMin.startsWith("*/")) {
-    const step = rawMin.slice(2)
-    if (rawHour === "*") {
-      timeStr = `Every ${step} minutes`
-    } else if (rawHour.startsWith("*/")) {
-      const hStep = rawHour.slice(2)
-      timeStr = `Every ${step} minutes, every ${hStep} hours`
-    } else if (rawHour.includes("-")) {
-      if (rawHour.includes("/")) {
-        const [range, hStep] = rawHour.split("/")
-        const [h1, h2] = range.split("-")
-        timeStr = `Every ${step} minutes, every ${hStep} hours from ${padTwo(parseInt(h1, 10))}:00 through ${padTwo(parseInt(h2, 10))}:59`
-      } else {
-        const [h1, h2] = rawHour.split("-")
-        timeStr = `Every ${step} minutes, ${padTwo(parseInt(h1, 10))}:00 through ${padTwo(parseInt(h2, 10))}:59`
-      }
-    } else {
-      timeStr = `Every ${step} minutes past hour ${rawHour}`
-    }
   } else if (rawMin === "0" && rawHour === "*") {
     timeStr = "Every hour, at minute 0"
   } else if (rawHour === "*") {
-    timeStr = `At minute ${rawMin} of every hour`
+    const minutes = describeMinutes(rawMin, parsed.fields!.minute)
+    timeStr =
+      rawMin.includes("*") || rawMin.includes("/")
+        ? minutes
+        : `${minutes} of every hour`
+  } else if (rawMin === "*" && /^\d+$/.test(rawHour)) {
+    const hour = padTwo(parseInt(rawHour, 10))
+    timeStr = `Every minute from ${hour}:00 through ${hour}:59`
   } else {
-    timeStr = `At ${rawHour}:${rawMin}`
+    timeStr = `${describeMinutes(rawMin, parsed.fields!.minute)}${describeHours(rawHour, parsed.fields!.hour)}`
   }
 
   // Build day description:

@@ -191,12 +191,13 @@
       "name": "cron-input",
       "type": "registry:ui",
       "title": "Cron Input",
-      "description": "Standard five-field cron expression input with plain-English schedule readout and upcoming run times.",
+      "description": "Standard five-field cron expression input with @daily-style shortcuts, a plain-English schedule readout and upcoming run times.",
       "dependencies": ["lucide-react"],
       "registryDependencies": [
         "utils",
         "@drift-ui/use-controllable-state",
-        "@drift-ui/shape"
+        "@drift-ui/shape",
+        "@drift-ui/warning-color"
       ],
       "files": [
         {

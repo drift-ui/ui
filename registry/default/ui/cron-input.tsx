@@ -45,6 +45,10 @@ function defaultFormatDate(date: Date): string {
   return `${weekday}, ${year}-${month}-${day} ${hours}:${minutes}`
 }
 
+function subscribeToNothing() {
+  return () => {}
+}
+
 function CronInput({
   value,
   defaultValue = "* * * * *",
@@ -78,10 +82,19 @@ function CronInput({
     [currentValue]
   )
 
+  const isClient = React.useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false
+  )
+  const canListRuns =
+    parsed.isValid && showNextRuns && nextRunsCount > 0 && isClient
+
   const nextRuns = React.useMemo(() => {
-    if (!parsed.isValid || !showNextRuns) return []
+    if (!canListRuns) return []
     return getNextRunTimes(currentValue, nextRunsCount, nextRunsFrom)
-  }, [parsed.isValid, showNextRuns, currentValue, nextRunsCount, nextRunsFrom])
+  }, [canListRuns, currentValue, nextRunsCount, nextRunsFrom])
+  const neverRuns = canListRuns && nextRuns.length === 0
 
   const handleInputChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,6 +104,15 @@ function CronInput({
   )
 
   const isInvalid = !parsed.isValid
+  const ownDescriptionId = isInvalid
+    ? errorId
+    : showDescription && description
+      ? descId
+      : undefined
+  const describedBy =
+    [inputProps?.["aria-describedby"], ownDescriptionId]
+      .filter(Boolean)
+      .join(" ") || undefined
 
   return (
     <div
@@ -100,6 +122,10 @@ function CronInput({
     >
       <div className="relative flex w-full flex-col gap-1.5">
         <input
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           {...inputProps}
           id={inputId}
           data-slot="cron-input-field"
@@ -110,13 +136,7 @@ function CronInput({
           disabled={disabled}
           readOnly={readOnly}
           aria-invalid={isInvalid ? "true" : undefined}
-          aria-describedby={
-            isInvalid
-              ? errorId
-              : showDescription && description
-                ? descId
-                : undefined
-          }
+          aria-describedby={describedBy}
           className={cn(
             "h-control w-full min-w-0 rounded-control border border-input bg-transparent px-3 py-1 font-mono text-base shadow-control transition-[color,box-shadow] outline-none placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30",
             "focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50",
@@ -126,29 +146,41 @@ function CronInput({
           )}
         />
 
-        {isInvalid ? (
-          <div
-            id={errorId}
-            data-slot="cron-input-error"
-            role="alert"
-            className="flex items-center gap-1.5 text-xs text-destructive"
-          >
-            <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
-            <span>{parsed.error}</span>
-          </div>
-        ) : showDescription && description ? (
-          <div
-            id={descId}
-            data-slot="cron-input-description"
-            className="flex items-center gap-1.5 text-xs text-muted-foreground"
-          >
-            <Clock
-              className="size-3.5 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <span>{description}</span>
-          </div>
-        ) : null}
+        <div aria-live="polite" className="empty:-mt-1.5">
+          {isInvalid ? (
+            <div
+              id={errorId}
+              data-slot="cron-input-error"
+              className="flex items-center gap-1.5 text-xs text-destructive"
+            >
+              <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>{parsed.error}</span>
+            </div>
+          ) : showDescription && description ? (
+            <div
+              id={descId}
+              data-slot="cron-input-description"
+              className="flex items-center gap-1.5 text-xs text-muted-foreground"
+            >
+              <Clock
+                className="size-3.5 shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <span>{description}</span>
+            </div>
+          ) : null}
+          {neverRuns && (
+            <div
+              data-slot="cron-input-never-runs"
+              className="mt-1.5 flex items-center gap-1.5 text-xs text-warning"
+            >
+              <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>
+                This schedule never runs: no date matches its day and month.
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {!isInvalid && showNextRuns && nextRuns.length > 0 && (
@@ -167,7 +199,11 @@ function CronInput({
               className="size-3.5 shrink-0 text-muted-foreground"
               aria-hidden="true"
             />
-            <span>Upcoming {nextRuns.length} runs</span>
+            <span>
+              {nextRuns.length === 1
+                ? "Upcoming run"
+                : `Upcoming ${nextRuns.length} runs`}
+            </span>
           </div>
           <ol data-slot="cron-input-runs-list" className="space-y-1 font-mono">
             {nextRuns.map((run, index) => (
